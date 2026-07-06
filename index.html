@@ -251,30 +251,27 @@ if(!manutencoes.length) {
 
 let configsGerais = JSON.parse(localStorage.getItem('configsGerais') || '{}');
 
-if(!configsGerais[DEFAULT_ID]) {
-    configsGerais[DEFAULT_ID] = {
-        "kmBase": 93290, 
-        "dataBase": "2026-04-10T12:00",
-        "modoKm": "dia", 
-        "kmValor": 30, 
-        "horaAtualizacao": "19:00", 
-        "diasSemana": [1,2,3,4,5], 
-        "tanqueL": 54.0, // Corrigido de 0,0 para 54.0
-        "ajusteManual": 0  // Novo campo adicionado
-    };
+// Função auxiliar para garantir que, se o ID não existir, ele comece zerado
+function garantirConfig(veiculoId) {
+    if (!configsGerais[veiculoId]) {
+        configsGerais[veiculoId] = {
+            "kmBase": 0,
+            "dataBase": "",
+            "modoKm": "dia",
+            "kmValor": 0,
+            "horaAtualizacao": "12:00",
+            "diasSemana": [],
+            "tanqueL": 0,
+            "ajusteManual": 0
+        };
+    }
 }
-if(!configsGerais[FIESTA_ID]) {
-    configsGerais[FIESTA_ID] = {
-        "kmBase": 82500, 
-        "dataBase": "2026-01-08T12:00",
-        "modoKm": "dia", 
-        "kmValor": 40, 
-        "horaAtualizacao": "19:00", 
-        "diasSemana": [1,2,3,4,5], 
-        "tanqueL": 54.0,
-        "ajusteManual": 0 // Novo campo adicionado
-    };
-}
+
+// Garante que o veículo ativo tenha sua configuração (ou cria uma vazia)
+garantirConfig(DEFAULT_ID);
+garantirConfig(FIESTA_ID);
+
+    
 let editandoAbastId = null;
 let editandoManutId = null;
 let editandoVeiculoId = null;
