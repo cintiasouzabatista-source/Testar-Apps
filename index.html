@@ -63,6 +63,14 @@ input, select, button { width: 100%; padding: 12px; border-radius: 10px; border:
 
 .alerta-oleo-container { margin-top: 8px; background: rgba(255,255,255,0.15); border-radius: 8px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
 .alerta-oleo-container.critico { background: rgba(239, 68, 68, 0.3); border: 1px solid #ef4444; }
+    .dia-semana-destaque {
+    display: block;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 2px;
+    font-weight: 400;
+    text-transform: uppercase;
+}
 </style>
 </head>
 <body>
@@ -687,16 +695,54 @@ function atualizarPainel() {
         document.getElementById('mediaReal').innerText = `0 km/l`;
     }
 
-   // Dentro da função atualizarPainel, substitua o bloco que faz a dataFormatada:
-let dataFormatada = "";
-if(ultimaDataRaw) {
-    const [ano, mes, dia] = ultimaDataRaw.split('-');
+// --- COLE ESTA FUNÇÃO ANTES DO SEU SCRIPT ---
+function getDiaSemana(dataRaw) {
+    if (!dataRaw) return "";
+    const [ano, mes, dia] = dataRaw.split('-');
     const dataObj = new Date(ano, mes - 1, dia);
-    const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    const diaSemana = diasSemana[dataObj.getDay()];
+    const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    return dias[dataObj.getDay()];
+}
+
+// --- DENTRO DA SUA FUNÇÃO atualizarPainel() ---
+// SUBSTITUA A PARTE DO ÚLTIMO E PRÓXIMO ABASTECIMENTO POR ESTE BLOCO:
+
+const abastDoVeiculo = abastecimentos.filter(a => a.veiculoId == veiculoAtivoId).sort((a,b) => b.km - a.km);
+
+if(abastDoVeiculo.length > 0) {
+    const ultimo = abastDoVeiculo[0];
+    const diaSemana = getDiaSemana(ultimo.data);
+    const dataFormatada = ultimo.data.split('-').reverse().join('/');
     
-    // Formato: 01/07/2026 (Qua)
-    dataFormatada = `${dia}/${mes}/${ano} (${diaSemana})`;
+    // Atualiza o card de Último Abastecimento com o dia da semana
+   document.getElementById('ultimoKmAbast').innerHTML = `
+    ${ultimoKm} km 
+    <span class="dia-semana-destaque">${dataFormatada}</span>
+`;
+    
+    let conf = obterConfigAtual();
+    let tamanhoTanque = parseFloat(conf.tanqueL) || 0;
+    let mediaUsada = mediaReal > 0 ? mediaReal : 30; 
+    
+    if(tamanhoTanque > 0) {
+        const estimativaProxKm = Math.floor(ultimo.km + (tamanhoTanque * mediaUsada));
+        let kmDiario = parseInt(conf.kmValor) || 0;
+        if(conf.modoKm === 'semana') kmDiario = kmDiario / 7;
+        if(conf.modoKm === 'mes') kmDiario = kmDiario / 30;
+        
+        let dataTexto = "";
+        if (kmDiario > 0 && estimativaProxKm > kmVirtual) {
+            let kmRestantes = estimativaProxKm - kmVirtual;
+            let diasRestantes = Math.ceil(kmRestantes / kmDiario);
+            let dataEstimada = new Date();
+            dataEstimada.setDate(dataEstimada.getDate() + diasRestantes);
+            
+            const diaSemanaProx = getDiaSemana(dataEstimada.toISOString().split('T')[0]);
+            dataTexto = `<span class="dia-semana-destaque">${dataEstimada.toLocaleDateString('pt-BR')} (${diaSemanaProx})</span>`;
+        }
+        
+        document.getElementById('autonomia').innerHTML = `${estimativaProxKm} km ${dataTexto}`;
+    }
 }
         
         document.getElementById('ultimoKmAbast').innerHTML = `${ultimoKm} km ${dataFormatada ? `<span class="sub-data">(${dataFormatada})</span>` : ''}`;
