@@ -234,6 +234,7 @@ input, select, button { width: 100%; padding: 12px; border-radius: 10px; border:
 </nav>
 
 <script>
+// --- 1. CONFIGURAÇÕES E ESTADO ---
 const DEFAULT_ID = "honda_lead_110";
 const FIESTA_ID = "ford_fiesta_2012";
 
@@ -248,566 +249,91 @@ if(!veiculos.length) {
 let veiculoAtivoId = localStorage.getItem('veiculoAtivoId') || DEFAULT_ID;
 let abastecimentos = JSON.parse(localStorage.getItem('abast') || '[]');
 let manutencoes = JSON.parse(localStorage.getItem('manut') || '[]');
-
-if(!manutencoes.length) {
-    manutencoes = [
-        {id: 1, veiculoId: DEFAULT_ID, data: "2025-10-24", km: 90000, tipo: "Idler / Correia CVT", valor: "370.00", proxKm: 110000},
-        {id: 5, veiculoId: DEFAULT_ID, data: "2026-04-10", km: 93290, tipo: "Troca Óleo Motor", valor: "73.00", proxKm: 94290},
-        {id: 15, veiculoId: FIESTA_ID, data: "2026-01-08", km: 82100, tipo: "Troca Óleo Motor", valor: "250.00", proxKm: 92100}
-    ];
-}
-
 let configsGerais = JSON.parse(localStorage.getItem('configsGerais') || '{}');
 
-// Função auxiliar para garantir que, se o ID não existir, ele comece zerado
-function garantirConfig(veiculoId) {
-    if (!configsGerais[veiculoId]) {
-        configsGerais[veiculoId] = {
-            "kmBase": 0,
-            "dataBase": "",
-            "modoKm": "dia",
-            "kmValor": 0,
-            "horaAtualizacao": "12:00",
-            "diasSemana": [],
-            "tanqueL": 0,
-            "ajusteManual": 0
-        };
-    }
-}
-
-// Garante que o veículo ativo tenha sua configuração (ou cria uma vazia)
-garantirConfig(DEFAULT_ID);
-garantirConfig(FIESTA_ID);
-
-    
-let editandoAbastId = null;
-let editandoManutId = null;
-let editandoVeiculoId = null;
-let abaAtualIndice = 0;
-const totalAbas = 5;
-let toqueInicioX = 0;
-let toqueInicioY = 0;
-
-document.getElementById('mTipo').addEventListener('change', function() {
-    document.getElementById('mTipoCustom').style.display = this.value === 'Outro' ? 'block' : 'none';
-});
-
-function toggleFormulario(formId, btnId, textoOriginal) {
-    const form = document.getElementById(formId);
-    const btn = document.getElementById(btnId);
-    if(form.style.display === "block") {
-        form.style.display = "none";
-        btn.innerText = textoOriginal;
-    } else {
-        form.style.display = "block";
-        btn.innerText = "✖ Fechar Formulário";
-    }
+// --- 2. FUNÇÕES AUXILIARES ---
+function getDiaSemana(dataRaw) {
+    if (!dataRaw) return "";
+    const [ano, mes, dia] = dataRaw.split('-');
+    const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+    return dias[new Date(ano, mes - 1, dia).getDay()];
 }
 
 function obterConfigAtual() {
     if(!configsGerais[veiculoAtivoId]) {
-        let vObj = veiculos.find(v => v.id == veiculoAtivoId);
-        configsGerais[veiculoAtivoId] = {
-            "kmBase": vObj ? vObj.km : 0,
-            "dataBase": vObj ? vObj.data + "T12:00" : "2026-01-01T12:00",
-            "modoKm": "dia", "kmValor": 30, "horaAtualizacao": "19:00", "diasSemana": [1,2,3,4,5], "tanqueL": 54.0
-        };
+        configsGerais[veiculoAtivoId] = { kmBase: 0, dataBase: "2026-01-01T12:00", modoKm: "dia", kmValor: 0, horaAtualizacao: "19:00", diasSemana: [1,2,3,4,5], tanqueL: 0, ajusteManual: 0 };
     }
     return configsGerais[veiculoAtivoId];
 }
 
-// 1. Função de Navegação (Para resolver o erro de referência)
-function navegarParaIndice(indice) {
-    console.log("Navegando para:", indice);
-    // Adicione aqui a lógica que você usa para alternar abas/telas
-}
-
-// 2. Função de Atualização do Painel (Sem duplicidade)
-function atualizarPainel() {
-    const kmAtual = typeof calcularOdometroVirtual === 'function' ? calcularOdometroVirtual() : 0;
-    
-    // Declaração única da variável
-    const abastDoVeiculo = abastecimentos.filter(a => a.veiculoId === veiculoAtivoId)
-                                        .sort((a,b) => new Date(b.data) - new Date(a.data));
-    
-    // Atualiza Odômetro
-    const elKm = document.getElementById('odometroVirtual');
-    if(elKm) elKm.innerText = kmAtual + " km";
-    
-    // Calcula Média
-    const ultimosDois = abastDoVeiculo.slice(0, 2);
-    let mediaReal = 0;
-    if (ultimosDois.length === 2) {
-        const kmRodados = ultimosDois[0].km - ultimosDois[1].km;
-        mediaReal = kmRodados / ultimosDois[0].litros;
-    }
-    const elMedia = document.getElementById('mediaReal');
-    if(elMedia) elMedia.innerText = mediaReal > 0 ? mediaReal.toFixed(1) + " km/l" : "--";
-
-    // Mostra dia da semana
-    const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-    const diaNome = diasSemana[new Date().getDay()];
-    const elProx = document.getElementById('proxAtualizacao');
-    if(elProx) elProx.innerHTML = `Baseado no seu uso: <span class="dia-semana-destaque">${diaNome}-feira</span>`;
-}
-
-// 3. Inicialização segura
-window.onload = () => {
-    if(typeof atualizarSeletorCabecalho === 'function') atualizarSeletorCabecalho();
-    atualizarPainel();
-};
-
-function toggleTheme() { 
-    document.body.classList.toggle('dark'); 
-    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); 
-}
-
-function salvar() { 
-    localStorage.setItem('veiculos', JSON.stringify(veiculos)); 
+function salvar() {
+    localStorage.setItem('veiculos', JSON.stringify(veiculos));
     localStorage.setItem('veiculoAtivoId', veiculoAtivoId);
-    localStorage.setItem('abast', JSON.stringify(abastecimentos)); 
-    localStorage.setItem('manut', JSON.stringify(manutencoes)); 
-    localStorage.setItem('configsGerais', JSON.stringify(configsGerais)); 
+    localStorage.setItem('abast', JSON.stringify(abastecimentos));
+    localStorage.setItem('manut', JSON.stringify(manutencoes));
+    localStorage.setItem('configsGerais', JSON.stringify(configsGerais));
 }
 
-function mudarVeiculoAtivo() {
-    veiculoAtivoId = document.getElementById('seletorVeiculoPrincipal').value;
-    salvar();
-    atualizarPainel();
-}
-
-function atualizarSeletorCabecalho() {
-    const sel = document.getElementById('seletorVeiculoPrincipal');
-    sel.innerHTML = veiculos.map(v => `<option value="${v.id}" ${v.id == veiculoAtivoId ? 'selected':''}>${v.marca} ${v.modelo}</option>`).join('');
-}
-
-function salvarConfig() {
-    let conf = obterConfigAtual();
-    conf.kmBase = parseInt(document.getElementById('kmBase').value) || 0;
-    conf.dataBase = document.getElementById('dataBase').value;
-    conf.kmValor = parseInt(document.getElementById('kmValor').value) || 0; // Mudado para 0 como você pediu
-    conf.horaAtualizacao = document.getElementById('horaAtualizacao').value;
-    conf.tanqueL = parseFloat(document.getElementById('tanqueL').value) || 0; // Mudado para 0
-    conf.ajusteManual = parseFloat(document.getElementById('ajusteManual').value) || 0; // Capturando o manual
-    conf.diasSemana = [...document.querySelectorAll('.dia-btn.active')].map(b => parseInt(b.dataset.dia));
-    
-    salvar();
-    atualizarPainel();
-}
-
-function carregarConfig() {
-    let conf = obterConfigAtual();
-    document.getElementById('kmBase').value = conf.kmBase || '';
-    document.getElementById('dataBase').value = conf.dataBase || '';
-    document.getElementById('kmValor').value = conf.kmValor || ''; // Zerado
-    document.getElementById('tanqueL').value = conf.tanqueL || ''; // Zerado
-    document.getElementById('ajusteManual').value = conf.ajusteManual || ''; // Carregando o manual
-    document.getElementById('horaAtualizacao').value = conf.horaAtualizacao || '19:00';
-    // ... restante da função
-}
-
-document.querySelectorAll('.dia-btn').forEach(b => { 
-    b.onclick = () => { b.classList.toggle('active'); salvarConfig(); }; 
-});
-
-document.querySelectorAll('#modoKm button').forEach(b => {
-    b.onclick = () => {
-        document.querySelectorAll('#modoKm button').forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
-        obterConfigAtual().modoKm = b.dataset.modo;
-        salvarConfig();
-    };
-});
-
-function calcTotal() {
-    const litros = parseFloat(document.getElementById('aLitros').value) || 0;
-    const valorLitro = parseFloat(document.getElementById('aValorL').value) || 0;
-    document.getElementById('aTotal').value = (litros * valorLitro > 0) ? (litros * valorLitro).toFixed(2) : '';
-}
-
-function ajustarOdometro() {
-    const novoKm = prompt("Digite o Km atual exato do painel:");
-    if (!novoKm) return;
-    let conf = obterConfigAtual();
-    conf.kmBase = parseInt(novoKm) || 0;
-    conf.dataBase = new Date().toISOString().slice(0,16);
-    salvar();
-    atualizarPainel();
-}
-
-function calcularOdometroVirtual() {
-    let conf = obterConfigAtual();
-
-    const kmBase = Number(conf.kmBase) || 0;
-    if (!conf.dataBase) return kmBase;
-
-    const dataBase = new Date(conf.dataBase);
-    const agora = new Date();
-
-    if (agora <= dataBase) return kmBase;
-
-    let kmPorDia = 0;
-
-    switch (conf.modoKm) {
-        case "dia":
-            kmPorDia = Number(conf.kmValor) || 0;
-            break;
-
-        case "semana":
-            kmPorDia = (Number(conf.kmValor) || 0) / 7;
-            break;
-
-        case "mes":
-            kmPorDia = (Number(conf.kmValor) || 0) / 30.4375;
-            break;
-    }
-
-    let kmRodados = 0;
-
-    const diasPermitidos = conf.diasSemana || [0,1,2,3,4,5,6];
-
-    const data = new Date(dataBase);
-
-    while (data < agora) {
-
-        const diaSemana = data.getDay();
-
-        if (diasPermitidos.includes(diaSemana)) {
-
-            const horaAtual = agora.getHours() * 60 + agora.getMinutes();
-
-            const [h,m] = (conf.horaAtualizacao || "19:00").split(":");
-
-            const horaProgramada = Number(h) * 60 + Number(m);
-
-            if (
-                data.toDateString() !== agora.toDateString() ||
-                horaAtual >= horaProgramada
-            ) {
-                kmRodados += kmPorDia;
-            }
-        }
-
-        data.setDate(data.getDate() + 1);
-    }
-
-    return Math.round(kmBase + kmRodados);
-        }
-function prepararEditAbast(id) {
-    const a = abastecimentos.find(x => x.id === id);
-    if(!a) return;
-    editandoAbastId = a.id;
-    document.getElementById('aKm').value = a.km;
-    document.getElementById('aData').value = a.data;
-    document.getElementById('aLitros').value = a.litros;
-    document.getElementById('aValorL').value = a.valorL;
-    document.getElementById('aTotal').value = a.total;
-    document.getElementById('aTipo').value = a.tipo;
-    document.getElementById('tituloAbast').innerText = "Editar Abastecimento";
-    document.getElementById('btnCancelarAbast').style.display = "inline-block";
-    document.getElementById('formAbast').style.display = "block";
-}
-
-function cancelarEditAbast() {
-    editandoAbastId = null;
-    document.getElementById('tituloAbast').innerText = "Novo Abastecimento";
-    document.getElementById('btnCancelarAbast').style.display = "none";
-    document.getElementById('aLitros').value = ''; document.getElementById('aValorL').value = ''; document.getElementById('aTotal').value = '';
-}
-
-function deletarAbast(id) {
-    if(confirm("Excluir este abastecimento?")) { abastecimentos = abastecimentos.filter(a => a.id !== id); salvar(); renderAbast(); atualizarPainel(); }
-}
-
-function renderManut() {
-    const lista = document.getElementById('listaManut');
-    const filtrados = manutencoes.filter(m => m.veiculoId === veiculoAtivoId).sort((a,b) => new Date(b.data) - new Date(a.data));
-    lista.innerHTML = filtrados.map(m => `
-        <div class="historico-item">
-            <div>
-                <strong>${m.tipo}</strong> - Realizado com ${m.km} km<br>
-                <small class="muted">Próxima troca: ${m.proxKm ? m.proxKm + ' km' : 'Não definida'} - R$ ${m.valor}</small>
-            </div>
-            <div class="historico-acoes">
-                <button onclick="prepararEditManut(${m.id})"><i class="fas fa-edit"></i></button>
-                <button class="del" onclick="deletarManut(${m.id})"><i class="fas fa-trash"></i></button>
-            </div>
-        </div>
-    `).join('');
-}
-    // Adicione esta função para renderizar a lista de abastecimento
-function renderAbast() {
-    const lista = document.getElementById('listaAbast');
-    const filtrados = abastecimentos.filter(a => a.veiculoId === veiculoAtivoId).sort((a,b) => new Date(b.data) - new Date(a.data));
-    lista.innerHTML = filtrados.map(a => `
-        <div class="historico-item">
-            <div>
-                <strong>${a.data.split('-').reverse().join('/')}</strong> - ${a.km} km<br>
-                <small class="muted">${a.litros}L a R$ ${a.valorL} = R$ ${a.total} (${a.tipo})</small>
-            </div>
-            <div class="historico-acoes">
-                <button onclick="prepararEditAbast(${a.id})"><i class="fas fa-edit"></i></button>
-                <button class="del" onclick="deletarAbast(${a.id})"><i class="fas fa-trash"></i></button>
-            </div>
-        </div>
-    `).join('');
-}
-
-// Adicione esta função para salvar um novo abastecimento
-function addAbast() {
-    const km = parseInt(document.getElementById('aKm').value);
-    const data = document.getElementById('aData').value;
-    const litros = document.getElementById('aLitros').value;
-    const valorL = document.getElementById('aValorL').value;
-    const total = document.getElementById('aTotal').value;
-    const tipo = document.getElementById('aTipo').value;
-
-    if(!km || !data || !litros) { alert("Preencha os campos!"); return; }
-
-    if(editandoAbastId) {
-        abastecimentos = abastecimentos.map(a => a.id === editandoAbastId ? {id:a.id, veiculoId:veiculoAtivoId, km, data, litros, valorL, total, tipo} : a);
-        editandoAbastId = null;
-    } else {
-        abastecimentos.push({ id: Date.now(), veiculoId: veiculoAtivoId, km, data, litros, valorL, total, tipo });
-    }
-    salvar();
-    renderAbast();
-    atualizarPainel();
-    toggleFormulario('formAbast', 'btnToggleAbast', '➕ Registrar Novo Abastecimento');
-    cancelarEditAbast();
-}
-
-function addManut() {
-    const km = parseInt(document.getElementById('mKm').value);
-    const data = document.getElementById('mData').value;
-    let tipo = document.getElementById('mTipo').value;
-    if(tipo === 'Outro') tipo = document.getElementById('mTipoCustom').value;
-    const valor = document.getElementById('mValor').value;
-    const proxKm = parseInt(document.getElementById('mProxKm').value) || "";
-
-    if(!km || !data || !tipo) { alert("Preencha os campos obrigatórios!"); return; }
-
-    if(editandoManutId) {
-        manutencoes = manutencoes.map(m => m.id === editandoManutId ? {id:m.id, veiculoId:veiculoAtivoId, km, data, tipo, valor, proxKm} : m);
-        editandoManutId = null;
-    } else {
-        manutencoes.push({ id: Date.now(), veiculoId: veiculoAtivoId, km, data, tipo, valor, proxKm });
-    }
-    salvar(); renderManut(); toggleFormulario('formManut', 'btnToggleManut', '➕ Registrar Nova Manutenção'); cancelarEditManut(); atualizarPainel();
-}
-
-function prepararEditManut(id) {
-    const m = manutencoes.find(x => x.id === id);
-    if(!m) return;
-    editandoManutId = m.id;
-    document.getElementById('mKm').value = m.km;
-    document.getElementById('mData').value = m.data;
-    document.getElementById('mValor').value = m.valor;
-    document.getElementById('mProxKm').value = m.proxKm;
-    document.getElementById('tituloManut').innerText = "Editar Registro de Serviço";
-    document.getElementById('btnCancelarManut').style.display = "inline-block";
-    document.getElementById('formManut').style.display = "block";
-}
-
-function cancelarEditManut() {
-    editandoManutId = null;
-    document.getElementById('tituloManut').innerText = "Registrar Realização de Serviço";
-    document.getElementById('btnCancelarManut').style.display = "none";
-}
-
-function deletarManut(id) {
-    if(confirm("Excluir esta manutenção?")) { manutencoes = manutencoes.filter(m => m.id !== id); salvar(); renderManut(); atualizarPainel(); }
-}
-
-function renderVeiculos() {
-    const lista = document.getElementById('listaVeiculos');
-    lista.innerHTML = veiculos.map(v => `
-        <div class="historico-item">
-            <div>
-                <strong>${v.marca} ${v.modelo}</strong> (${v.ano})<br>
-                <small class="muted">Km de Entrada: ${v.km} km</small>
-            </div>
-            <div class="historico-acoes">
-                <button onclick="prepararEditVeiculo('${v.id}')"><i class="fas fa-edit"></i></button>
-                <button class="del" onclick="deletarVeiculo('${v.id}')"><i class="fas fa-trash"></i></button>
-            </div>
-        </div>
-    `).join('');
-}
-
-function addVeiculo() {
-    const tipo = document.getElementById('vTipo').value;
-    const marca = document.getElementById('vMarca').value;
-    const modelo = document.getElementById('vModelo').value;
-    const ano = document.getElementById('vAno').value;
-    const km = parseInt(document.getElementById('vKm').value);
-    const data = document.getElementById('vData').value;
-
-    if(!marca || !modelo || !km) { alert("Preencha os dados básicos do veículo!"); return; }
-
-    if(editandoVeiculoId) {
-        veiculos = veiculos.map(v => v.id === editandoVeiculoId ? {id: v.id, tipo, marca, modelo, ano, km, data} : v);
-        editandoVeiculoId = null;
-    } else {
-        const id = (marca + "_" + modelo + "_" + ano).toLowerCase().replace(/ /g, "_");
-        veiculos.push({ id, tipo, marca, modelo, ano, km, data });
-        veiculoAtivoId = id;
-    }
-    salvar(); renderVeiculos(); toggleFormulario('formVeiculo', 'btnToggleVeiculo', '➕ Cadastrar Novo Veículo'); cancelarEditVeiculo(); atualizarPainel();
-}
-
-function prepararEditVeiculo(id) {
-    const v = veiculos.find(x => x.id === id);
-    if(!v) return;
-    editandoVeiculoId = v.id;
-    document.getElementById('vTipo').value = v.tipo;
-    document.getElementById('vMarca').value = v.marca;
-    document.getElementById('vModelo').value = v.modelo;
-    document.getElementById('vAno').value = v.ano;
-    document.getElementById('vKm').value = v.km;
-    document.getElementById('vData').value = v.data || '';
-    document.getElementById('tituloVeiculo').innerText = "Editar Veículo";
-    document.getElementById('btnCancelarVeiculo').style.display = "inline-block";
-    document.getElementById('formVeiculo').style.display = "block";
-}
-
-function cancelarEditVeiculo() {
-    editandoVeiculoId = null;
-    document.getElementById('tituloVeiculo').innerText = "Cadastrar / Editar Veículo";
-    document.getElementById('btnCancelarVeiculo').style.display = "none";
-    document.getElementById('vMarca').value = ''; document.getElementById('vModelo').value = ''; document.getElementById('vAno').value = ''; document.getElementById('vKm').value = ''; document.getElementById('vData').value = '';
-}
-
-function deletarVeiculo(id) {
-    if(veiculos.length <= 1) { alert("Você deve manter pelo menos um veículo cadastrado!"); return; }
-    if(confirm("Deseja deletar permanentemente este veículo e trocar de perfil?")) {
-        veiculos = veiculos.filter(v => v.id !== id);
-        if(veiculoAtivoId === id) veiculoAtivoId = veiculos[0].id;
-        salvar(); renderVeiculos(); atualizarPainel();
-    }
-}
-
+// --- 3. FUNÇÃO PRINCIPAL DE ATUALIZAÇÃO ---
 function atualizarPainel() {
-    // 1. Atualizações de interface gerais
-    if (typeof atualizarSeletorCabelhlo === 'function') atualizarSeletorCabecalho();
-    
     const kmVirtual = typeof calcularOdometroVirtual === 'function' ? calcularOdometroVirtual() : 0;
-    document.getElementById('odometroVirtual').innerText = `${kmVirtual.toLocaleString('pt-BR')} km`;
+    const elKm = document.getElementById('odometroVirtual');
+    if(elKm) elKm.innerText = `${kmVirtual.toLocaleString('pt-BR')} km`;
 
-    // 2. Cálculo único da variável (agora sem duplicar)
     const abastDoVeiculo = abastecimentos
         .filter(a => a.veiculoId === veiculoAtivoId)
         .sort((a,b) => new Date(b.data) - new Date(a.data));
 
-    // 3. Atualiza Gasto Total
+    // Gasto Total e Média
     const gastoTotal = abastDoVeiculo.reduce((acc, curr) => acc + (parseFloat(curr.total) || 0), 0);
-    document.getElementById('gastoTotal').innerText = `R$ ${gastoTotal.toFixed(2).replace('.', ',')}`;
+    if(document.getElementById('gastoTotal')) document.getElementById('gastoTotal').innerText = `R$ ${gastoTotal.toFixed(2).replace('.', ',')}`;
 
-    // 4. Calcula Média Real
     let mediaReal = 0;
     if (abastDoVeiculo.length >= 2) {
-        const kmRodados = abastDoVeiculo[0].km - abastDoVeiculo[1].km;
-        const litrosConsumidos = parseFloat(abastDoVeiculo[0].litros) || 1;
-        mediaReal = kmRodados / litrosConsumidos;
-        document.getElementById('mediaReal').innerText = `${mediaReal.toFixed(1)} km/l`;
-    } else {
-        document.getElementById('mediaReal').innerText = "0 km/l";
+        mediaReal = (abastDoVeiculo[0].km - abastDoVeiculo[1].km) / (parseFloat(abastDoVeiculo[0].litros) || 1);
     }
+    if(document.getElementById('mediaReal')) document.getElementById('mediaReal').innerText = `${mediaReal.toFixed(1)} km/l`;
 
-    // 5. Atualiza o card de Último Abastecimento (com dia da semana)
+    // Último Abastecimento e Autonomia
+    const elUltimo = document.getElementById('ultimoKmAbast');
+    const elAutonomia = document.getElementById('autonomia');
+    
     if (abastDoVeiculo.length > 0) {
         const ultimo = abastDoVeiculo[0];
-        const diaSemana = getDiaSemana(ultimo.data); // Certifique-se que essa função existe
-        const dataFormatada = ultimo.data.split('-').reverse().join('/');
+        elUltimo.innerHTML = `${ultimo.km} km <span class="sub-data">(${ultimo.data.split('-').reverse().join('/')})</span>`;
         
-        const elUltimo = document.getElementById('ultimoKmAbast');
-        if(elUltimo) {
-            elUltimo.innerHTML = `${ultimo.km} km <span class="dia-semana-destaque">${dataFormatada} (${diaSemana})</span>`;
-        }
-    }
-}    let conf = obterConfigAtual();
-    let tamanhoTanque = parseFloat(conf.tanqueL) || 0;
-    let mediaUsada = mediaReal > 0 ? mediaReal : 30; 
-    
-    if(tamanhoTanque > 0) {
-        const estimativaProxKm = Math.floor(ultimo.km + (tamanhoTanque * mediaUsada));
-        let kmDiario = parseInt(conf.kmValor) || 0;
-        if(conf.modoKm === 'semana') kmDiario = kmDiario / 7;
-        if(conf.modoKm === 'mes') kmDiario = kmDiario / 30;
-        
-        let dataTexto = "";
-        if (kmDiario > 0 && estimativaProxKm > kmVirtual) {
-            let kmRestantes = estimativaProxKm - kmVirtual;
-            let diasRestantes = Math.ceil(kmRestantes / kmDiario);
-            let dataEstimada = new Date();
-            dataEstimada.setDate(dataEstimada.getDate() + diasRestantes);
-            
-            const diaSemanaProx = getDiaSemana(dataEstimada.toISOString().split('T')[0]);
-            dataTexto = `<span class="dia-semana-destaque">${dataEstimada.toLocaleDateString('pt-BR')} (${diaSemanaProx})</span>`;
-        }
-        
-        document.getElementById('autonomia').innerHTML = `${estimativaProxKm} km ${dataTexto}`;
-    }
-}
-        
-        document.getElementById('ultimoKmAbast').innerHTML = `${ultimoKm} km ${dataFormatada ? `<span class="sub-data">(${dataFormatada})</span>` : ''}`;
-        
-        let conf = obterConfigAtual();
-        let tamanhoTanque = parseFloat(conf.tanqueL) || 0;
-        let mediaUsada = mediaReal > 0 ? mediaReal : 30; 
-        
-        if(tamanhoTanque > 0) {
-            const estimativaProxKm = Math.floor(ultimoKm + (tamanhoTanque * mediaUsada));
-            
-            let kmDiario = parseInt(conf.kmValor) || 0;
-            if(conf.modoKm === 'semana') kmDiario = kmDiario / 7;
-            if(conf.modoKm === 'mes') kmDiario = kmDiario / 30;
-            
-            let dataTexto = "";
-            if (kmDiario > 0 && estimativaProxKm > kmVirtual) {
-                let kmRestantes = estimativaProxKm - kmVirtual;
-                let diasRestantes = Math.ceil(kmRestantes / kmDiario);
-                let dataEstimada = new Date();
-                dataEstimada.setDate(dataEstimada.getDate() + diasRestantes);
-                dataTexto = `<span class="sub-data">(${dataEstimada.toLocaleDateString('pt-BR')})</span>`;
-            }
-            
-            document.getElementById('autonomia').innerHTML = `${estimativaProxKm} km ${dataTexto}`;
+        const conf = obterConfigAtual();
+        if(conf.tanqueL > 0) {
+            const estimativaProxKm = Math.floor(ultimo.km + (conf.tanqueL * (mediaReal > 0 ? mediaReal : 30)));
+            elAutonomia.innerText = `${estimativaProxKm} km`;
         } else {
-            document.getElementById('autonomia').innerText = `--`;
+            elAutonomia.innerText = "--";
         }
-    } else {
-        document.getElementById('ultimoKmAbast').innerText = `0 km`;
-        document.getElementById('autonomia').innerText = `--`;
     }
 
+    // Alerta de Óleo
     const alertaBox = document.getElementById('alertaOleoPainel');
     const manutOleo = manutencoes.filter(m => m.veiculoId === veiculoAtivoId && m.tipo === "Troca Óleo Motor").sort((a,b) => b.km - a.km);
-
-    if(manutOleo.length > 0 && manutOleo[0].proxKm) {
-        const proxTrocaKm = parseInt(manutOleo[0].proxKm);
-        if(kmVirtual >= proxTrocaKm) {
-            const passou = kmVirtual - proxTrocaKm;
-            alertaBox.className = "alerta-oleo-container critico";
-            alertaBox.innerHTML = `<i class="fas fa-exclamation-triangle"></i> 🚨 Óleo vencido há ${passou} km!`;
+    if(alertaBox) {
+        if(manutOleo.length > 0 && manutOleo[0].proxKm) {
+            const prox = parseInt(manutOleo[0].proxKm);
             alertaBox.style.display = "inline-flex";
+            alertaBox.className = kmVirtual >= prox ? "alerta-oleo-container critico" : "alerta-oleo-container";
+            alertaBox.innerHTML = kmVirtual >= prox ? `🚨 Óleo vencido!` : `⚠️ Troca em ${prox - kmVirtual} km`;
         } else {
-            const falta = proxTrocaKm - kmVirtual;
-            alertaBox.className = "alerta-oleo-container";
-            alertaBox.innerHTML = `<i class="fas fa-circle-info"></i> ⚠️ Troca de Óleo em ${falta} km`;
-            alertaBox.style.display = "inline-flex";
+            alertaBox.style.display = "none";
         }
-    } else {
-        alertaBox.style.display = "none";
     }
 }
 
-function limparTudo() {
-    if(confirm("Atenção! Apagar tudo de forma definitiva?")) { localStorage.clear(); location.reload(); }
-}
+// --- 4. INICIALIZAÇÃO ---
+window.onload = () => {
+    if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+    atualizarPainel();
+};
+    </script>
 
-if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
-atualizarPainel();
-</script>
-</body>
+</body> 
+
+
 </html>
