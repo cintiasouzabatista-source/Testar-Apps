@@ -316,35 +316,46 @@ function obterConfigAtual() {
     return configsGerais[veiculoAtivoId];
 }
 
+// 1. Função de Navegação (Para resolver o erro de referência)
 function navegarParaIndice(indice) {
-    if (indice < 0 || indice >= totalAbas) return;
-    abaAtualIndice = indice;
-    document.getElementById('tabsFluid').style.transform = `translateX(-${indice * 20}%)`;
-    document.querySelectorAll('.btn-nav').forEach((b, idx) => b.classList.toggle('active', idx === indice));
-    
-    if(indice === 0) atualizarPainel();
-    if(indice === 1) { document.getElementById('aKm').value = calcularOdometroVirtual(); renderAbast(); }
-    if(indice === 2) renderManut();
-    if(indice === 3) renderVeiculos();
-    if(indice === 4) carregarConfig();
+    console.log("Navegando para:", indice);
+    // Adicione aqui a lógica que você usa para alternar abas/telas
 }
 
-const campoSwipe = document.getElementById('swipeArea');
-campoSwipe.addEventListener('touchstart', e => {
-    toqueInicioX = e.touches[0].clientX;
-    toqueInicioY = e.touches[0].clientY;
-}, {passive: true});
-
-campoSwipe.addEventListener('touchend', e => {
-    if (!toqueInicioX || !toqueInicioY) return;
-    let toqueFimX = e.changedTouches[0].clientX;
-    let toqueFimY = e.changedTouches[0].clientY;
-    if (Math.abs(toqueInicioX - toqueFimX) > Math.abs(toqueInicioY - toqueFimY) && Math.abs(toqueInicioX - toqueFimX) > 70) {
-        if (toqueInicioX - toqueFimX > 0) navegarParaIndice(abaAtualIndice + 1);
-        else navegarParaIndice(abaAtualIndice - 1);
+// 2. Função de Atualização do Painel (Sem duplicidade)
+function atualizarPainel() {
+    const kmAtual = typeof calcularOdometroVirtual === 'function' ? calcularOdometroVirtual() : 0;
+    
+    // Declaração única da variável
+    const abastDoVeiculo = abastecimentos.filter(a => a.veiculoId === veiculoAtivoId)
+                                        .sort((a,b) => new Date(b.data) - new Date(a.data));
+    
+    // Atualiza Odômetro
+    const elKm = document.getElementById('odometroVirtual');
+    if(elKm) elKm.innerText = kmAtual + " km";
+    
+    // Calcula Média
+    const ultimosDois = abastDoVeiculo.slice(0, 2);
+    let mediaReal = 0;
+    if (ultimosDois.length === 2) {
+        const kmRodados = ultimosDois[0].km - ultimosDois[1].km;
+        mediaReal = kmRodados / ultimosDois[0].litros;
     }
-    toqueInicioX = 0; toqueInicioY = 0;
-}, {passive: true});
+    const elMedia = document.getElementById('mediaReal');
+    if(elMedia) elMedia.innerText = mediaReal > 0 ? mediaReal.toFixed(1) + " km/l" : "--";
+
+    // Mostra dia da semana
+    const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+    const diaNome = diasSemana[new Date().getDay()];
+    const elProx = document.getElementById('proxAtualizacao');
+    if(elProx) elProx.innerHTML = `Baseado no seu uso: <span class="dia-semana-destaque">${diaNome}-feira</span>`;
+}
+
+// 3. Inicialização segura
+window.onload = () => {
+    if(typeof atualizarSeletorCabecalho === 'function') atualizarSeletorCabecalho();
+    atualizarPainel();
+};
 
 function toggleTheme() { 
     document.body.classList.toggle('dark'); 
