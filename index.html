@@ -234,119 +234,40 @@ input, select, button { width: 100%; padding: 12px; border-radius: 10px; border:
 </nav>
 
 <script>
-// --- 1. CONFIGURAÇÕES E ESTADO ---
-const DEFAULT_ID = "honda_lead_110";
-const FIESTA_ID = "ford_fiesta_2012";
+<script>
+    // --- 1. VARIÁVEIS GLOBAIS ---
+    let abaAtualIndice = 0;
+    // ... (coloque aqui suas outras variáveis: veiculos, abastecimentos, etc.) ...
 
-let veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
-if(!veiculos.length) {
-    veiculos = [
-        {id: DEFAULT_ID, tipo: "Moto", marca: "Honda", modelo: "Lead 110", ano: 2010, km: 93290, data: "2026-04-10"},
-        {id: FIESTA_ID, tipo: "Carro", marca: "Ford", modelo: "Fiesta 1.6", ano: 2014, km: 82500, data: "2026-01-08"}
-    ];
-}
-
-let veiculoAtivoId = localStorage.getItem('veiculoAtivoId') || DEFAULT_ID;
-let abastecimentos = JSON.parse(localStorage.getItem('abast') || '[]');
-let manutencoes = JSON.parse(localStorage.getItem('manut') || '[]');
-let configsGerais = JSON.parse(localStorage.getItem('configsGerais') || '{}');
-
-// --- 2. FUNÇÕES AUXILIARES ---
-function getDiaSemana(dataRaw) {
-    if (!dataRaw) return "";
-    const [ano, mes, dia] = dataRaw.split('-');
-    const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-    return dias[new Date(ano, mes - 1, dia).getDay()];
-}
-
-function obterConfigAtual() {
-    if(!configsGerais[veiculoAtivoId]) {
-        configsGerais[veiculoAtivoId] = { kmBase: 0, dataBase: "2026-01-01T12:00", modoKm: "dia", kmValor: 0, horaAtualizacao: "19:00", diasSemana: [1,2,3,4,5], tanqueL: 0, ajusteManual: 0 };
-    }
-    return configsGerais[veiculoAtivoId];
-}
-
-function salvar() {
-    localStorage.setItem('veiculos', JSON.stringify(veiculos));
-    localStorage.setItem('veiculoAtivoId', veiculoAtivoId);
-    localStorage.setItem('abast', JSON.stringify(abastecimentos));
-    localStorage.setItem('manut', JSON.stringify(manutencoes));
-    localStorage.setItem('configsGerais', JSON.stringify(configsGerais));
-}
-// --- FUNÇÃO DE NAVEGAÇÃO ---
-function navegarParaIndice(indice) {
-    abaAtualIndice = indice;
-    // Oculta todas as telas
-    const telas = document.querySelectorAll('.tela');
-    telas.forEach((t, i) => {
-        t.style.display = (i === indice) ? 'block' : 'none';
-    });
-    
-    // Opcional: marca botão como ativo
-    const botoes = document.querySelectorAll('.nav-btn');
-    botoes.forEach((b, i) => {
-        b.classList.toggle('active', i === indice);
-    });
-    
-    console.log("Navegado para a aba:", indice);
-}
-// --- 3. FUNÇÃO PRINCIPAL DE ATUALIZAÇÃO ---
-function atualizarPainel() {
-    const kmVirtual = typeof calcularOdometroVirtual === 'function' ? calcularOdometroVirtual() : 0;
-    const elKm = document.getElementById('odometroVirtual');
-    if(elKm) elKm.innerText = `${kmVirtual.toLocaleString('pt-BR')} km`;
-
-    const abastDoVeiculo = abastecimentos
-        .filter(a => a.veiculoId === veiculoAtivoId)
-        .sort((a,b) => new Date(b.data) - new Date(a.data));
-
-    // Gasto Total e Média
-    const gastoTotal = abastDoVeiculo.reduce((acc, curr) => acc + (parseFloat(curr.total) || 0), 0);
-    if(document.getElementById('gastoTotal')) document.getElementById('gastoTotal').innerText = `R$ ${gastoTotal.toFixed(2).replace('.', ',')}`;
-
-    let mediaReal = 0;
-    if (abastDoVeiculo.length >= 2) {
-        mediaReal = (abastDoVeiculo[0].km - abastDoVeiculo[1].km) / (parseFloat(abastDoVeiculo[0].litros) || 1);
-    }
-    if(document.getElementById('mediaReal')) document.getElementById('mediaReal').innerText = `${mediaReal.toFixed(1)} km/l`;
-
-    // Último Abastecimento e Autonomia
-    const elUltimo = document.getElementById('ultimoKmAbast');
-    const elAutonomia = document.getElementById('autonomia');
-    
-    if (abastDoVeiculo.length > 0) {
-        const ultimo = abastDoVeiculo[0];
-        elUltimo.innerHTML = `${ultimo.km} km <span class="sub-data">(${ultimo.data.split('-').reverse().join('/')})</span>`;
+    // --- 2. FUNÇÃO DE NAVEGAÇÃO (A que estava dando erro) ---
+    function navegarParaIndice(indice) {
+        abaAtualIndice = indice;
+        const telas = document.querySelectorAll('.tela');
+        telas.forEach((t, i) => {
+            t.style.display = (i === indice) ? 'block' : 'none';
+        });
         
-        const conf = obterConfigAtual();
-        if(conf.tanqueL > 0) {
-            const estimativaProxKm = Math.floor(ultimo.km + (conf.tanqueL * (mediaReal > 0 ? mediaReal : 30)));
-            elAutonomia.innerText = `${estimativaProxKm} km`;
-        } else {
-            elAutonomia.innerText = "--";
-        }
+        const botoes = document.querySelectorAll('.nav-btn');
+        botoes.forEach((b, i) => {
+            b.classList.toggle('active', i === indice);
+        });
+        console.log("Navegado para a aba:", indice);
     }
 
-    // Alerta de Óleo
-    const alertaBox = document.getElementById('alertaOleoPainel');
-    const manutOleo = manutencoes.filter(m => m.veiculoId === veiculoAtivoId && m.tipo === "Troca Óleo Motor").sort((a,b) => b.km - a.km);
-    if(alertaBox) {
-        if(manutOleo.length > 0 && manutOleo[0].proxKm) {
-            const prox = parseInt(manutOleo[0].proxKm);
-            alertaBox.style.display = "inline-flex";
-            alertaBox.className = kmVirtual >= prox ? "alerta-oleo-container critico" : "alerta-oleo-container";
-            alertaBox.innerHTML = kmVirtual >= prox ? `🚨 Óleo vencido!` : `⚠️ Troca em ${prox - kmVirtual} km`;
-        } else {
-            alertaBox.style.display = "none";
-        }
+    // --- 3. FUNÇÃO DE ATUALIZAÇÃO ---
+    function atualizarPainel() {
+        // ... (o código que corrigimos antes) ...
     }
-}
 
-// --- 4. INICIALIZAÇÃO ---
-window.onload = () => {
-    if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
-    atualizarPainel();
-};
+    // --- 4. INICIALIZAÇÃO ---
+    window.onload = () => {
+        navegarParaIndice(0); // Garante que a primeira aba abra
+        atualizarPainel();
+        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+    };
+
+    // ... (o resto das suas outras funções: addAbast, salvar, etc.) ...
+</script>
     </script>
 
 </body> 
