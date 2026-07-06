@@ -516,6 +516,47 @@ function renderManut() {
         </div>
     `).join('');
 }
+    // Adicione esta função para renderizar a lista de abastecimento
+function renderAbast() {
+    const lista = document.getElementById('listaAbast');
+    const filtrados = abastecimentos.filter(a => a.veiculoId === veiculoAtivoId).sort((a,b) => new Date(b.data) - new Date(a.data));
+    lista.innerHTML = filtrados.map(a => `
+        <div class="historico-item">
+            <div>
+                <strong>${a.data.split('-').reverse().join('/')}</strong> - ${a.km} km<br>
+                <small class="muted">${a.litros}L a R$ ${a.valorL} = R$ ${a.total} (${a.tipo})</small>
+            </div>
+            <div class="historico-acoes">
+                <button onclick="prepararEditAbast(${a.id})"><i class="fas fa-edit"></i></button>
+                <button class="del" onclick="deletarAbast(${a.id})"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Adicione esta função para salvar um novo abastecimento
+function addAbast() {
+    const km = parseInt(document.getElementById('aKm').value);
+    const data = document.getElementById('aData').value;
+    const litros = document.getElementById('aLitros').value;
+    const valorL = document.getElementById('aValorL').value;
+    const total = document.getElementById('aTotal').value;
+    const tipo = document.getElementById('aTipo').value;
+
+    if(!km || !data || !litros) { alert("Preencha os campos!"); return; }
+
+    if(editandoAbastId) {
+        abastecimentos = abastecimentos.map(a => a.id === editandoAbastId ? {id:a.id, veiculoId:veiculoAtivoId, km, data, litros, valorL, total, tipo} : a);
+        editandoAbastId = null;
+    } else {
+        abastecimentos.push({ id: Date.now(), veiculoId: veiculoAtivoId, km, data, litros, valorL, total, tipo });
+    }
+    salvar();
+    renderAbast();
+    atualizarPainel();
+    toggleFormulario('formAbast', 'btnToggleAbast', '➕ Registrar Novo Abastecimento');
+    cancelarEditAbast();
+}
 
 function addManut() {
     const km = parseInt(document.getElementById('mKm').value);
@@ -646,13 +687,17 @@ function atualizarPainel() {
         document.getElementById('mediaReal').innerText = `0 km/l`;
     }
 
-    if(abastDoVeiculo.length > 0) {
-        const ultimoKm = abastDoVeiculo[0].km;
-        const ultimaDataRaw = abastDoVeiculo[0].data; // Ex: "2026-07-01"
-        let dataFormatada = "";
-        if(ultimaDataRaw) {
-            dataFormatada = ultimaDataRaw.split('-').reverse().join('/'); // Torna "01/07/2026"
-        }
+   // Dentro da função atualizarPainel, substitua o bloco que faz a dataFormatada:
+let dataFormatada = "";
+if(ultimaDataRaw) {
+    const [ano, mes, dia] = ultimaDataRaw.split('-');
+    const dataObj = new Date(ano, mes - 1, dia);
+    const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const diaSemana = diasSemana[dataObj.getDay()];
+    
+    // Formato: 01/07/2026 (Qua)
+    dataFormatada = `${dia}/${mes}/${ano} (${diaSemana})`;
+}
         
         document.getElementById('ultimoKmAbast').innerHTML = `${ultimoKm} km ${dataFormatada ? `<span class="sub-data">(${dataFormatada})</span>` : ''}`;
         
