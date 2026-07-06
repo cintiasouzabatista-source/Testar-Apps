@@ -249,26 +249,32 @@ if(!manutencoes.length) {
     ];
 }
 
-if(!abastecimentos.length) {
-    abastecimentos = [
-        {id: 101, veiculoId: DEFAULT_ID, km: 94208, data: "2026-07-01", litros: "5.5", valorL: "5.80", total: "31.90", tipo: "gasolina"}
-    ];
-}
-
 let configsGerais = JSON.parse(localStorage.getItem('configsGerais') || '{}');
+
 if(!configsGerais[DEFAULT_ID]) {
     configsGerais[DEFAULT_ID] = {
-        "kmBase": 93290, "dataBase": "2026-04-10T12:00",
-        "modoKm": "dia", "kmValor": 00, "horaAtualizacao": "19:00", "diasSemana": [1,2,3,4,5], "tanqueL":0,0
+        "kmBase": 93290, 
+        "dataBase": "2026-04-10T12:00",
+        "modoKm": "dia", 
+        "kmValor": 30, 
+        "horaAtualizacao": "19:00", 
+        "diasSemana": [1,2,3,4,5], 
+        "tanqueL": 54.0, // Corrigido de 0,0 para 54.0
+        "ajusteManual": 0  // Novo campo adicionado
     };
 }
 if(!configsGerais[FIESTA_ID]) {
     configsGerais[FIESTA_ID] = {
-        "kmBase": 82500, "dataBase": "2026-01-08T12:00",
-        "modoKm": "dia", "kmValor": 40, "horaAtualizacao": "19:00", "diasSemana": [1,2,3,4,5], "tanqueL": 54.0
+        "kmBase": 82500, 
+        "dataBase": "2026-01-08T12:00",
+        "modoKm": "dia", 
+        "kmValor": 40, 
+        "horaAtualizacao": "19:00", 
+        "diasSemana": [1,2,3,4,5], 
+        "tanqueL": 54.0,
+        "ajusteManual": 0 // Novo campo adicionado
     };
 }
-
 let editandoAbastId = null;
 let editandoManutId = null;
 let editandoVeiculoId = null;
@@ -363,10 +369,12 @@ function salvarConfig() {
     let conf = obterConfigAtual();
     conf.kmBase = parseInt(document.getElementById('kmBase').value) || 0;
     conf.dataBase = document.getElementById('dataBase').value;
-    conf.kmValor = parseInt(document.getElementById('kmValor').value) || 30;
+    conf.kmValor = parseInt(document.getElementById('kmValor').value) || 0; // Mudado para 0 como você pediu
     conf.horaAtualizacao = document.getElementById('horaAtualizacao').value;
-    conf.tanqueL = parseFloat(document.getElementById('tanqueL').value) || 54.0;
+    conf.tanqueL = parseFloat(document.getElementById('tanqueL').value) || 0; // Mudado para 0
+    conf.ajusteManual = parseFloat(document.getElementById('ajusteManual').value) || 0; // Capturando o manual
     conf.diasSemana = [...document.querySelectorAll('.dia-btn.active')].map(b => parseInt(b.dataset.dia));
+    
     salvar();
     atualizarPainel();
 }
@@ -375,11 +383,11 @@ function carregarConfig() {
     let conf = obterConfigAtual();
     document.getElementById('kmBase').value = conf.kmBase || '';
     document.getElementById('dataBase').value = conf.dataBase || '';
-    document.getElementById('kmValor').value = conf.kmValor || 30;
+    document.getElementById('kmValor').value = conf.kmValor || ''; // Zerado
+    document.getElementById('tanqueL').value = conf.tanqueL || ''; // Zerado
+    document.getElementById('ajusteManual').value = conf.ajusteManual || ''; // Carregando o manual
     document.getElementById('horaAtualizacao').value = conf.horaAtualizacao || '19:00';
-    document.getElementById('tanqueL').value = conf.tanqueL || 54.0;
-    document.querySelectorAll('.dia-btn').forEach(b => { b.classList.toggle('active', conf.diasSemana.includes(parseInt(b.dataset.dia))); });
-    document.querySelectorAll('#modoKm button').forEach(b => { b.classList.toggle('active', b.dataset.modo === conf.modoKm); });
+    // ... restante da função
 }
 
 document.querySelectorAll('.dia-btn').forEach(b => { 
