@@ -688,14 +688,22 @@ function deletarVeiculo(id) {
 }
 
 function atualizarPainel() {
-    atualizarSeletorCabecalho();
-    const kmVirtual = calcularOdometroVirtual();
+    // 1. Atualizações de interface gerais
+    if (typeof atualizarSeletorCabelhlo === 'function') atualizarSeletorCabecalho();
+    
+    const kmVirtual = typeof calcularOdometroVirtual === 'function' ? calcularOdometroVirtual() : 0;
     document.getElementById('odometroVirtual').innerText = `${kmVirtual.toLocaleString('pt-BR')} km`;
 
-    const abastDoVeiculo = abastecimentos.filter(a => a.veiculoId == veiculoAtivoId).sort((a,b) => b.km - a.km);
+    // 2. Cálculo único da variável (agora sem duplicar)
+    const abastDoVeiculo = abastecimentos
+        .filter(a => a.veiculoId === veiculoAtivoId)
+        .sort((a,b) => new Date(b.data) - new Date(a.data));
+
+    // 3. Atualiza Gasto Total
     const gastoTotal = abastDoVeiculo.reduce((acc, curr) => acc + (parseFloat(curr.total) || 0), 0);
     document.getElementById('gastoTotal').innerText = `R$ ${gastoTotal.toFixed(2).replace('.', ',')}`;
 
+    // 4. Calcula Média Real
     let mediaReal = 0;
     if (abastDoVeiculo.length >= 2) {
         const kmRodados = abastDoVeiculo[0].km - abastDoVeiculo[1].km;
@@ -703,35 +711,21 @@ function atualizarPainel() {
         mediaReal = kmRodados / litrosConsumidos;
         document.getElementById('mediaReal').innerText = `${mediaReal.toFixed(1)} km/l`;
     } else {
-        document.getElementById('mediaReal').innerText = `0 km/l`;
+        document.getElementById('mediaReal').innerText = "0 km/l";
     }
 
-// --- COLE ESTA FUNÇÃO ANTES DO SEU SCRIPT ---
-function getDiaSemana(dataRaw) {
-    if (!dataRaw) return "";
-    const [ano, mes, dia] = dataRaw.split('-');
-    const dataObj = new Date(ano, mes - 1, dia);
-    const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    return dias[dataObj.getDay()];
-}
-
-// --- DENTRO DA SUA FUNÇÃO atualizarPainel() ---
-// SUBSTITUA A PARTE DO ÚLTIMO E PRÓXIMO ABASTECIMENTO POR ESTE BLOCO:
-
-const abastDoVeiculo = abastecimentos.filter(a => a.veiculoId == veiculoAtivoId).sort((a,b) => b.km - a.km);
-
-if(abastDoVeiculo.length > 0) {
-    const ultimo = abastDoVeiculo[0];
-    const diaSemana = getDiaSemana(ultimo.data);
-    const dataFormatada = ultimo.data.split('-').reverse().join('/');
-    
-    // Atualiza o card de Último Abastecimento com o dia da semana
-   document.getElementById('ultimoKmAbast').innerHTML = `
-    ${ultimoKm} km 
-    <span class="dia-semana-destaque">${dataFormatada}</span>
-`;
-    
-    let conf = obterConfigAtual();
+    // 5. Atualiza o card de Último Abastecimento (com dia da semana)
+    if (abastDoVeiculo.length > 0) {
+        const ultimo = abastDoVeiculo[0];
+        const diaSemana = getDiaSemana(ultimo.data); // Certifique-se que essa função existe
+        const dataFormatada = ultimo.data.split('-').reverse().join('/');
+        
+        const elUltimo = document.getElementById('ultimoKmAbast');
+        if(elUltimo) {
+            elUltimo.innerHTML = `${ultimo.km} km <span class="dia-semana-destaque">${dataFormatada} (${diaSemana})</span>`;
+        }
+    }
+}    let conf = obterConfigAtual();
     let tamanhoTanque = parseFloat(conf.tanqueL) || 0;
     let mediaUsada = mediaReal > 0 ? mediaReal : 30; 
     
