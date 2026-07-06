@@ -273,7 +273,23 @@ function salvar() {
     localStorage.setItem('manut', JSON.stringify(manutencoes));
     localStorage.setItem('configsGerais', JSON.stringify(configsGerais));
 }
-
+// --- FUNÇÃO DE NAVEGAÇÃO ---
+function navegarParaIndice(indice) {
+    abaAtualIndice = indice;
+    // Oculta todas as telas
+    const telas = document.querySelectorAll('.tela');
+    telas.forEach((t, i) => {
+        t.style.display = (i === indice) ? 'block' : 'none';
+    });
+    
+    // Opcional: marca botão como ativo
+    const botoes = document.querySelectorAll('.nav-btn');
+    botoes.forEach((b, i) => {
+        b.classList.toggle('active', i === indice);
+    });
+    
+    console.log("Navegado para a aba:", indice);
+}
 // --- 3. FUNÇÃO PRINCIPAL DE ATUALIZAÇÃO ---
 function atualizarPainel() {
     const kmVirtual = typeof calcularOdometroVirtual === 'function' ? calcularOdometroVirtual() : 0;
