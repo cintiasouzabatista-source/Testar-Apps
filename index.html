@@ -1,111 +1,45 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Meu Fluxo de Caixa</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <title>Meu Fluxo de Caixa Inteligente</title>
     <style>
-        /* [ ... ESTILOS OTIMIZADOS ... ] */
-        :root { --bg-body: #f1f5f9; --bg-container: #ffffff; --texto-principal: #0f172a; --header-bg: #2563eb; --header-txt: #ffffff; --entrada: #10b981; --saida: #ef4444; --cartao: #f59e0b; --borda: #e2e8f0; --shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background-color: var(--bg-body); padding: 16px 16px 95px 16px; min-height: 100vh; }
-        .container { max-width: 500px; margin: 0 auto; }
-        .app-header { display: flex; justify-content: space-between; padding: 12px; background: var(--header-bg); color: var(--header-txt); border-radius: 12px; margin-bottom: 16px; }
-        .cards-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
-        .card { background: var(--bg-container); padding: 12px; border-radius: 12px; text-align: center; border: 1px solid var(--borda); }
-        .card.saldo-total { grid-column: span 3; padding: 20px; }
-        .valor-dinamico { font-weight: 700; }
-        
-        /* Ajuste do Histórico */
-        .item-transacao { display: flex; flex-direction: column; padding: 10px 5px; border-bottom: 1px solid var(--borda); gap: 6px; }
-        .linha-1 { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; }
-        .linha-2 { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
-        .descricao { font-size: 0.95rem; font-weight: 600; flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .valor { font-size: 0.95rem; font-weight: 700; white-space: nowrap; }
-        .tipo-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
-        
-        .menu-rodape-wrapper { position: fixed; bottom: 0; left: 0; width: 100%; background: #ffffff; border-top: 1px solid #ddd; padding: 10px; display: flex; justify-content: space-around; }
-        .app-view { display: none; }
-        .app-view.ativa { display: block; }
-    </style>
-</head>
-<body>
+        /* DEFINIÇÃO DOS TEMAS */
+        :root {
+            --bg-body: #f1f5f9;
+            --bg-container: #ffffff;
+            --texto-principal: #0f172a;
+            --texto-secundario: #64748b;
+            --borda: #e2e8f0;
+            --espessura-borda: 1px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.02);
+            --radius: 12px;
+            --entrada: #10b981;
+            --saida: #ef4444;
+            --cartao: #f59e0b;
+            --reserva-cor: #06b6d4;
+            --azul-saldo: #3b82f6;
+            --alerta-fundo: #fee2e2;
+            --alerta-borda: #fca5a5;
+            --bg-retratil: #f8fafc;
+            --bg-rodape: rgba(255, 255, 255, 0.92);
+            --header-bg: #2563eb;
+            --header-txt: #ffffff;
+            --saldo-box-bg: #ffffff;
+        }
 
-<div class="container">
-    <div class="app-header">
-        <div id="titulo-dinamico">Meu Saldo</div>
-    </div>
-
-    <div class="app-view ativa" id="view-inicio">
-        <div class="cards-container">
-            <div class="card"><h3>Entradas</h3><p class="valor-dinamico" id="card-entradas">R$ 0,00</p></div>
-            <div class="card"><h3>Saídas</h3><p class="valor-dinamico" id="card-saidas">R$ 0,00</p></div>
-            <div class="card"><h3>Cartão</h3><p class="valor-dinamico" id="card-cartao">R$ 0,00</p></div>
-            <div class="card saldo-total"><h3>Saldo Atual</h3><p class="valor-dinamico" id="card-saldo" style="font-size: 1.8rem;">R$ 0,00</p></div>
-        </div>
-        <input type="text" id="campo-texto" placeholder="O que você gastou hoje?">
-        <button onclick="processarComando()">➔</button>
-    </div>
-
-    <div class="app-view" id="view-historico">
-        <div id="lista-transacoes-container"></div>
-    </div>
-</div>
-
-<div class="menu-rodape-wrapper">
-    <button onclick="navegarPara('inicio')">💬</button>
-    <button onclick="navegarPara('historico')">📝</button>
-</div>
-
-<script>
-    let transacoes = JSON.parse(localStorage.getItem('saldo_transacoes')) || [];
-
-    function navegarPara(idAba) {
-        document.querySelectorAll('.app-view').forEach(v => v.classList.remove('ativa'));
-        document.getElementById(`view-${idAba}`).classList.add('ativa');
-    }
-
-    function processarComando() {
-        const input = document.getElementById('campo-texto');
-        const txt = input.value.trim();
-        // Lógica simplificada de parsing...
-        transacoes.unshift({ descricao: txt, valor: 10, tipo: 'saida', dia: 7, mes: 6 });
-        localStorage.setItem('saldo_transacoes', JSON.stringify(transacoes));
-        atualizarAplicativo();
-    }
-
-    function atualizarAplicativo() {
-        let ent = 0, sai = 0, car = 0;
-        transacoes.forEach(t => {
-            if(t.tipo === 'entrada') ent += t.valor;
-            else if(t.tipo === 'saida') sai += t.valor;
-            else car += t.valor;
-        });
-
-        document.getElementById('card-entradas').innerText = ent.toFixed(2);
-        document.getElementById('card-saidas').innerText = sai.toFixed(2);
-        document.getElementById('card-cartao').innerText = car.toFixed(2);
-        document.getElementById('card-saldo').innerText = (ent - sai - car).toFixed(2);
-
-        renderizarHistorico();
-    }
-
-    function renderizarHistorico() {
-        const container = document.getElementById('lista-transacoes-container');
-        container.innerHTML = transacoes.map(t => `
-            <div class="item-transacao">
-                <div class="linha-1">
-                    <span class="descricao">${t.descricao}</span>
-                    <span class="valor">R$ ${t.valor.toFixed(2)}</span>
-                </div>
-                <div class="linha-2">
-                    <span class="tipo-tag" style="background:#eee">${t.tipo}</span>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    window.onload = atualizarAplicativo;
-</script>
-</body>
-</html>
+    body.theme-escuro {
+        --bg-body: #0f172a;
+        --bg-container: #1e293b;
+        --texto-principal: #f8fafc;
+        --texto-secundario: #94a3b8;
+        --borda: #334155;
+        --shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
+        --bg-retratil: #0f172a;
+        --bg-rodape: rgba(30, 41, 59, 0.95);
+        --header-bg: #1e293b;
