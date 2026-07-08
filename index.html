@@ -154,12 +154,28 @@
     .card.saldo-total h3 { font-size: 0.85rem; color: var(--texto-secundario); }
     .card.saldo-total p { font-size: 2.2rem; font-weight: 700; }
     
-    .info-subtil-container { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; margin-top: 12px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 16px; }
-    .linha-subtil-valores { display: flex; justify-content: center; gap: 16px; width: 100%; flex-wrap: wrap; }
-    .previsao-texto, .reserva-texto { font-size: 0.85rem; color: var(--texto-secundario); font-weight: normal; display: inline-flex; align-items: center; gap: 4px; }
-    .previsao-texto strong, .reserva-texto strong { font-weight: 700; color: var(--texto-principal); }
-    .saldo-restante-texto { font-size: 0.95rem; color: var(--header-txt); font-weight: 700; margin-top: 6px; background: var(--header-bg); padding: 6px 14px; border-radius: 20px; box-shadow: var(--shadow); border: var(--espessura-borda) solid var(--borda); }
-    .config-reserva-inline { cursor: pointer; font-size: 0.85rem; }
+  <div class="info-subtil-container">
+    <div class="linha-subtil-valores">
+        <div class="previsao-texto">
+            <strong>Média/Dia:</strong> 
+            <span class="valor-dinamico" id="media-diaria-valor">R$ 0,00</span>
+        </div>
+        
+        <div class="reserva-texto">
+            <strong>Guardar</strong> (<span id="porc-display">0</span>%): 
+            <span class="valor-dinamico" id="reserva-valor-sugestao">R$ 0,00</span>
+            <span class="config-reserva-inline" onclick="toggleSlider()">⚙️</span>
+        </div>
+    </div>
+    
+    <div id="container-slider" style="display: none; width: 100%; margin-top: 5px;">
+        <input type="range" id="slider-reserva" min="0" max="100" value="10" step="5" style="width: 100%;">
+    </div>
+
+    <div class="saldo-restante-texto" id="saldo-livre-container">
+        Saldo Livre: <span id="saldo-livre-valor">R$ 0,00</span>
+    </div>
+</div>
     
     .alerta-comprometido { background: var(--alerta-fundo); border: var(--espessura-borda) solid var(--alerta-borda); color: var(--texto-principal); padding: 8px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; margin-top: 6px; width: 100%; text-align: center; display: none; }
 
@@ -645,7 +661,35 @@ gap: 6px; /* Espaço entre a linha 1 e a linha 2 */
             l.appendChild(item);
         });
     }
+// Função para mostrar/esconder o slider
+function toggleSlider() {
+    const sliderContainer = document.getElementById('container-slider');
+    sliderContainer.style.display = sliderContainer.style.display === 'none' ? 'block' : 'none';
+}
 
+function atualizarDashboard(valorTotal, mediaDia) {
+    const slider = document.getElementById('slider-reserva');
+    const porcDisplay = document.getElementById('porc-display');
+    const reservaDisplay = document.getElementById('reserva-valor-sugestao');
+    const saldoDisplay = document.getElementById('saldo-livre-valor');
+    const mediaDisplay = document.getElementById('media-diaria-valor');
+
+    const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    const calcular = () => {
+        const percentual = parseInt(slider.value);
+        const valorReserva = valorTotal * (percentual / 100);
+        const saldoLivre = valorTotal - valorReserva;
+
+        porcDisplay.innerText = percentual;
+        reservaDisplay.innerText = fmt.format(valorReserva);
+        saldoDisplay.innerText = fmt.format(saldoLivre);
+        mediaDisplay.innerText = fmt.format(mediaDia);
+    };
+
+    slider.addEventListener('input', calcular);
+    calcular(); // Execução inicial
+}
     function renderizarGraficos(receitas, totalGastos, saídas, cartões, valorReserva) {
         const fMes = obterId('filtro-mes').value;
         const totalFluxo = receitas + totalGastos;
