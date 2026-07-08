@@ -662,11 +662,19 @@ gap: 6px; /* Espaço entre a linha 1 e a linha 2 */
         });
     }
 // Função para mostrar/esconder o slider
-function toggleSlider() {
+// Renomeamos para 'abrirConfigReserva' para coincidir com o seu HTML
+function abrirConfigReserva() {
     const sliderContainer = document.getElementById('container-slider');
-    sliderContainer.style.display = sliderContainer.style.display === 'none' ? 'block' : 'none';
+    
+    if (sliderContainer) {
+        // Alterna entre mostrar e esconder
+        sliderContainer.style.display = (sliderContainer.style.display === 'none' || sliderContainer.style.display === '') ? 'block' : 'none';
+    } else {
+        console.error("Erro: O elemento 'container-slider' não foi encontrado.");
+    }
 }
 
+// Função de cálculo que deve estar no mesmo arquivo
 function atualizarDashboard(valorTotal, mediaDia) {
     const slider = document.getElementById('slider-reserva');
     const porcDisplay = document.getElementById('porc-display');
@@ -687,7 +695,9 @@ function atualizarDashboard(valorTotal, mediaDia) {
         mediaDisplay.innerText = fmt.format(mediaDia);
     };
 
-    slider.addEventListener('input', calcular);
+    if (slider) {
+        slider.addEventListener('input', calcular);
+    }
     calcular(); // Execução inicial
 }
     function renderizarGraficos(receitas, totalGastos, saídas, cartões, valorReserva) {
