@@ -154,31 +154,34 @@
     .card.saldo-total h3 { font-size: 0.85rem; color: var(--texto-secundario); }
     .card.saldo-total p { font-size: 2.2rem; font-weight: 700; }
     
-  <div class="info-subtil-container">
-    <div class="linha-subtil-valores">
-        <div class="previsao-texto">
-            <strong>Média/Dia:</strong> 
-            <span class="valor-dinamico" id="media-diaria-valor">R$ 0,00</span>
-        </div>
-        
-        <div class="reserva-texto">
-            <strong>Guardar</strong> (<span id="porc-display">0</span>%): 
-            <span class="valor-dinamico" id="reserva-valor-sugestao">R$ 0,00</span>
-            <span class="config-reserva-inline" onclick="toggleSlider()">⚙️</span>
-        </div>
-    </div>
-    
-  <div id="container-slider" style="display: none;">
-    <input type="range" id="slider-reserva" min="0" max="100" value="10" step="5">
-</div>
 
-    <div class="saldo-restante-texto" id="saldo-livre-container">
-        Saldo Livre: <span id="saldo-livre-valor">R$ 0,00</span>
-    </div>
-</div>
-    
-    .alerta-comprometido { background: var(--alerta-fundo); border: var(--espessura-borda) solid var(--alerta-borda); color: var(--texto-principal); padding: 8px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; margin-top: 6px; width: 100%; text-align: center; display: none; }
+    <div class="card saldo-total">
+            <h3>Saldo Disponível Atual</h3>
+            <p id="card-saldo" class="valor-dinamico" data-valor="0.00">R$ 0,00</p>
+            
+            <div class="info-subtil-container">
+                <div class="linha-subtil-valores">
+                    <div class="previsao-texto" id="card-previsao">
+                        <strong>Média/Dia:</strong> 
+                        <span class="valor-dinamico" id="media-diaria-valor" data-valor="0.00">R$ 0,00</span>
+                    </div>
+                    <div class="reserva-texto" id="card-reserva">
+                        <strong>Guardar</strong> (<span id="porc-display">10</span>%): 
+                        <span class="valor-dinamico" id="reserva-valor-sugestao" data-valor="0.00">R$ 0,00</span> 
+                        <span class="config-reserva-inline" onclick="abrirConfigReserva()" title="Mudar porcentagem">⚙️</span>
+                    </div>
+                </div>
+                
+                <div id="container-slider" style="display: none; width: 100%; margin-top: 10px;">
+                    <input type="range" id="slider-reserva" min="0" max="100" value="10" step="5" style="width: 100%;">
+                </div>
 
+                <div class="saldo-restante-texto" id="card-saldo-restante">
+                    <strong>Saldo Livre:</strong> <span class="valor-dinamico" id="saldo-livre-valor" data-valor="0.00">R$ 0,00</span>
+                </div>
+            </div>
+            <div class="alerta-comprometido" id="card-alerta-comprometido">⚠️ Orçamento Comprometido (>80%).</div>
+        </div>
     .cor-entrada { color: var(--entrada); }
     .cor-saida { color: var(--saida); }
     .cor-cartao { color: var(--cartao); }
@@ -661,18 +664,14 @@ gap: 6px; /* Espaço entre a linha 1 e a linha 2 */
             l.appendChild(item);
         });
     }
-// Função para mostrar/esconder o slider
-// Renomeamos para 'abrirConfigReserva' para coincidir com o seu HTML
+// Garanta que esta função esteja no final do seu arquivo, dentro da tag <script>
 function abrirConfigReserva() {
     const sliderContainer = document.getElementById('container-slider');
-    
     if (sliderContainer) {
-        // Alterna entre mostrar e esconder
         sliderContainer.style.display = (sliderContainer.style.display === 'none' || sliderContainer.style.display === '') ? 'block' : 'none';
-    } else {
-        console.error("Erro: O elemento 'container-slider' não foi encontrado.");
     }
 }
+   
 
 // Função de cálculo que deve estar no mesmo arquivo
 function atualizarDashboard(valorTotal, mediaDia) {
