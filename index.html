@@ -209,6 +209,28 @@
     .coluna-vertical-valor { font-size: 0.75rem; font-weight: 700; position: absolute; top: -20px; white-space: nowrap; text-align: center; }
     .coluna-vertical-rotulo { font-size: 0.8rem; font-weight: bold; position: absolute; bottom: -24px; color: var(--texto-secundario); }
 
+        /* Container principal das infos */
+.info-subtil-container { 
+    display: flex; flex-direction: column; align-items: center; 
+    gap: 8px; width: 100%; margin-top: 12px; 
+    border-top: 1px solid rgba(0,0,0,0.05); padding-top: 16px; 
+}
+.linha-subtil-valores { 
+    display: flex; justify-content: center; gap: 16px; 
+    width: 100%; flex-wrap: wrap; 
+}
+.previsao-texto, .reserva-texto { 
+    font-size: 0.85rem; color: var(--texto-secundario); 
+    display: inline-flex; align-items: center; gap: 4px; 
+}
+.config-reserva-inline { 
+    cursor: pointer; font-size: 1rem; margin-left: 5px; 
+}
+/* Estilo do slider */
+#container-slider { 
+    width: 100%; margin-top: 10px; padding: 5px; 
+    background: rgba(0,0,0,0.02); border-radius: 8px; 
+}
     .item-transacao {
 display: flex;
 flex-direction: column;
@@ -272,46 +294,34 @@ gap: 6px; /* Espaço entre a linha 1 e a linha 2 */
     </div>
 </div>
 
-<div class="app-view ativa" id="view-inicio">
-    <div class="cards-container">
+<div class="card saldo-total">
+    <h3>Saldo Disponível Atual</h3>
+    <p id="card-saldo" class="valor-dinamico">R$ 0,00</p>
+    
+    <div class="info-subtil-container">
+        <div class="linha-subtil-valores">
+            <div class="previsao-texto">
+                <strong>Média/Dia:</strong> 
+                <span class="valor-dinamico" id="media-diaria-valor">R$ 0,00</span>
+            </div>
+            <div class="reserva-texto">
+                <strong>Guardar</strong> (<span id="porc-display">10</span>%): 
+                <span class="valor-dinamico" id="reserva-valor-sugestao">R$ 0,00</span>
+                <span class="config-reserva-inline" onclick="abrirConfigReserva()">⚙️</span>
+            </div>
+        </div>
         
-        <div id="container-slider" style="display: none; width: 100%; margin-top: 10px; padding: 10px; border-top: 1px solid #eee;">
-             <input type="range" id="slider-reserva" min="0" max="100" value="10" step="5" style="width: 100%;">
+        <div id="container-slider" style="display: none;">
+            <input type="range" id="slider-reserva" min="0" max="100" value="10" step="5" style="width: 100%;" oninput="ajustarSlider(this.value)">
         </div>
 
-    </div> </div>
-        <div class="card">
-            <h3>entradas</h3>
-            <p class="cor-entrada">R$ <span class="valor-dinamico" id="card-entradas" data-valor="0.00">0,00</span></p>
-        </div>
-        <div class="card">
-            <h3>saídas</h3>
-            <p class="cor-saida">R$ <span class="valor-dinamico" id="card-saidas" data-valor="0.00">0,00</span></p>
-        </div>
-        <div class="card">
-            <h3>cartão</h3>
-            <p class="cor-cartao">R$ <span class="valor-dinamico" id="card-cartao" data-valor="0.00">0,00</span></p>
-        </div>
-        <div class="card saldo-total">
-            <h3>Saldo Disponível Atual</h3>
-            <p id="card-saldo" class="valor-dinamico" data-valor="0.00">R$ 0,00</p>
-            
-            <div class="info-subtil-container">
-                <div class="linha-subtil-valores">
-                    <div class="previsao-texto" id="card-previsao"><strong>Média/Dia:</strong> <span class="valor-dinamico" id="previsao-valor" data-valor="0.00">R$ 0,00</span></div>
-                    <div class="reserva-texto" id="card-reserva">
-                        <strong>Guardar</strong> (<span id="reserva-porcentagem-label">10</span>%): <span class="valor-dinamico" id="reserva-valor" data-valor="0.00">R$ 0,00</span> 
-                        <span class="config-reserva-inline" onclick="abrirConfigReserva()" title="Mudar porcentagem">⚙️</span>
-                    </div>
-                </div>
-                <div class="saldo-restante-texto" id="card-saldo-restante">
-                    <strong>Saldo Livre:</strong> <span class="valor-dinamico" id="saldo-restante-valor" data-valor="0.00">R$ 0,00</span>
-                </div>
-            </div>
-            <div class="alerta-comprometido" id="card-alerta-comprometido">⚠️ Orçamento Comprometido (>80%).</div>
+        <div class="saldo-restante-texto">
+            <strong>Saldo Livre:</strong> 
+            <span class="valor-dinamico" id="saldo-livre-valor">R$ 0,00</span>
         </div>
     </div>
-
+</div>            
+         
     <div class="chat-container-dinamico">
         <div class="chat-input-area">
             <div id="alerta" class="alerta-temporario">Salvo com sucesso! 📁</div>
@@ -862,6 +872,32 @@ function atualizarDashboard(valorTotal, mediaDia) {
             navegarPara(abas[atual - 1]);
         }
     }
+    <script>
+// 1. Alterna a visibilidade do slider
+function abrirConfigReserva() {
+    const sliderContainer = document.getElementById('container-slider');
+    if (sliderContainer) {
+        sliderContainer.style.display = (sliderContainer.style.display === 'none' || sliderContainer.style.display === '') ? 'block' : 'none';
+    }
+}
+
+// 2. Lógica de cálculo (chame esta função sempre que o valor mudar)
+function ajustarSlider(valor) {
+    const porcentagem = parseInt(valor);
+    document.getElementById('porc-display').innerText = porcentagem;
+    
+    // Supondo que você tenha o valor total salvo em uma variável global ou no DOM
+    const saldoTotal = parseFloat(document.getElementById('card-saldo').getAttribute('data-valor')) || 0;
+    
+    const valorReserva = saldoTotal * (porcentagem / 100);
+    const saldoLivre = saldoTotal - valorReserva;
+
+    // Atualiza os campos
+    const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+    document.getElementById('reserva-valor-sugestao').innerText = fmt.format(valorReserva);
+    document.getElementById('saldo-livre-valor').innerText = fmt.format(saldoLivre);
+}
+</script>
 </script>
 
 </body>
