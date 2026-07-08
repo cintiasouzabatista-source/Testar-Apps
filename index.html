@@ -272,9 +272,14 @@ gap: 6px; /* Espaço entre a linha 1 e a linha 2 */
     </div>
 </div>
 
-<!-- TELA 1: INÍCIO -->
 <div class="app-view ativa" id="view-inicio">
     <div class="cards-container">
+        
+        <div id="container-slider" style="display: none; width: 100%; margin-top: 10px; padding: 10px; border-top: 1px solid #eee;">
+             <input type="range" id="slider-reserva" min="0" max="100" value="10" step="5" style="width: 100%;">
+        </div>
+
+    </div> </div>
         <div class="card">
             <h3>entradas</h3>
             <p class="cor-entrada">R$ <span class="valor-dinamico" id="card-entradas" data-valor="0.00">0,00</span></p>
