@@ -6,7 +6,7 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
-    <title>Meu Fluxo de Caixa Inteligente</title>
+    <title>Fluxo de Caixa Inteligente</title>
     <style>
         /* DEFINIÇÃO DOS TEMAS */
         :root {
@@ -251,7 +251,7 @@
     
     <!-- CABEÇALHO -->
     <div class="app-header">
-        <div class="app-title" id="titulo-dinamico">Meu Saldo</div>
+        <div class="app-title" id="titulo-dinamico">Bank Day</div>
         <div class="app-actions">
             <button class="icon-btn" id="btn-visibilidade" onclick="alternarVisibilidade()" title="Esconder valores">🔐</button>
             <button class="icon-btn" onclick="alternarTema()" title="Mudar Estilo">🫟</button>
@@ -262,15 +262,15 @@
     <div class="app-view ativa" id="view-inicio">
         <div class="cards-container">
             <div class="card">
-                <h3>entradas</h3>
+                <h3>Entradas</h3>
                 <p class="cor-entrada">R$ <span class="valor-dinamico" id="card-entradas" data-valor="0.00">0,00</span></p>
             </div>
             <div class="card">
-                <h3>saídas</h3>
+                <h3>Saídas</h3>
                 <p class="cor-saida">R$ <span class="valor-dinamico" id="card-saidas" data-valor="0.00">0,00</span></p>
             </div>
             <div class="card">
-                <h3>cartão</h3>
+                <h3>Cartão</h3>
                 <p class="cor-cartao">R$ <span class="valor-dinamico" id="card-cartao" data-valor="0.00">0,00</span></p>
             </div>
             <div class="card saldo-total">
@@ -281,7 +281,7 @@
                     <div class="linha-subtil-valores">
                         <div class="previsao-texto" id="card-previsao"><strong>Média/Dia:</strong> <span class="valor-dinamico" id="previsao-valor" data-valor="0.00">R$ 0,00</span></div>
                         <div class="reserva-texto" id="card-reserva">
-                            <strong>Sugestão p/ Guardar</strong> (<span id="reserva-porcentagem-label">10</span>%): <span class="valor-dinamico" id="reserva-valor" data-valor="0.00">R$ 0,00</span> 
+                            <strong>Sugestão p/ Guardar</strong> (<span id="reserva-porcentagem-label">0</span>%): <span class="valor-dinamico" id="reserva-valor" data-valor="0.00">R$ 0,00</span> 
                             <span class="config-reserva-inline" onclick="abrirConfigReserva()" title="Mudar porcentagem">⚙️</span>
                         </div>
                     </div>
@@ -289,7 +289,7 @@
                         <strong>Saldo Livre:</strong> <span class="valor-dinamico" id="saldo-restante-valor" data-valor="0.00">R$ 0,00</span>
                     </div>
                 </div>
-                <div class="alerta-comprometido" id="card-alerta-comprometido">⚠️ Orçamento Comprometido (>80%).</div>
+                <div class="alerta-comprometido" id="card-alerta-comprometido">⚠️ Orçamento Comprometido (>75%).</div>
             </div>
         </div>
 
@@ -308,8 +308,8 @@
             <select id="filtro-mes" class="filtro-select" onchange="atualizarAplicativo()"></select>
             <select id="filtro-tipo" class="filtro-select" onchange="atualizarAplicativo()">
                 <option value="todos">Todos os Tipos</option>
-                <option value="entrada">🟢 Entradas</option>
-                <option value="saida">🔴 Saídas</option>
+                <option value="entrada">✅Entradas</option>
+                <option value="saida">⛔Saídas</option>
                 <option value="cartao">💳 Cartão</option>
                 <option value="fixa">📌 Contas Fixas</option>
             </select>
@@ -352,8 +352,8 @@
                     </div>
                 </div>
                 <div class="donut-legenda">
-                    <span style="color:var(--entrada)">● Ganhei</span>
-                    <span style="color:var(--saida)">● Gastei</span>
+                    <span style="color:var(--entrada)">Ganhei</span>
+                    <span style="color:var(--saida)">Gastei</span>
                 </div>
             </div>
         </div>
@@ -422,7 +422,7 @@
 
 <div class="modal-overlay" id="modal-reserva">
     <div class="modal-container">
-        <div class="modal-title">💰 Porcentagem de Reserva</div>
+        <div class="modal-title">💲Porcentagem de Reserva</div>
         <div class="modal-label">Quanto quer poupar das entradas?</div>
         <input type="number" id="modal-reserva-pct" class="modal-input" min="0" max="1000" value="0">
         <div class="modal-botoes">
