@@ -281,9 +281,11 @@
                     <div class="linha-subtil-valores">
                         <div class="previsao-texto" id="card-previsao"><strong>Média Gasta Por Dia:</strong> <span class="valor-dinamico" id="previsao-valor" data-valor="0.00">R$ 0,00</span></div>
                         <div class="reserva-texto" id="card-reserva">
-                            <strong>Simular Reserva</strong> (<span id="reserva-porcentagem-label">0</span>%): <span class="valor-dinamico" id="reserva-valor" data-valor="0.00">R$ 0,00</span> 
-                            <span class="config-reserva-inline" onclick="abrirConfigReserva()" title="Mudar porcentagem">⚙️</span>
-                        </div>
+    <strong>Sugestão p/ Reserva</strong> 
+    (<span id="reserva-modo-label">10%</span>): 
+    <span class="valor-dinamico" id="reserva-valor" data-valor="0.00">R$ 0,00</span> 
+    <span class="config-reserva-inline" onclick="abrirConfigReserva()" title="Mudar % ou Valor">⚙️</span>
+</div>
                     </div>
                     <div class="saldo-restante-texto" id="card-saldo-restante">
                         <strong>Saldo Pós Reserva:</strong> <span class="valor-dinamico" id="saldo-restante-valor" data-valor="0.00">R$ 0,00</span>
@@ -420,17 +422,19 @@
     </div>
 </div>
 
-<div class="modal-overlay" id="modal-reserva">
-    <div class="modal-container">
-        <div class="modal-title">💲Porcentagem de Reserva</div>
-        <div class="modal-label">Quanto quer poupar das entradas?</div>
-        <input type="number" id="modal-reserva-pct" class="modal-input" min="0" max="1000" value="0">
-        <div class="modal-botoes">
-            <button class="btn-modal btn-cancelar" onclick="fecharConfigReserva()">Cancelar</button>
-            <button class="btn-modal btn-salvar" onclick="salvarConfigReserva()">Aplicar</button>
-        </div>
-    </div>
-</div>
+<div id="modal-reserva" class="modal">
+  <div class="modal-conteudo">
+    <h3>Meta de Reserva</h3>
+    <select id="modal-reserva-modo" onchange="mudarTipoReserva()">
+        <option value="porcentagem">Por Porcentagem %</option>
+        <option value="valor">Por Valor Fixo R$</option>
+    </select>
+    <input id="modal-reserva-pct" type="number" placeholder="10 ou 200">
+    <span id="modal-reserva-label">%</span>
+    <button onclick="salvarConfigReserva()">Salvar</button>
+    <button onclick="fecharConfigReserva()">Cancelar</button>
+  </div>
+</div></div>
 
 <script>
     let transacoes = [], idEdicaoAtual = null, saldosOcultos = false, porcentagemReserva = 0;
@@ -731,21 +735,43 @@
     }
     
     function fecharModal() { toggleModal('modal-edicao', false); }
-    function abrirConfigReserva() { obterId('modal-reserva-pct').value = porcentagemReserva; toggleModal('modal-reserva', true); }
-    function fecharConfigReserva() { toggleModal('modal-reserva', false); }
-    function alternarVisibilidade() { saldosOcultos = !saldosOcultos; obterId('btn-visibilidade').innerText = saldosOcultOcultos ? "🙈" : "👁️"; atualizarAplicativo(); }
-    function verificarTecla(e) { if (e.key === 'Enter') processarComando(); }
+    
+   function abrirConfigReserva() { 
+    const modo = localStorage.getItem('saldo_reserva_modo') || 'porcentagem';
+const meta = parseFloat(localStorage.getItem('saldo_reserva_valor')) || 0;
+       const sugestaoGuardar = modo === 'porcentagem' ? saldoAtual * (meta / 100) : meta;
+const labelModo = modo === 'porcentagem' ? meta + '%' : formatar(meta);
+   
+    obterId('modal-reserva-modo').value = modo; // <- select novo: % ou R$
+    obterId('modal-reserva-pct').value = valor; // <- input
+    obterId('modal-reserva-label').innerText = modo === 'porcentagem' ? '%' : 'R$'; // <- Muda o label
+    toggleModal('modal-reserva', true); 
+}
 
-    function salvarConfigReserva() {
-        const p = parseInt(obterId('modal-reserva-pct').value);
-        if (p >= 0 && p <= 1000) { 
-            porcentagemReserva = p; 
-            localStorage.setItem('saldo_reserva_pct', p); 
-            fecharConfigReserva(); 
-            atualizarAplicativo(); 
-            mostrarAviso(`Salvo: ${p}%`); 
-        }
+function fecharConfigReserva() { 
+    toggleModal('modal-reserva', false); 
+}
+
+function salvarConfigReserva() {
+    const modo = obterId('modal-reserva-modo').value; // 'porcentagem' ou 'valor'
+    const v = parseFloat(obterId('modal-reserva-pct').value); // pode ser 10 ou 200
+    
+    if (v >= 0) { 
+        localStorage.setItem('saldo_reserva_modo', modo); 
+        localStorage.setItem('saldo_reserva_valor', v); 
+        fecharConfigReserva(); 
+        atualizarAplicativo(); 
+        mostrarAviso(`Salvo: ${modo === 'porcentagem' ? v+'%' : formatar(v)}`); 
+    } else {
+        mostrarAviso('Valor inválido');
     }
+}
+
+// Bônus: pra trocar o label % / R$ quando muda o select
+function mudarTipoReserva(){
+    const modo = obterId('modal-reserva-modo').value;
+    obterId('modal-reserva-label').innerText = modo === 'porcentagem' ? '%' : 'R$';
+}
 
     function acaoSalvar() {
         const t = transacoes.find(i => i.id === idEdicaoAtual);
