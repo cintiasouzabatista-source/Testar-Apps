@@ -738,7 +738,7 @@
 
     function salvarConfigReserva() {
         const p = parseInt(obterId('modal-reserva-pct').value);
-        if (p >= 1 && p <= 100) { 
+        if (p >= 0 && p <= 1000) { 
             porcentagemReserva = p; 
             localStorage.setItem('saldo_reserva_pct', p); 
             fecharConfigReserva(); 
