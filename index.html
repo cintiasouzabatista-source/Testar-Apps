@@ -61,10 +61,14 @@
         </div>
     </div>
 
-    <!-- TELA 2: VEICULO -->
+   <!-- TELA 2: VEICULO -->
     <div class="view" id="view-veiculo">
+        <!-- ACORDEAO 1 -->
         <div class="secao" id="acc-veiculo">
-            <div class="secao-header" onclick="toggleAcordeao('acc-veiculo')">Cadastrar Veículo <span>+</span></div>
+            <div class="secao-header" onclick="toggleAcordeao('acc-veiculo')">
+                Cadastrar Veículo 
+                <button class="btn-flutuante-mini" onclick="event.stopPropagation(); toggleAcordeao('acc-veiculo')">+</button>
+            </div>
             <div class="secao-content">
                 <input id="v-marca" class="input" placeholder="Marca: Ex: Fiat">
                 <input id="v-modelo" class="input" placeholder="Modelo: Ex: Strada">
@@ -72,8 +76,12 @@
                 <button class="btn" onclick="cadastrarVeiculo()">Salvar Veículo</button>
             </div>
         </div>
+        <!-- ACORDEAO 2 -->
         <div class="secao" id="acc-abastecer">
-            <div class="secao-header" onclick="toggleAcordeao('acc-abastecer')">Abastecer <span>+</span></div>
+            <div class="secao-header" onclick="toggleAcordeao('acc-abastecer')">
+                Abastecer 
+                <button class="btn-flutuante-mini" onclick="event.stopPropagation(); abrirModalAbastecer()">+</button>
+            </div>
             <div class="secao-content">
                 <input id="ab-data" class="input" type="date">
                 <input id="ab-km" class="input" type="number" placeholder="KM Atual">
@@ -82,8 +90,12 @@
                 <button class="btn" onclick="cadastrarAbastecimento()">Salvar Abastecimento</button>
             </div>
         </div>
+        <!-- ACORDEAO 3 -->
         <div class="secao" id="acc-manut">
-            <div class="secao-header" onclick="toggleAcordeao('acc-manut')">Manutenção <span>+</span></div>
+            <div class="secao-header" onclick="toggleAcordeao('acc-manut')">
+                Manutenção 
+                <button class="btn-flutuante-mini" onclick="event.stopPropagation(); toggleAcordeao('acc-manut')">+</button>
+            </div>
             <div class="secao-content">
                 <input id="man-desc" class="input" placeholder="Descrição: Troca de óleo">
                 <input id="man-valor" class="input" type="number" step="0.01" placeholder="Valor R$">
@@ -93,14 +105,40 @@
             </div>
         </div>
     </div>
+   <!-- TELA 3: RELATORIOS -->
+    <div class="view" id="view-relatorios">
+        <div class="secao" style="padding:16px;">
+            <h3>📊 Relatórios</h3>
+            
+            <div style="margin: 16px 0;">
+                <h4>1. Consumo por Mês</h4>
+                <p><strong>KM/L Médio:</strong> <span id="rel-consumo-mes">0</span></p>
+                <p><strong>Total Litros:</strong> <span id="rel-litros-mes">0 L</span></p>
+            </div>
 
-    <!-- TELA 3: RELATORIOS -->
-    <div class="view" id="view-relatorios"><div class="secao" style="padding:16px;"><h3>Relatórios</h3><p>Em breve...</p></div></div>
+            <div style="margin: 16px 0;">
+                <h4>2. Gastos</h4>
+                <p><strong>Gasto Combustível:</strong> <span id="rel-gasto-comb">R$ 0,00</span></p>
+                <p><strong>Gasto Manutenção:</strong> <span id="rel-gasto-manut">R$ 0,00</span></p>
+                <p><strong>Total Geral:</strong> <span id="rel-gasto-total">R$ 0,00</span></p>
+            </div>
 
+            <div style="margin: 16px 0;">
+                <h4>3. Custo por KM</h4>
+                <p><strong>R$ / KM:</strong> <span id="rel-custo-km">R$ 0,00</span></p>
+                <p style="font-size:0.8rem; color:#64748b;">Quanto custa rodar 1km com esse veículo</p>
+            </div>
+
+            <div style="margin: 16px 0;">
+                <h4>4. Preço Médio do Combustível</h4>
+                <p><strong>R$ / Litro:</strong> <span id="rel-preco-litro">R$ 0,00</span></p>
+            </div>
+        </div>
+    </div>
     <!-- TELA 4: CONFIG -->
     <div class="view" id="view-config"><div class="secao" style="padding:16px;"><h3>Configurações</h3><button class="btn btn-vermelho" onclick="resetarApp()">🗑️ Resetar App</button></div></div>
 
-    <button class="btn-flutuante" onclick="abrirModalAbastecer()">+</button>
+   
 
     <div class="menu">
         <button class="tab ativo" id="tab-inicio" onclick="navegar('inicio')"><span>📊</span><span>Início</span></button>
@@ -182,7 +220,9 @@ function verificarAlertas(){
     let ultManut = manutencoes.filter(m=>m.veiculoId==veiculoAtivoId).pop();
     $('alerta-oleo').style.display = (ultManut && kmAtual >= ultManut.kmProx)? 'block' : 'none';
 }
-
+function abrirMenuFlutuante(){ 
+    $('modal-menu-flutuante').style.display='flex'; 
+}
 // CALCULAR CARDS
 function calcularCards(){
     let abastVeiculo = abastecimentos.filter(a=>a.veiculoId==veiculoAtivoId);
@@ -207,6 +247,17 @@ function calcularCards(){
     $('card-prox-oleo').innerText = ultManut? `${Math.max(0, ultManut.kmProx - kmAtual)} km` : '- km';
 }
 
+    // RELATORIOS
+    let gastoManut = manutencoes.filter(m=>m.veiculoId==veiculoAtivoId).reduce((a,b)=>a+b.valor,0);
+    let custoPorKm = totalValor / kmRodado;
+
+    $('rel-consumo-mes').innerText = `${consumo.toFixed(2)} km/L`;
+    $('rel-litros-mes').innerText = `${totalLitros.toFixed(2)} L`;
+    $('rel-gasto-comb').innerText = formatar(totalValor);
+    $('rel-gasto-manut').innerText = formatar(gastoManut);
+    $('rel-gasto-total').innerText = formatar(totalValor + gastoManut);
+    $('rel-custo-km').innerText = formatar(custoPorKm);
+    $('rel-preco-litro').innerText = formatar(totalValor / totalLitros);
 // CADASTROS
 function cadastrarVeiculo(){
     if(!$('v-marca').value) return alert('Preencha a marca');
