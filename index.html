@@ -3,57 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Caixa + Frota</title>
+    <title>Meu Controle de Combustível</title>
     <style>
-        :root { --bg: #f1f5f9; --card: #fff; --txt: #0f172a; --borda: #e2e8f0; --azul: #2563eb; --verde: #10b981; --vermelho: #ef4444; --laranja: #f59e0b; }
+        :root { --bg: #f1f5f9; --card: #fff; --txt: #0f172a; --borda: #e2e8f0; --azul: #2563eb; --verde: #10b981; --vermelho: #ef4444; --amarelo: #f59e0b; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); padding: 16px 16px 95px 16px; }
-       .container { max-width: 500px; margin: auto; }
-       .header { background: var(--azul); color: white; padding: 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-       .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-       .card { background: var(--card); padding: 16px 8px; text-align: center; border-radius: 12px; border: 1px solid var(--borda); }
-       .card h3 { font-size: 0.8rem; color: #64748b; text-transform: uppercase; }
-       .card p { font-size: 1.1rem; font-weight: 700; }
-       .saldo-total { grid-column: span 3; }
-       .saldo-total p { font-size: 2rem; }
-       .alerta-odometro { background: #fef3c7; border: 1px solid #fcd34d; padding: 10px; border-radius: 8px; margin-bottom: 16px; text-align: center; font-weight: 600; }
-       .btn-flutuante { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--azul); color: white; border: none; font-size: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-       .menu { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px; border-top: 1px solid var(--borda); }
-       .tab { background: none; border: none; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: #64748b; }
-       .tab.ativo { color: var(--azul); }
-       .view { display: none; }
-       .view.ativa { display: block; }
-       .secao { background: var(--card); padding: 16px; border-radius: 12px; border: 1px solid var(--borda); margin-bottom: 16px; }
-       .input { width: 100%; padding: 12px; border: 1px solid var(--borda); border-radius: 8px; margin-bottom: 10px; }
-       .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--azul); color: white; font-weight: 700; }
-       .btn-vermelho { background: var(--vermelho); }
-       .item { padding: 10px 0; border-bottom: 1px solid var(--borda); }
-       .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; padding: 20px; }
-       .modal-box { background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; }
+        body { background: var(--bg); padding: 16px 16px 95px 16px; color: var(--txt); }
+      .container { max-width: 500px; margin: auto; }
+      .header { background: var(--azul); color: white; padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 1.3rem; font-weight: 700; }
+      .alerta { background: #fef3c7; border: 1px solid #fcd34d; padding: 12px; border-radius: 8px; margin-bottom: 16px; text-align: center; font-weight: 600; cursor: pointer; }
+      .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+      .card { background: var(--card); padding: 16px 8px; text-align: center; border-radius: 12px; border: 1px solid var(--borda); }
+      .card h3 { font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+      .card p { font-size: 1.1rem; font-weight: 700; }
+      .card-grande { grid-column: span 3; }
+      .card-grande p { font-size: 2rem; }
+      .cor-verde { color: var(--verde); }
+      .cor-vermelho { color: var(--vermelho); }
+      .cor-amarelo { color: var(--amarelo); }
+      .secao { background: var(--card); padding: 16px; border-radius: 12px; border: 1px solid var(--borda); margin-bottom: 16px; }
+      .secao h3 { margin-bottom: 12px; }
+      .input { width: 100%; padding: 12px; border: 1px solid var(--borda); border-radius: 8px; margin-bottom: 10px; font-size: 1rem; }
+      .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; background: var(--azul); color: white; font-weight: 700; font-size: 1rem; cursor: pointer; }
+      .btn-vermelho { background: var(--vermelho); }
+      .btn-flutuante { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--azul); color: white; border: none; font-size: 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+      .menu { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px; border-top: 1px solid var(--borda); }
+      .tab { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.75rem; color: #64748b; cursor: pointer; }
+      .tab.ativo { color: var(--azul); font-weight: 700; }
+      .view { display: none; }
+      .view.ativa { display: block; }
+      .item { padding: 12px 0; border-bottom: 1px solid var(--borda); font-size: 0.9rem; }
+      .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; padding: 20px; z-index: 100; }
+      .modal-box { background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; }
     </style>
 </head>
 <body>
 <div class="container">
 
     <div class="header">
-        <h2 id="titulo">Meu Caixa</h2>
-        <span id="km-atual">KM: 0</span>
+        <div>Meu Veículo</div>
+        <div>KM: <span id="km-atual">0</span></div>
     </div>
 
-    <div id="alerta-odometro" class="alerta-odometro" style="display:none;" onclick="abrirModalKm()">
+    <div id="alerta-odometro" class="alerta" style="display:none;" onclick="abrirModalKm()">
         ⛽ Atualize o KM do veículo!
     </div>
 
-    <!-- TELA 1: INICIO -->
+    <!-- TELA 1: INICIO / DASHBOARD -->
     <div class="view ativa" id="view-inicio">
         <div class="cards">
-            <div class="card"><h3>Entradas</h3><p id="card-ent" style="color:var(--verde)">R$ 0,00</p></div>
-            <div class="card"><h3>Saídas</h3><p id="card-sai" style="color:var(--vermelho)">R$ 0,00</p></div>
-            <div class="card"><h3>Cartão</h3><p id="card-car" style="color:var(--laranja)">R$ 0,00</p></div>
-            <div class="card saldo-total"><h3>Saldo Atual</h3><p id="card-saldo">R$ 0,00</p></div>
+            <div class="card"><h3>Consumo</h3><p id="card-consumo" class="cor-verde">0 km/L</p></div>
+            <div class="card"><h3>Gasto Mês</h3><p id="card-gasto" class="cor-vermelho">R$ 0,00</p></div>
+            <div class="card"><h3>KM Rodado</h3><p id="card-km" class="cor-amarelo">0 km</p></div>
+            <div class="card card-grande"><h3>Preço Médio/L</h3><p id="card-preco">R$ 0,00</p></div>
         </div>
         <div class="secao">
-            <h3>Últimos Lançamentos</h3>
+            <h3>Últimos Abastecimentos</h3>
             <div id="lista-inicio"></div>
         </div>
     </div>
@@ -65,14 +69,14 @@
             <input id="v-marca" class="input" placeholder="Marca: Ex: Fiat">
             <input id="v-modelo" class="input" placeholder="Modelo: Ex: Strada">
             <input id="v-ano" class="input" type="number" placeholder="Ano: Ex: 2020">
-            <input id="v-km" class="input" type="number" placeholder="KM Atual">
+            <input id="v-km" class="input" type="number" placeholder="KM Atual do Veículo">
             <button class="btn" onclick="cadastrarVeiculo()">Salvar Veículo</button>
         </div>
         <div class="secao">
             <h3>Abastecer</h3>
             <input id="ab-data" class="input" type="date">
             <input id="ab-km" class="input" type="number" placeholder="KM Atual">
-            <input id="ab-litros" class="input" type="number" step="0.01" placeholder="Litros">
+            <input id="ab-litros" class="input" type="number" step="0.01" placeholder="Litros Abastecidos">
             <input id="ab-valor" class="input" type="number" step="0.01" placeholder="Valor Total R$">
             <button class="btn" onclick="cadastrarAbastecimento()">Salvar Abastecimento</button>
         </div>
@@ -80,13 +84,20 @@
             <h3>Manutenção</h3>
             <input id="man-desc" class="input" placeholder="Descrição: Troca de óleo">
             <input id="man-valor" class="input" type="number" step="0.01" placeholder="Valor R$">
+            <input id="man-km" class="input" type="number" placeholder="KM da Manutenção">
             <button class="btn" onclick="cadastrarManutencao()">Salvar Manutenção</button>
         </div>
-        <div class="secao"><h3>Histórico</h3><div id="lista-veiculo"></div></div>
+        <div class="secao"><h3>Histórico Completo</h3><div id="lista-veiculo"></div></div>
     </div>
 
-    <!-- TELA 3: GRAFICOS -->
-    <div class="view" id="view-graficos"><div class="secao"><h3>Status</h3></div></div>
+    <!-- TELA 3: RELATORIOS -->
+    <div class="view" id="view-relatorios">
+        <div class="secao">
+            <h3>Relatórios</h3>
+            <p><strong>KM/L Médio:</strong> <span id="rel-consumo">0</span></p>
+            <p><strong>Total Gasto Combustível:</strong> <span id="rel-gasto">R$ 0,00</span></p>
+        </div>
+    </div>
 
     <!-- TELA 4: CONFIG -->
     <div class="view" id="view-config">
@@ -96,35 +107,35 @@
         </div>
     </div>
 
-    <button class="btn-flutuante" onclick="abrirModalLancamento()">+</button>
+    <button class="btn-flutuante" onclick="abrirModalAbastecer()">+</button>
 
     <div class="menu">
-        <button class="tab ativo" onclick="navegar('inicio')"><span>💬</span><span>Caixa</span></button>
+        <button class="tab ativo" onclick="navegar('inicio')"><span>📊</span><span>Início</span></button>
         <button class="tab" onclick="navegar('veiculo')"><span>🚗</span><span>Veículo</span></button>
-        <button class="tab" onclick="navegar('graficos')"><span>📊</span><span>Status</span></button>
+        <button class="tab" onclick="navegar('relatorios')"><span>📈</span><span>Relatório</span></button>
         <button class="tab" onclick="navegar('config')"><span>⚙️</span><span>Config</span></button>
     </div>
 </div>
 
-<!-- MODAL LANCAMENTO -->
-<div class="modal" id="modal-lanc"><div class="modal-box">
-    <h3>Novo Lançamento</h3>
-    <input id="l-desc" class="input" placeholder="Descrição">
-    <input id="l-valor" class="input" type="number" step="0.01" placeholder="Valor">
-    <select id="l-tipo" class="input"><option value="saida">Saída</option><option value="entrada">Entrada</option><option value="cartao">Cartão</option></select>
-    <button class="btn" onclick="salvarLancamento()">Salvar</button>
-    <button class="btn btn-vermelho" onclick="fecharModal('modal-lanc')">Cancelar</button>
+<!-- MODAL ABASTECER RAPIDO -->
+<div class="modal" id="modal-abastecer"><div class="modal-box">
+    <h3>Abastecer Rápido</h3>
+    <input id="ab-data-modal" class="input" type="date">
+    <input id="ab-km-modal" class="input" type="number" placeholder="KM Atual">
+    <input id="ab-litros-modal" class="input" type="number" step="0.01" placeholder="Litros">
+    <input id="ab-valor-modal" class="input" type="number" step="0.01" placeholder="Valor Total R$">
+    <button class="btn" onclick="salvarAbastecerModal()">Salvar</button>
+    <button class="btn btn-vermelho" onclick="fecharModal('modal-abastecer')">Cancelar</button>
 </div></div>
 
 <!-- MODAL KM -->
 <div class="modal" id="modal-km"><div class="modal-box">
     <h3>Atualizar KM</h3>
     <input id="km-input" class="input" type="number" placeholder="KM Atual do Veículo">
-    <button class="btn" onclick="salvarKM()">Atualizar</button>
+    <button class="btn" onclick="salvarKM()">Atualizar KM</button>
 </div></div>
 
 <script>
-let transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
 let veiculos = JSON.parse(localStorage.getItem('veiculos')) || [];
 let abastecimentos = JSON.parse(localStorage.getItem('abastecimentos')) || [];
 let manutencoes = JSON.parse(localStorage.getItem('manutencoes')) || [];
@@ -132,8 +143,9 @@ let kmAtual = parseFloat(localStorage.getItem('km_atual')) || 0;
 let ultimaAtualizacaoKm = parseInt(localStorage.getItem('ultima_km')) || 0;
 
 const $ = id => document.getElementById(id);
+const formatar = n => `R$ ${parseFloat(n).toFixed(2).replace('.',',')}`;
+
 const save = () => {
-    localStorage.setItem('transacoes', JSON.stringify(transacoes));
     localStorage.setItem('veiculos', JSON.stringify(veiculos));
     localStorage.setItem('abastecimentos', JSON.stringify(abastecimentos));
     localStorage.setItem('manutencoes', JSON.stringify(manutencoes));
@@ -144,20 +156,13 @@ function navegar(tela){
     document.querySelectorAll('.view').forEach(v => v.classList.remove('ativa'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
     $(`view-${tela}`).classList.add('ativa');
-    document.querySelector(`.tab:nth-child(${['inicio','veiculo','graficos','config'].indexOf(tela)+1})`).classList.add('ativo');
+    document.querySelector(`.tab:nth-child(${['inicio','veiculo','relatorios','config'].indexOf(tela)+1})`).classList.add('ativo');
     atualizar();
 }
 
 function atualizar(){
-    let ent = transacoes.filter(t=>t.tipo==='entrada').reduce((a,b)=>a+b.valor,0);
-    let sai = transacoes.filter(t=>t.tipo==='saida').reduce((a,b)=>a+b.valor,0);
-    let car = transacoes.filter(t=>t.tipo==='cartao').reduce((a,b)=>a+b.valor,0);
-    let saldo = ent - sai - car;
-    $('card-ent').innerText = `R$ ${ent.toFixed(2)}`;
-    $('card-sai').innerText = `R$ ${sai.toFixed(2)}`;
-    $('card-car').innerText = `R$ ${car.toFixed(2)}`;
-    $('card-saldo').innerText = `R$ ${saldo.toFixed(2)}`;
-    $('km-atual').innerText = `KM: ${kmAtual}`;
+    $('km-atual').innerText = kmAtual;
+    calcularCards();
     renderLista();
     verificarKM();
 }
@@ -165,64 +170,80 @@ function atualizar(){
 function verificarKM(){
     const agora = Date.now();
     const umDia = 24 * 60 * 60 * 1000;
-    if(agora - ultimaAtualizacaoKm > umDia){
+    if(agora - ultimaAtualizacaoKm > umDia && ultimaAtualizacaoKm!== 0){
         $('alerta-odometro').style.display = 'block';
     } else {
         $('alerta-odometro').style.display = 'none';
     }
 }
 
+// CALCULAR CARDS
+function calcularCards(){
+    if(abastecimentos.length < 2) return;
+
+    let totalLitros = 0, totalValor = 0;
+    abastecimentos.forEach(a => { totalLitros += a.litros; totalValor += a.valor; });
+
+    let kmInicial = abastecimentos[0].km;
+    let kmFinal = abastecimentos[abastecimentos.length -1].km;
+    let kmRodado = kmFinal - kmInicial;
+    let consumo = kmRodado / totalLitros;
+    let precoMedio = totalValor / totalLitros;
+
+    $('card-consumo').innerText = `${consumo.toFixed(2)} km/L`;
+    $('card-gasto').innerText = formatar(totalValor);
+    $('card-km').innerText = `${kmRodado} km`;
+    $('card-preco').innerText = formatar(precoMedio);
+    $('rel-consumo').innerText = `${consumo.toFixed(2)} km/L`;
+    $('rel-gasto').innerText = formatar(totalValor);
+}
+
 // VEICULO
 function cadastrarVeiculo(){
     veiculos.push({
-        id: Date.now(),
-        marca: $('v-marca').value,
-        modelo: $('v-modelo').value,
-        ano: $('v-ano').value,
-        km: parseFloat($('v-km').value)
+        id: Date.now(), marca: $('v-marca').value, modelo: $('v-modelo').value,
+        ano: $('v-ano').value, km: parseFloat($('v-km').value)
     });
     kmAtual = parseFloat($('v-km').value);
+    ultimaAtualizacaoKm = Date.now();
+    localStorage.setItem('ultima_km', ultimaAtualizacaoKm);
     save(); atualizar(); alert('Veículo salvo!');
+    $('v-marca').value = $('v-modelo').value = $('v-ano').value = $('v-km').value = '';
 }
 
 // ABASTECER
 function cadastrarAbastecimento(){
     abastecimentos.push({
-        id: Date.now(),
-        data: $('ab-data').value,
-        km: parseFloat($('ab-km').value),
-        litros: parseFloat($('ab-litros').value),
-        valor: parseFloat($('ab-valor').value)
+        id: Date.now(), data: $('ab-data').value, km: parseFloat($('ab-km').value),
+        litros: parseFloat($('ab-litros').value), valor: parseFloat($('ab-valor').value)
     });
     kmAtual = parseFloat($('ab-km').value);
     ultimaAtualizacaoKm = Date.now();
     localStorage.setItem('ultima_km', ultimaAtualizacaoKm);
     save(); atualizar(); alert('Abastecimento salvo!');
+    $('ab-litros').value = $('ab-valor').value = '';
+}
+
+function abrirModalAbastecer(){ $('modal-abastecer').style.display='flex'; $('ab-data-modal').value = new Date().toISOString().split('T')[0]; $('ab-km-modal').value = kmAtual; }
+function fecharModal(id){ $(id).style.display='none'; }
+function salvarAbastecerModal(){
+    abastecimentos.push({
+        id: Date.now(), data: $('ab-data-modal').value, km: parseFloat($('ab-km-modal').value),
+        litros: parseFloat($('ab-litros-modal').value), valor: parseFloat($('ab-valor-modal').value)
+    });
+    kmAtual = parseFloat($('ab-km-modal').value);
+    ultimaAtualizacaoKm = Date.now();
+    localStorage.setItem('ultima_km', ultimaAtualizacaoKm);
+    save(); fecharModal('modal-abastecer'); atualizar();
 }
 
 // MANUTENCAO
 function cadastrarManutencao(){
     manutencoes.push({
-        id: Date.now(),
-        desc: $('man-desc').value,
-        valor: parseFloat($('man-valor').value),
-        data: new Date().toLocaleDateString()
+        id: Date.now(), desc: $('man-desc').value, valor: parseFloat($('man-valor').value), km: parseFloat($('man-km').value)
     });
     save(); atualizar(); alert('Manutenção salva!');
-}
-
-// LANCAMENTO CAIXA
-function abrirModalLancamento(){ $('modal-lanc').style.display='flex'; }
-function fecharModal(id){ $(id).style.display='none'; }
-function salvarLancamento(){
-    transacoes.push({
-        id: Date.now(),
-        desc: $('l-desc').value,
-        valor: parseFloat($('l-valor').value),
-        tipo: $('l-tipo').value,
-        data: new Date().toLocaleDateString()
-    });
-    save(); fecharModal('modal-lanc'); atualizar();
+    $('man-desc').value = $('man-valor').value = $('man-km').value = '';
 }
 
 // KM
@@ -235,14 +256,13 @@ function salvarKM(){
 }
 
 function renderLista(){
-    $('lista-inicio').innerHTML = transacoes.slice(0,5).map(t=>`<div class="item">${t.desc} - R$ ${t.valor}</div>`).join('');
-    $('lista-veiculo').innerHTML = [...abastecimentos,...manutencoes].slice(0,5).map(t=>`<div class="item">${t.desc || 'Abastecimento'} - R$ ${t.valor || '-'}</div>`).join('');
+    $('lista-inicio').innerHTML = abastecimentos.slice(-3).reverse().map(a=>`<div class="item">${a.data} - ${a.km}km - ${a.litros}L - ${formatar(a.valor)}</div>`).join('') || 'Nenhum abastecimento';
+    $('lista-veiculo').innerHTML = [...abastecimentos.map(a=>({t:'Abastecimento',...a})),...manutencoes.map(m=>({t:'Manutenção',...m}))].slice(-5).reverse().map(i=>`<div class="item">${i.t}: ${i.desc || i.litros+'L'} - ${formatar(i.valor)} - ${i.km}km</div>`).join('');
 }
 
 function resetarApp(){
-    if(confirm('Apagar tudo?')){
-        localStorage.clear();
-        location.reload();
+    if(confirm('Apagar todos os dados do veículo?')){
+        localStorage.clear(); location.reload();
     }
 }
 
