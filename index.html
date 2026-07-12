@@ -415,29 +415,6 @@ function salvarConfig() {
     atualizarPainel();
 }
 
-function carregarConfig() {
-    let conf = obterConfigAtual();
-    document.getElementById('kmBase').value = conf.kmBase || '';
-    document.getElementById('dataBase').value = conf.dataBase || '';
-    document.getElementById('kmValor').value = conf.kmValor || 30;
-    document.getElementById('horaAtualizacao').value = conf.horaAtualizacao || '19:00';
-    document.getElementById('tanqueL').value = conf.tanqueL || 54.0;
-    document.querySelectorAll('.dia-btn').forEach(b => { b.classList.toggle('active', conf.diasSemana.includes(parseInt(b.dataset.dia))); });
-    document.querySelectorAll('#modoKm button').forEach(b => { b.classList.toggle('active', b.dataset.modo === conf.modoKm); });
-}
-
-document.querySelectorAll('.dia-btn').forEach(b => { 
-    b.onclick = () => { b.classList.toggle('active'); salvarConfig(); }; 
-});
-
-document.querySelectorAll('#modoKm button').forEach(b => {
-    b.onclick = () => {
-        document.querySelectorAll('#modoKm button').forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
-        obterConfigAtual().modoKm = b.dataset.modo;
-        salvarConfig();
-    };
-});
 
 function calcTotal() {
     const litros = parseFloat(document.getElementById('aLitros').value) || 0;
