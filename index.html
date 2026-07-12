@@ -285,14 +285,14 @@ function addManut() {
 const FIESTA_ID = "ford_fiesta_2012";
 
 let veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
-if(!veiculos.length) {
-    veiculos = [
-        {id: DEFAULT_ID, tipo: "Moto", marca: "Honda", modelo: "Lead 110", ano: 2010, km: 93290, data: "2026-04-10"},
-        {id: FIESTA_ID, tipo: "Carro", marca: "Ford", modelo: "Fiesta 1.6", ano: 2014, km: 82500, data: "2026-01-08"}
-    ];
-}
+let veiculoAtivoId = localStorage.getItem('veiculoAtivoId');
 
-let veiculoAtivoId = localStorage.getItem('veiculoAtivoId') || DEFAULT_ID;
+// Se não houver veículo, garante que o ID seja nulo ou vazio
+if (veiculos.length === 0) {
+    veiculoAtivoId = null;
+} else if (!veiculoAtivoId || !veiculos.find(v => v.id === veiculoAtivoId)) {
+    veiculoAtivoId = veiculos[0].id;
+}
 let abastecimentos = JSON.parse(localStorage.getItem('abast') || '[]');
 let manutencoes = JSON.parse(localStorage.getItem('manut') || '[]');
 
@@ -678,7 +678,10 @@ function atualizarPainel() {
     // Alerta de 3 dias para atualizar KM
     const alerta = document.getElementById('alertaAtualizacao');
     if (alerta) alerta.style.display = verificarAlertaAtualizacao() ? 'block' : 'none';
-
+if (!veiculoAtivoId) {
+        // Opcional: exibir uma mensagem na tela dizendo "Cadastre um veículo"
+        return; 
+    }
     // 2. Cálculos de Média e Gastos
     const abastDoVeiculo = abastecimentos.filter(a => a.veiculoId == veiculoAtivoId).sort((a,b) => b.km - a.km);
     const gastoTotal = abastDoVeiculo.reduce((acc, curr) => acc + (parseFloat(curr.total) || 0), 0);
