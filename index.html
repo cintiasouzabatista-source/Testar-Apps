@@ -21,16 +21,14 @@ body { background: var(--bg); padding: 16px 16px 95px 16px; color: var(--txt); }
 .secao { background: var(--card); border-radius: 12px; border: 1px solid var(--borda); margin-bottom: 12px; overflow: hidden; }
 .secao-header { padding: 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
 .secao-content { padding: 0 16px 16px 16px; display: none; }
-.secao.aberta .secao-content {
-    display: block;
-}
+.secao.aberta .secao-content { display: block; }
 .input,.select { width: 100%; padding: 12px; border: 1px solid var(--borda); border-radius: 8px; margin-bottom: 10px; font-size: 1rem; }
 .input[readonly] { background: #f1f5f9; }
 .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; background: var(--azul); color: white; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
 .btn-vermelho { background: var(--vermelho); }
 .btn-cinza { background: #64748b; }
-.btn-flutuante { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--azul); color: white; border: none; font-size: 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-.menu { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px; border-top: 1px solid var(--borda); }
+.btn-flutuante { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--azul); color: white; border: none; font-size: 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 10; }
+.menu { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px; border-top: 1px solid var(--borda); z-index: 10; }
 .tab { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.75rem; color: #64748b; cursor: pointer; }
 .tab.ativo { color: var(--azul); font-weight: 700; }
 .view { display: none; }
@@ -46,7 +44,7 @@ body { background: var(--bg); padding: 16px 16px 95px 16px; color: var(--txt); }
 <div class="container">
 
 <div class="header">
-    <div class="header-top"><div>Meu Veículo</div><div onclick="abrirModalKm()">KM: <span id="km-atual">0</span></div></div>
+    <div class="header-top"><div>Meu Veículo</div><div onclick="abrirModalKm()" style="cursor:pointer;">KM: <span id="km-atual">0</span></div></div>
     <select id="select-veiculo" class="select-veiculo" onchange="trocarVeiculo()"></select>
 </div>
 
@@ -55,9 +53,9 @@ body { background: var(--bg); padding: 16px 16px 95px 16px; color: var(--txt); }
 <div id="alerta-oleo" class="alerta alerta-urgente" style="display:none;"></div>
 
 <!-- TELA 1: INICIO -->
-<div class="view ativa" id="view-inicio">
+<div class="view" id="view-inicio">
     <div class="cards">
-        <div class="card"><h3>Consumo</h3><p id="card-consumo">0 km/L</p></div>
+        <div class="card"><h3>Consumo</h3><p id="card-consumo">-</p></div>
         <div class="card"><h3>Gasto Mês</h3><p id="card-gasto">R$ 0,00</p></div>
         <div class="card"><h3>Próx. Abastec.</h3><p id="card-prox-abast">-</p></div>
         <div class="card"><h3>Próx. Troca Óleo</h3><p id="card-prox-oleo">-</p></div>
@@ -119,7 +117,7 @@ body { background: var(--bg); padding: 16px 16px 95px 16px; color: var(--txt); }
 <button class="btn-flutuante" onclick="abrirModalAbastecer()">+</button>
 
 <div class="menu">
-    <button class="tab ativo" onclick="navegar('inicio')">📊<span>Início</span></button>
+    <button class="tab" onclick="navegar('inicio')">📊<span>Início</span></button>
     <button class="tab" onclick="navegar('veiculo')">🚗<span>Veículo</span></button>
     <button class="tab" onclick="navegar('relatorios')">📈<span>Relatório</span></button>
     <button class="tab" onclick="navegar('config')">⚙️<span>Config</span></button>
@@ -134,6 +132,7 @@ body { background: var(--bg); padding: 16px 16px 95px 16px; color: var(--txt); }
     <h3>Abastecer Rápido</h3>
     <input id="ab-data-modal" class="input" type="date">
     <input id="ab-km-modal" class="input" type="number" placeholder="KM Atual">
+    <select id="ab-tipo-modal" class="select"><option>Gasolina</option><option>Etanol</option><option>Diesel</option></select>
     <input id="ab-valor-litro-modal" class="input" type="number" step="0.01" placeholder="Valor por Litro" oninput="calcularTotalModal()">
     <input id="ab-litros-modal" class="input" type="number" step="0.01" placeholder="Litros" oninput="calcularTotalModal()">
     <input id="ab-total-modal" class="input" type="number" step="0.01" placeholder="Total R$" readonly>
@@ -155,11 +154,15 @@ let manutencoes = JSON.parse(localStorage.getItem('manutencoes')) || [];
 let veiculoAtivoId = localStorage.getItem('veiculo_ativo_id') || null;
 let kmAtual = parseFloat(localStorage.getItem('km_atual')) || 0;
 let ultimaAtualizacaoKm = parseInt(localStorage.getItem('ultima_km')) || 0;
-let itemEditando = null; // guarda id do item que está editando
+let itemEditando = null;
 
 const $ = id => document.getElementById(id);
 const formatar = n => `R$ ${parseFloat(n||0).toFixed(2).replace('.',',')}`;
-const formatarData = d => new Date(d).toLocaleDateString('pt-BR');
+const formatarData = d => {
+    if(!d) return '-';
+    let parts = d.split('-');
+    return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : new Date(d).toLocaleDateString('pt-BR');
+};
 
 const save = () => {
     localStorage.setItem('veiculos', JSON.stringify(veiculos));
@@ -177,7 +180,7 @@ function navegar(tela){
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
     $(`view-${tela}`).classList.add('ativa');
     let idx = ['inicio','veiculo','relatorios','config'].indexOf(tela);
-    document.querySelectorAll('.tab')[idx].classList.add('ativo');
+    if(idx !== -1) document.querySelectorAll('.tab')[idx].classList.add('ativo');
     if(tela == 'relatorios') gerarRelatorio();
     atualizar();
 }
@@ -191,17 +194,26 @@ function atualizar(){
 }
 
 function carregarSelectVeiculos(){
-    if(veiculos.length > 0 &&!veiculoAtivoId) veiculoAtivoId = veiculos[0].id;
+    if(veiculos.length > 0 && !veiculoAtivoId) veiculoAtivoId = veiculos[0].id;
     $('select-veiculo').innerHTML = veiculos.map(v=>`<option value="${v.id}" ${v.id==veiculoAtivoId?'selected':''}>${v.marca} ${v.modelo}</option>`).join('') || '<option value="">Nenhum veículo</option>';
 }
-function trocarVeiculo(){ veiculoAtivoId = $('select-veiculo').value; save(); atualizar(); }
+function trocarVeiculo(){ 
+    veiculoAtivoId = $('select-veiculo').value; 
+    let v = veiculos.find(ve => ve.id == veiculoAtivoId);
+    if(v) {
+        let vAbast = abastecimentos.filter(a => a.veiculoId == veiculoAtivoId).sort((a,b)=>b.km-a.km);
+        kmAtual = vAbast.length > 0 ? vAbast[0].km : v.kmInicial;
+    }
+    save(); 
+    atualizar(); 
+}
 
 function calcularTotal(){ $('ab-total').value = ((parseFloat($('ab-valor-litro').value)||0) * (parseFloat($('ab-litros').value)||0)).toFixed(2); }
 function calcularTotalModal(){ $('ab-total-modal').value = ((parseFloat($('ab-valor-litro-modal').value)||0) * (parseFloat($('ab-litros-modal').value)||0)).toFixed(2); }
 
 function calcularDadosVeiculo(){
     let abastVeiculo = abastecimentos.filter(a=>a.veiculoId==veiculoAtivoId).sort((a,b)=>a.km-b.km);
-    if(abastVeiculo.length < 2) return {};
+    if(abastVeiculo.length < 2) return { consumo: null, totalValor: abastVeiculo.reduce((a,b)=>a+b.valor,0), kmFaltamAbast: null };
     let totalLitros = abastVeiculo.reduce((a,b)=>a+b.litros,0);
     let totalValor = abastVeiculo.reduce((a,b)=>a+b.valor,0);
     let kmRodado = abastVeiculo[abastVeiculo.length -1].km - abastVeiculo[0].km;
@@ -215,29 +227,52 @@ function calcularDadosVeiculo(){
 
 function calcularCards(){
     let dados = calcularDadosVeiculo();
-    if(!dados.consumo) return;
-    $('card-consumo').innerText = `${dados.consumo.toFixed(2)} km/L`;
-    $('card-gasto').innerText = formatar(dados.totalValor);
-    $('card-prox-abast').innerText = `${formatarData(dados.proxData)} - Sem ${dados.semana}`;
+    if(!dados || dados.consumo === null) {
+        $('card-consumo').innerText = "-";
+        $('card-gasto').innerText = formatar(dados.totalValor || 0);
+        $('card-prox-abast').innerText = "-";
+    } else {
+        $('card-consumo').innerText = `${dados.consumo.toFixed(2)} km/L`;
+        $('card-gasto').innerText = formatar(dados.totalValor);
+        $('card-prox-abast').innerText = dados.proxData ? `${formatarData(dados.proxData.toISOString().split('T')[0])}` : '-';
+    }
     let ultManut = manutencoes.filter(m=>m.veiculoId==veiculoAtivoId).pop();
-    if(ultManut){ let prox = ultManut.kmAtual + ultManut.intervalo; $('card-prox-oleo').innerText = `${Math.max(0, prox - kmAtual)} km`; }
+    if(ultManut){ 
+        let prox = ultManut.kmAtual + ultManut.intervalo; 
+        $('card-prox-oleo').innerText = `${Math.max(0, prox - kmAtual)} km`; 
+    } else {
+        $('card-prox-oleo').innerText = "-";
+    }
 }
 
 function verificarAlertas(){
     $('alerta-odometro').style.display = (Date.now() - ultimaAtualizacaoKm > 86400000 && ultimaAtualizacaoKm!== 0)? 'block' : 'none';
     let dados = calcularDadosVeiculo();
-    if(dados.kmFaltamAbast){ $('alerta-abastecer').innerText = `⚠️ Faltam ${dados.kmFaltamAbast} km. Previsto p/ ${formatarData(dados.proxData)}`; $('alerta-abastecer').style.display = dados.kmFaltamAbast <= 50? 'block' : 'none'; }
+    if(dados && dados.kmFaltamAbast){ 
+        $('alerta-abastecer').innerText = `⚠️ Faltam ${dados.kmFaltamAbast} km. Previsto p/ ${formatarData(dados.proxData.toISOString().split('T')[0])}`; 
+        $('alerta-abastecer').style.display = dados.kmFaltamAbast <= 50? 'block' : 'none'; 
+    } else {
+        $('alerta-abastecer').style.display = 'none';
+    }
     let ultManut = manutencoes.filter(m=>m.veiculoId==veiculoAtivoId).pop();
-    if(ultManut){ let faltam = (ultManut.kmAtual + ultManut.intervalo) - kmAtual; $('alerta-oleo').innerText = `🔧 Faltam ${faltam} km p/ Troca de Óleo`; $('alerta-oleo').style.display = faltam <= 500? 'block' : 'none'; }
+    if(ultManut){ 
+        let faltam = (ultManut.kmAtual + ultManut.intervalo) - kmAtual; 
+        $('alerta-oleo').innerText = `🔧 Faltam ${faltam} km p/ Troca de Óleo`; 
+        $('alerta-oleo').style.display = faltam <= 500? 'block' : 'none'; 
+    } else {
+        $('alerta-oleo').style.display = 'none';
+    }
 }
 
-// CADASTROS
 function cadastrarVeiculo(){
+    if(!$('v-marca').value || !$('v-km').value) return alert('Insira ao menos a Marca e o KM Atual');
     let novo = { id: Date.now().toString(), marca: $('v-marca').value, modelo: $('v-modelo').value, ano: $('v-ano').value, kmInicial: parseFloat($('v-km').value), dataAquisicao: $('v-data').value };
     veiculos.push(novo); kmAtual = novo.kmInicial; veiculoAtivoId = novo.id; save(); atualizar(); alert('Veículo salvo!');
+    $('v-marca').value=''; $('v-modelo').value=''; $('v-ano').value=''; $('v-km').value=''; $('v-data').value='';
 }
 function cadastrarAbastecimento(){
     if(!veiculoAtivoId) return alert('Cadastre um veículo primeiro');
+    if(!$('ab-data').value || !$('ab-km').value || !$('ab-total').value) return alert('Preencha os campos obrigatórios');
     abastecimentos.push({id: Date.now(), veiculoId: veiculoAtivoId, data: $('ab-data').value, km: parseFloat($('ab-km').value), tipo: $('ab-tipo').value, litros: parseFloat($('ab-litros').value), valor: parseFloat($('ab-total').value), valorLitro: parseFloat($('ab-valor-litro').value)});
     kmAtual = parseFloat($('ab-km').value); ultimaAtualizacaoKm = Date.now(); localStorage.setItem('ultima_km', ultimaAtualizacaoKm); save(); atualizar(); alert('Salvo!');
 }
@@ -247,7 +282,6 @@ function cadastrarManutencao(){
     save(); atualizar(); alert('Salvo!');
 }
 
-// EDITAR E EXCLUIR
 function abrirEditar(tipo, id){
     itemEditando = {tipo, id};
     let item = tipo=='abast'? abastecimentos.find(a=>a.id==id) : manutencoes.find(m=>m.id==id);
@@ -278,38 +312,46 @@ function salvarEdicao(){
         let item = manutencoes.find(m=>m.id==itemEditando.id);
         item.desc=$('edit-desc').value; item.kmAtual=parseFloat($('edit-km').value); item.intervalo=parseFloat($('edit-interval').value); item.valor=parseFloat($('edit-valor').value);
     }
-    save(); fecharModal('modal-edit'); atualizar(); gerarRelatorio(); alert('Alterado!');
+    save(); fecharModal('modal-edit'); atualizar(); if($('view-relatorios').classList.contains('ativa')) gerarRelatorio(); alert('Alterado!');
 }
 
 function excluirItem(){
     if(!confirm('Tem certeza?')) return;
     if(itemEditando.tipo=='abast') abastecimentos = abastecimentos.filter(a=>a.id!=itemEditando.id);
     else manutencoes = manutencoes.filter(m=>m.id!=itemEditando.id);
-    save(); fecharModal('modal-edit'); atualizar(); gerarRelatorio(); alert('Excluído!');
+    save(); fecharModal('modal-edit'); atualizar(); if($('view-relatorios').classList.contains('ativa')) gerarRelatorio(); alert('Excluído!');
 }
 
 function renderLista(){
     let abastVeiculo = abastecimentos.filter(a=>a.veiculoId==veiculoAtivoId);
-    let hist = [...abastVeiculo.map(a=>({t:'abast',...a})),...manutencoes.filter(m=>m.veiculoId==veiculoAtivoId).map(m=>({t:'manut',...m}))].sort((a,b)=>b.km-a.km);
-    $('lista-veiculo').innerHTML = hist.slice(0,10).map(i=>`<div class="item" onclick="abrirEditar('${i.t}', ${i.id})"><strong>${i.t=='abast'?'Abast':i.desc} - ${formatarData(i.data)||i.kmAtual}km</strong>${i.t=='abast'? i.litros+'L '+i.tipo : 'A cada '+i.intervalo+'km'} - ${formatar(i.valor)}</div>`).join('') || 'Nenhum registro';
+    let manutVeiculo = manutencoes.filter(m=>m.veiculoId==veiculoAtivoId);
+    let hist = [...abastVeiculo.map(a=>({t:'abast',...a})),...manutVeiculo.map(m=>({t:'manut',...m}))].sort((a,b)=>(b.km||b.kmAtual)-(a.km||a.kmAtual));
+    
+    $('lista-veiculo').innerHTML = hist.slice(0,10).map(i=>{
+        let dataExibicao = i.t == 'abast' ? formatarData(i.data) : `${i.kmAtual} km`;
+        return `<div class="item" onclick="abrirEditar('${i.t}', ${i.id})"><strong>${i.t=='abast'?'Abast':i.desc} - ${dataExibicao}</strong>${i.t=='abast'? i.litros+'L '+i.tipo : 'A cada '+i.intervalo+'km'} - ${formatar(i.valor)}</div>`
+    }).join('') || 'Nenhum registro';
 }
 
 function gerarRelatorio(){
     let dados = calcularDadosVeiculo();
     let abastVeiculo = abastecimentos.filter(a=>a.veiculoId==veiculoAtivoId).sort((a,b)=>new Date(b.data)-new Date(a.data));
     let manutVeiculo = manutencoes.filter(m=>m.veiculoId==veiculoAtivoId).sort((a,b)=>b.kmAtual-a.kmAtual);
-    $('relatorio-resumo').innerHTML = `<p><strong>Consumo:</strong> ${dados.consumo? dados.consumo.toFixed(2)+' km/L' : '-'}</p><p><strong>Total Gasto:</strong> ${formatar(dados.totalValor)}</p>`;
+    $('relatorio-resumo').innerHTML = `<p><strong>Consumo Médio:</strong> ${dados.consumo? dados.consumo.toFixed(2)+' km/L' : '-'}</p><p><strong>Total Gasto:</strong> ${formatar(dados.totalValor)}</p>`;
     $('relatorio-abast').innerHTML = abastVeiculo.map(a=>`<div class="item" onclick="abrirEditar('abast', ${a.id})"><strong>${formatarData(a.data)} - ${a.km}km</strong>${a.litros}L ${a.tipo} x ${formatar(a.valorLitro)}/L = ${formatar(a.valor)}</div>`).join('') || 'Nenhum';
     $('relatorio-manut').innerHTML = manutVeiculo.map(m=>`<div class="item" onclick="abrirEditar('manut', ${m.id})"><strong>${m.desc} - ${m.kmAtual}km</strong>Trocar a cada ${m.intervalo}km - ${formatar(m.valor)}</div>`).join('') || 'Nenhuma';
 }
 
 function abrirModalAbastecer(){ if(!veiculoAtivoId) return alert('Cadastre um veículo primeiro'); $('modal-abastecer').style.display='flex'; $('ab-data-modal').value = new Date().toISOString().split('T')[0]; $('ab-km-modal').value = kmAtual; }
-function salvarAbastecerModal(){ abastecimentos.push({id: Date.now(), veiculoId: veiculoAtivoId, data: $('ab-data-modal').value, km: parseFloat($('ab-km-modal').value), litros: parseFloat($('ab-litros-modal').value), valor: parseFloat($('ab-total-modal').value), valorLitro: parseFloat($('ab-valor-litro-modal').value)}); kmAtual = parseFloat($('ab-km-modal').value); ultimaAtualizacaoKm = Date.now(); localStorage.setItem('ultima_km', ultimaAtualizacaoKm); save(); fecharModal('modal-abastecer'); atualizar(); }
+function salvarAbastecerModal(){ 
+    abastecimentos.push({id: Date.now(), veiculoId: veiculoAtivoId, data: $('ab-data-modal').value, km: parseFloat($('ab-km-modal').value), tipo: $('ab-tipo-modal').value, litros: parseFloat($('ab-litros-modal').value), valor: parseFloat($('ab-total-modal').value), valorLitro: parseFloat($('ab-valor-litro-modal').value)}); 
+    kmAtual = parseFloat($('ab-km-modal').value); ultimaAtualizacaoKm = Date.now(); localStorage.setItem('ultima_km', ultimaAtualizacaoKm); save(); fecharModal('modal-abastecer'); atualizar(); 
+}
 function abrirModalKm(){ $('modal-km').style.display='flex'; $('km-input').value = kmAtual; }
 function salvarKM(){ kmAtual = parseFloat($('km-input').value); ultimaAtualizacaoKm = Date.now(); localStorage.setItem('ultima_km', ultimaAtualizacaoKm); save(); fecharModal('modal-km'); atualizar(); }
 function resetarApp(){ if(confirm('Apagar tudo?')){ localStorage.clear(); location.reload(); } }
 
-window.onload = () => { $('ab-data').value = new Date().toISOString().split('T')[0]; atualizar(); }
+window.onload = () => { $('ab-data').value = new Date().toISOString().split('T')[0]; navegar('inicio'); }
 </script>
 </body>
 </html>
