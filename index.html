@@ -1,131 +1,144 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle Frota Pro</title>
-    <style>
-        :root { --azul: #2563eb; --bg: #f8fafc; --card: #ffffff; --txt: #1e293b; --vermelho: #ef4444; }
-        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); color: var(--txt); padding: 20px; padding-bottom: 90px; }
-        .container { max-width: 500px; margin: auto; }
-        
-        .header { background: var(--azul); color: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; }
-        .header-top { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 10px; }
-        
-        .secao { background: white; border-radius: 16px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; }
-        .secao-header { padding: 18px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; }
-        .secao-content { padding: 20px; display: none; }
-        .secao.aberta .secao-content { display: block; }
-        
-        .input, .select { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 10px; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; background: var(--azul); color: white; font-weight: 700; cursor: pointer; }
-        .btn-vermelho { background: var(--vermelho); }
-        
-        .menu { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #e2e8f0; }
-        .tab { background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 0.8rem; }
-        .tab.ativo { color: var(--azul); font-weight: 700; }
-        .view { display: none; }
-        .view.ativa { display: block; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle Frota</title>
+<style>
+:root { --bg: #f1f5f9; --card: #fff; --txt: #0f172a; --borda: #e2e8f0; --azul: #2563eb; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+body { background: var(--bg); padding: 16px 16px 95px 16px; }
+.container { max-width: 500px; margin: auto; }
+.header { background: var(--azul); color: white; padding: 16px; border-radius: 12px; margin-bottom: 16px; }
+.select-veiculo { width: 100%; padding: 8px; border-radius: 8px; border: none; }
+.secao { background: var(--card); border-radius: 12px; border: 1px solid var(--borda); margin-bottom: 12px; }
+.secao-header { padding: 16px; font-weight: 700; display: flex; justify-content: space-between; cursor: pointer; }
+.secao-content { padding: 0 16px 16px 16px; display: none; }
+.secao.aberta.secao-content { display: block; } /* <-- AQUI ERA O ERRO */
+.input,.select { width: 100%; padding: 12px; border: 1px solid var(--borda); border-radius: 8px; margin-bottom: 10px; }
+.btn { width: 100%; padding: 14px; border: none; border-radius: 8px; background: var(--azul); color: white; font-weight: 700; }
+.menu { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px; border-top: 1px solid var(--borda); }
+.tab { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.75rem; color: #64748b; }
+.tab.ativo { color: var(--azul); font-weight: 700; }
+.view { display: none; }
+.view.ativa { display: block; }
+</style>
 </head>
 <body>
-
 <div class="container">
-    <div class="view ativa" id="view-inicio">
-        <div class="header">
-            <div class="header-top"><span>Veículo Ativo</span><span id="km-display">KM: 0</span></div>
-            <select id="select-veiculo" class="select" onchange="trocarVeiculo()"></select>
-        </div>
-    </div>
 
-    <div class="view" id="view-veiculo">
-        <h2>Gestão</h2>
-        <!-- Cadastro -->
-        <div class="secao" id="acc-veiculo">
-            <div class="secao-header" onclick="toggle('acc-veiculo')">Cadastrar Veículo <span>▼</span></div>
-            <div class="secao-content">
-                <input id="v-marca" class="input" placeholder="Marca">
-                <input id="v-modelo" class="input" placeholder="Modelo">
-                <button class="btn" onclick="cadastrarVeiculo()">Salvar Veículo</button>
-            </div>
-        </div>
-        <!-- Abastecimento -->
-        <div class="secao" id="acc-abastecer">
-            <div class="secao-header" onclick="toggle('acc-abastecer')">Abastecer <span>▼</span></div>
-            <div class="secao-content">
-                <input id="ab-km" class="input" type="number" placeholder="KM Atual">
-                <input id="ab-valor" class="input" type="number" placeholder="Valor R$" oninput="calcular()">
-                <input id="ab-litros" class="input" type="number" placeholder="Litros" oninput="calcular()">
-                <input id="ab-total" class="input" placeholder="Total R$" readonly>
-                <button class="btn" onclick="cadastrarAbastecimento()">Salvar Abastecimento</button>
-            </div>
-        </div>
-        <!-- Manutenção -->
-        <div class="secao" id="acc-manut">
-            <div class="secao-header" onclick="toggle('acc-manut')">Manutenção <span>▼</span></div>
-            <div class="secao-content">
-                <input id="man-desc" class="input" placeholder="Descrição">
-                <input id="man-valor" class="input" type="number" placeholder="Valor R$">
-                <button class="btn" onclick="cadastrarManutencao()">Salvar Manutenção</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="view" id="view-config">
-        <h2>Config</h2>
-        <button class="btn btn-vermelho" onclick="resetarApp()">Resetar App</button>
+<div class="view ativa" id="view-inicio">
+    <div class="header">
+        <div>Meu Veículo</div>
+        <select id="select-veiculo" class="select-veiculo" onchange="trocarVeiculo()"></select>
     </div>
 </div>
 
+<div class="view" id="view-veiculo">
+    <h2>Veículo</h2>
+    <div class="secao" id="acc-veiculo">
+        <div class="secao-header" onclick="toggleAcordeao('acc-veiculo')">Cadastrar Veículo <span>▼</span></div>
+        <div class="secao-content">
+            <input id="v-marca" class="input" placeholder="Marca">
+            <input id="v-modelo" class="input" placeholder="Modelo">
+            <input id="v-ano" class="input" type="number" placeholder="Ano">
+            <button class="btn" onclick="cadastrarVeiculo()">Salvar Veículo</button>
+        </div>
+    </div>
+    <div class="secao" id="acc-abastecer">
+        <div class="secao-header" onclick="toggleAcordeao('acc-abastecer')">Abastecer <span>▼</span></div>
+        <div class="secao-content">
+            <input id="ab-data" class="input" type="date">
+            <input id="ab-km" class="input" type="number" placeholder="KM Atual">
+            <select id="ab-tipo" class="select"><option>Gasolina</option><option>Etanol</option><option>Diesel</option></select>
+            <input id="ab-valor-litro" class="input" type="number" step="0.01" placeholder="Valor por Litro R$" oninput="calcularTotal()">
+            <input id="ab-litros" class="input" type="number" step="0.01" placeholder="Litros" oninput="calcularTotal()">
+            <input id="ab-total" class="input" type="number" step="0.01" placeholder="Total R$" readonly>
+            <button class="btn" onclick="cadastrarAbastecimento()">Salvar Abastecimento</button>
+        </div>
+    </div>
+    <div class="secao" id="acc-manut">
+        <div class="secao-header" onclick="toggleAcordeao('acc-manut')">Manutenção <span>▼</span></div>
+        <div class="secao-content">
+            <input id="man-desc" class="input" placeholder="Descrição">
+            <input id="man-valor" class="input" type="number" step="0.01" placeholder="Valor R$">
+            <input id="man-km-atual" class="input" type="number" placeholder="KM Atual">
+            <input id="man-km-prox" class="input" type="number" placeholder="Próx Troca KM">
+            <button class="btn" onclick="cadastrarManutencao()">Salvar Manutenção</button>
+        </div>
+    </div>
+</div>
+
+<div class="view" id="view-relatorios"><h2>Relatórios</h2></div>
+<div class="view" id="view-config"><h2>Config</h2></div>
+
 <div class="menu">
-    <button class="tab ativo" onclick="navegar('inicio', this)">Início</button>
-    <button class="tab" onclick="navegar('veiculo', this)">Gestão</button>
-    <button class="tab" onclick="navegar('config', this)">Config</button>
+    <button class="tab ativo" onclick="navegar('inicio')">📊<span>Início</span></button>
+    <button class="tab" onclick="navegar('veiculo')">🚗<span>Veículo</span></button>
+    <button class="tab" onclick="navegar('relatorios')">📈<span>Relatório</span></button>
+    <button class="tab" onclick="navegar('config')">⚙️<span>Config</span></button>
 </div>
 
 <script>
-    const $ = id => document.getElementById(id);
-    let veiculos = JSON.parse(localStorage.getItem('veiculos')) || [];
-    
-    function navegar(id, btn) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('ativa'));
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
-        $(`view-${id}`).classList.add('ativa');
-        btn.classList.add('ativo');
+let veiculos = JSON.parse(localStorage.getItem('veiculos')) || [];
+let abastecimentos = JSON.parse(localStorage.getItem('abastecimentos')) || [];
+let manutencoes = JSON.parse(localStorage.getItem('manutencoes')) || [];
+let veiculoAtivoId = localStorage.getItem('veiculo_ativo_id') || null;
+let kmAtual = parseFloat(localStorage.getItem('km_atual')) || 0;
+
+const $ = id => document.getElementById(id);
+
+function save(){
+    localStorage.setItem('veiculos', JSON.stringify(veiculos));
+    localStorage.setItem('abastecimentos', JSON.stringify(abastecimentos));
+    localStorage.setItem('manutencoes', JSON.stringify(manutencoes));
+    localStorage.setItem('veiculo_ativo_id', veiculoAtivoId);
+}
+
+function navegar(tela){
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('ativa'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+    $(`view-${tela}`).classList.add('ativa');
+    event.target.closest('.tab').classList.add('ativo');
+    atualizar();
+}
+
+function toggleAcordeao(id){ $(id).classList.toggle('aberta'); }
+
+function atualizar(){
+    if(veiculos.length > 0 &&!veiculoAtivoId) veiculoAtivoId = veiculos[0].id;
+    if($('select-veiculo')){
+        $('select-veiculo').innerHTML = veiculos.map(v=>`<option value="${v.id}" ${v.id==veiculoAtivoId?'selected':''}>${v.marca} ${v.modelo}</option>`).join('') || '<option>Cadastre um veículo</option>';
     }
+}
 
-    const toggle = id => $(id).classList.toggle('aberta');
+function calcularTotal(){
+    let valor = parseFloat($('ab-valor-litro').value) || 0;
+    let litros = parseFloat($('ab-litros').value) || 0;
+    $('ab-total').value = (valor * litros).toFixed(2);
+}
 
-    function calcular() {
-        let valor = parseFloat($('ab-valor').value) || 0;
-        let litros = parseFloat($('ab-litros').value) || 0;
-        $('ab-total').value = (valor * litros).toFixed(2);
-    }
+function cadastrarVeiculo(){
+    let novo = { id: Date.now().toString(), marca: $('v-marca').value, modelo: $('v-modelo').value, ano: $('v-ano').value };
+    veiculos.push(novo); veiculoAtivoId = novo.id; save(); atualizar(); alert('Veículo Salvo!');
+}
 
-    function cadastrarVeiculo() {
-        veiculos.push({id: Date.now(), marca: $('v-marca').value, modelo: $('v-modelo').value});
-        localStorage.setItem('veiculos', JSON.stringify(veiculos));
-        atualizarUI();
-        alert('Veículo cadastrado!');
-    }
+function cadastrarAbastecimento(){
+    abastecimentos.push({id: Date.now(), veiculoId: veiculoAtivoId, km: parseFloat($('ab-km').value), tipo: $('ab-tipo').value, litros: parseFloat($('ab-litros').value), valor: parseFloat($('ab-total').value)});
+    kmAtual = parseFloat($('ab-km').value); save(); alert('Abastecimento Salvo!');
+}
 
-    function cadastrarAbastecimento() {
-        alert('Abastecimento salvo!');
-    }
+function cadastrarManutencao(){
+    manutencoes.push({id: Date.now(), veiculoId: veiculoAtivoId, desc: $('man-desc').value, valor: parseFloat($('man-valor').value), kmAtual: parseFloat($('man-km-atual').value), kmProx: parseFloat($('man-km-prox').value)});
+    save(); alert('Manutenção Salva!');
+}
 
-    function cadastrarManutencao() {
-        alert('Manutenção salva!');
-    }
+function trocarVeiculo(){ veiculoAtivoId = $('select-veiculo').value; save(); }
 
-    function resetarApp() { if(confirm('Limpar dados?')) { localStorage.clear(); location.reload(); } }
-
-    function atualizarUI() {
-        let sel = $('select-veiculo');
-        sel.innerHTML = veiculos.map(v => `<option value="${v.id}">${v.marca} ${v.modelo}</option>`).join('');
-    }
-
-    window.onload = atualizarUI;
+window.onload = function(){
+    if($('ab-data')) $('ab-data').value = new Date().toISOString().split('T')[0];
+    atualizar();
+}
 </script>
 </body>
 </html>
