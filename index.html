@@ -1,212 +1,135 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Controle Frota</title>
-<style>
-:root { --bg: #f1f5f9; --card: #fff; --txt: #0f172a; --borda: #e2e8f0; --azul: #2563eb; --verde: #10b981; --vermelho: #ef4444; --amarelo: #f59e0b; --laranja: #ea580c; }
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-body { 
-    background: #f8fafc; /* Um tom de cinza azulado mais suave */
-    padding: 20px; 
-    color: #1e293b; 
-    font-family: 'Inter', -apple-system, sans-serif; /* Fonte mais moderna */
-}
-.container { max-width: 500px; margin: auto; }
-.header { background: var(--azul); color: white; padding: 16px; border-radius: 12px; margin-bottom: 16px; }
-.header-top { display: flex; justify-content: space-between; align-items: center; font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
-.select-veiculo { width: 100%; padding: 8px; border-radius: 8px; border: none; font-size: 1rem; }
-.alerta { background: #fef3c7; border: 1px solid #fcd34d; padding: 12px; border-radius: 8px; margin-bottom: 16px; text-align: center; font-weight: 600; }
-.alerta-urgente { background: #fee2e2; border-color: #fca5a5; }
-.cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
-.card { background: var(--card); padding: 16px 8px; text-align: center; border-radius: 12px; border: 1px solid var(--borda); }
-.card h3 { font-size: 0.75rem; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
-.card p { font-size: 1.1rem; font-weight: 700; }
-.secao { 
-    background: white; 
-    border-radius: 16px; 
-    border: none; 
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* Sombra suave */
-    margin-bottom: 20px;
-    overflow: hidden;
-}
-.secao-header { 
-    padding: 20px; 
-    font-weight: 600; 
-    color: #334155;
-    background: #fdfdfd;
-}
-.secao-content { padding: 0 16px 16px 16px; display: none; }
-.secao.aberta.secao-content { display: block; }
-.input,.select { width: 100%; padding: 12px; border: 1px solid var(--borda); border-radius: 8px; margin-bottom: 10px; font-size: 1rem; }
-.input[readonly] { background: #f1f5f9; }
-.btn { 
-    width: 100%; 
-    padding: 16px; 
-    border: none; 
-    border-radius: 12px; 
-    background: #2563eb; 
-    color: white; 
-    font-weight: 600; 
-    transition: transform 0.2s, background 0.2s;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Frota Pro</title>
+    <style>
+        :root { --azul: #2563eb; --bg: #f8fafc; --card: #ffffff; --txt: #1e293b; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--txt); padding-bottom: 80px; }
+        .container { max-width: 500px; margin: auto; padding: 20px; }
+        
+        /* Header */
+        .header { background: var(--azul); color: white; padding: 20px; border-radius: 20px; margin-bottom: 20px; }
+        .header-top { display: flex; justify-content: space-between; font-weight: 800; margin-bottom: 10px; }
+        .select-veiculo { width: 100%; padding: 10px; border-radius: 10px; border: none; }
 
-.btn:active { transform: scale(0.98); } /* Efeito de clique */
-.menu { 
-    background: white;
-    box-shadow: 0 -4px 10px rgba(0,0,0,0.05); /* Sombra no topo do menu */
-    border-top: none;
-    border-radius: 20px 20px 0 0;
-}
-.tab { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.75rem; color: #64748b; cursor: pointer; }
-.tab.ativo { color: var(--azul); font-weight: 700; }
-.view { display: none; }
-.view.ativa { display: block; }
-.modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; padding: 20px; z-index: 100; }
-.modal-box { background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; }
-    .secao.aberta .secao-content { display: block; }
-</style>
+        /* Cards */
+        .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .card { background: white; padding: 15px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
+        .card h3 { font-size: 0.7rem; color: #64748b; text-transform: uppercase; margin-bottom: 5px; }
+        .card p { font-size: 1.1rem; font-weight: 700; color: var(--azul); }
+
+        /* Seções e Acordeão */
+        .secao { background: white; border-radius: 16px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; }
+        .secao-header { padding: 20px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; }
+        .secao-content { padding: 0 20px 20px 20px; display: none; }
+        .secao.aberta .secao-content { display: block; }
+
+        /* Formulários */
+        .input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 10px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; background: var(--azul); color: white; font-weight: 700; cursor: pointer; }
+        
+        /* Menu */
+        .menu { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 15px; box-shadow: 0 -5px 10px rgba(0,0,0,0.03); }
+        .tab { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; color: #94a3b8; }
+        .tab.ativo { color: var(--azul); font-weight: 600; }
+        
+        .view { display: none; }
+        .view.ativa { display: block; }
+    </style>
 </head>
 <body>
+
 <div class="container">
-
-<div class="view ativa" id="view-inicio">
-    <div class="header">
-        <div class="header-top"><div>Meu Veículo</div><div onclick="abrirModalKm()">KM: <span id="km-atual">0</span></div></div>
-        <select id="select-veiculo" class="select-veiculo" onchange="trocarVeiculo()"></select>
+    <div class="view ativa" id="view-inicio">
+        <div class="header">
+            <div class="header-top">
+                <span>Meu Veículo</span>
+                <span onclick="abrirModalKm()" style="cursor:pointer">KM: <span id="km-atual">0</span></span>
+            </div>
+            <select id="select-veiculo" class="select-veiculo" onchange="mudarVeiculo()"></select>
+        </div>
+        <div class="cards">
+            <div class="card"><h3>Consumo</h3><p id="card-consumo">0 km/L</p></div>
+            <div class="card"><h3>Gasto</h3><p id="card-gasto">R$ 0,00</p></div>
+        </div>
     </div>
-    <div id="alerta-odometro" class="alerta" style="display:none;">⛽ Atualize o KM!</div>
-    <div id="alerta-abastecer" class="alerta alerta-urgente" style="display:none;">⚠️ Falta pouco p/ Abastecer!</div>
-    <div id="alerta-oleo" class="alerta alerta-urgente" style="display:none;">🔧 Hora da Troca de Óleo!</div>
-    <div class="cards">
-        <div class="card"><h3>Consumo</h3><p id="card-consumo">0 km/L</p></div>
-        <div class="card"><h3>Gasto Mês</h3><p id="card-gasto">R$ 0,00</p></div>
-        <div class="card"><h3>Próx. Abastec.</h3><p id="card-prox-abast">0 km</p></div>
-        <div class="card"><h3>Próx. Troca Óleo</h3><p id="card-prox-oleo">0 km</p></div>
+
+    <div class="view" id="view-veiculo">
+        <h2>Gestão</h2>
+        <div class="secao" id="acc-veiculo">
+            <div class="secao-header" onclick="toggle('acc-veiculo')">🚗 Cadastrar Veículo <span>▼</span></div>
+            <div class="secao-content">
+                <input id="v-marca" class="input" placeholder="Marca (ex: Honda)">
+                <input id="v-modelo" class="input" placeholder="Modelo (ex: Civic)">
+                <button class="btn" onclick="cadastrarVeiculo()">Salvar Veículo</button>
+            </div>
+        </div>
+        <div class="secao" id="acc-abastecer">
+            <div class="secao-header" onclick="toggle('acc-abastecer')">⛽ Abastecer <span>▼</span></div>
+            <div class="secao-content">
+                <input id="ab-km" class="input" type="number" placeholder="KM Atual">
+                <input id="ab-litros" class="input" type="number" placeholder="Litros">
+                <input id="ab-valor" class="input" type="number" placeholder="Valor Total R$">
+                <button class="btn" onclick="cadastrarAbastecimento()">Salvar Abastecimento</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="view" id="view-config">
+        <h2>Configurações</h2>
+        <button class="btn" style="background:#ef4444" onclick="resetarApp()">Resetar Tudo</button>
     </div>
 </div>
-
-<div class="view" id="view-veiculo">
-    <h2>Veículo</h2>
-    <div class="secao" id="acc-veiculo">
-        <div class="secao-header" onclick="toggleAcordeao('acc-veiculo')">Cadastrar Veículo <span>▼</span></div>
-        <div class="secao-content">
-            <input id="v-marca" class="input" placeholder="Marca">
-            <input id="v-modelo" class="input" placeholder="Modelo">
-            <input id="v-ano" class="input" type="number" placeholder="Ano">
-            <button class="btn" onclick="cadastrarVeiculo()">Salvar Veículo</button>
-        </div>
-    </div>
-    <div class="secao" id="acc-abastecer">
-        <div class="secao-header" onclick="toggleAcordeao('acc-abastecer')">Abastecer <span>▼</span></div>
-        <div class="secao-content">
-            <input id="ab-data" class="input" type="date">
-            <input id="ab-km" class="input" type="number" placeholder="KM Atual">
-            <select id="ab-tipo" class="select"><option>Gasolina</option><option>Etanol</option><option>Diesel</option></select>
-            <input id="ab-valor-litro" class="input" type="number" step="0.01" placeholder="Valor por Litro R$" oninput="calcularTotal()">
-            <input id="ab-litros" class="input" type="number" step="0.01" placeholder="Litros" oninput="calcularTotal()">
-            <input id="ab-total" class="input" type="number" step="0.01" placeholder="Total R$" readonly>
-            <button class="btn" onclick="cadastrarAbastecimento()">Salvar Abastecimento</button>
-        </div>
-    </div>
-    <div class="secao" id="acc-manut">
-        <div class="secao-header" onclick="toggleAcordeao('acc-manut')">Manutenção <span>▼</span></div>
-        <div class="secao-content">
-            <input id="man-desc" class="input" placeholder="Descrição">
-            <input id="man-valor" class="input" type="number" step="0.01" placeholder="Valor R$">
-            <input id="man-km-atual" class="input" type="number" placeholder="KM Atual">
-            <input id="man-km-prox" class="input" type="number" placeholder="Próx Troca KM">
-            <button class="btn" onclick="cadastrarManutencao()">Salvar Manutenção</button>
-        </div>
-    </div>
-</div>
-
-<div class="view" id="view-relatorios"><h2>Relatórios</h2></div>
-<div class="view" id="view-config"><h2>Config</h2><button class="btn btn-vermelho" onclick="resetarApp()">Resetar</button></div>
 
 <div class="menu">
-    <button class="tab ativo" onclick="navegar('inicio', event)">🛣️<span>Início</span></button>
-    <button class="tab" onclick="navegar('veiculo', event)">🛞<span>Veículo</span></button>
-    <button class="tab" onclick="navegar('relatorios', event)">📈<span>Relatório</span></button>
-    <button class="tab" onclick="navegar('config', event)">⚙️<span>Config</span></button>
+    <button class="tab ativo" onclick="navegar('inicio', this)">🛣️ <span>Início</span></button>
+    <button class="tab" onclick="navegar('veiculo', this)">🛞 <span>Veículo</span></button>
+    <button class="tab" onclick="navegar('config', this)">⚙️ <span>Config</span></button>
 </div>
 
-<div class="modal" id="modal-km"><div class="modal-box">
-    <h3>Atualizar KM</h3>
-    <input id="km-input" class="input" type="number">
-    <button class="btn" onclick="salvarKM()">Salvar</button>
-</div></div>
-
 <script>
-let veiculos = JSON.parse(localStorage.getItem('veiculos')) || [];
-let abastecimentos = JSON.parse(localStorage.getItem('abastecimentos')) || [];
-let manutencoes = JSON.parse(localStorage.getItem('manutencoes')) || [];
-let veiculoAtivoId = localStorage.getItem('veiculo_ativo_id') || null;
-let kmAtual = parseFloat(localStorage.getItem('km_atual')) || 0;
+    // Inicialização
+    let veiculos = JSON.parse(localStorage.getItem('veiculos')) || [];
+    let kmAtual = localStorage.getItem('km_atual') || 0;
 
-const $ = id => document.getElementById(id);
+    const $ = id => document.getElementById(id);
+    const toggle = id => $(id).classList.toggle('aberta');
 
-function save(){
-    localStorage.setItem('veiculos', JSON.stringify(veiculos));
-    localStorage.setItem('abastecimentos', JSON.stringify(abastecimentos));
-    localStorage.setItem('manutencoes', JSON.stringify(manutencoes));
-    localStorage.setItem('km_atual', kmAtual);
-    localStorage.setItem('veiculo_ativo_id', veiculoAtivoId);
-}
-
-// Corrigido: passando o event como parâmetro
-function navegar(tela, event){
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('ativa'));
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
-    $(`view-${tela}`).classList.add('ativa');
-    event.currentTarget.classList.add('ativo'); // Usa currentTarget para pegar o botão clicado
-    atualizar();
-}
-
-// Corrigido: buscando corretamente o elemento pelo ID
-function toggleAcordeao(id){ 
-    const el = document.getElementById(id);
-    el.classList.toggle('aberta'); 
-}
-
-function atualizar(){
-    if($('select-veiculo')){
-        if(veiculos.length > 0 && !veiculoAtivoId) veiculoAtivoId = veiculos[0].id;
-        $('select-veiculo').innerHTML = veiculos.map(v=>`<option value="${v.id}" ${v.id==veiculoAtivoId?'selected':''}>${v.marca} ${v.modelo}</option>`).join('') || '<option>Cadastre um veículo</option>';
+    function navegar(tela, btn) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('ativa'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+        $(`view-${tela}`).classList.add('ativa');
+        btn.classList.add('ativo');
     }
-    if($('km-atual')) $('km-atual').innerText = kmAtual;
-}
 
-function calcularTotal(){
-    let valor = parseFloat($('ab-valor-litro').value) || 0;
-    let litros = parseFloat($('ab-litros').value) || 0;
-    $('ab-total').value = (valor * litros).toFixed(2);
-}
+    function atualizarUI() {
+        $('km-atual').innerText = kmAtual;
+        let sel = $('select-veiculo');
+        sel.innerHTML = veiculos.map(v => `<option value="${v.id}">${v.marca} ${v.modelo}</option>`).join('');
+    }
 
-function cadastrarVeiculo(){
-    let novo = { id: Date.now().toString(), marca: $('v-marca').value, modelo: $('v-modelo').value, ano: $('v-ano').value };
-    veiculos.push(novo); veiculoAtivoId = novo.id; save(); atualizar(); alert('Veículo cadastrado!');
-}
+    function cadastrarVeiculo() {
+        let v = { id: Date.now(), marca: $('v-marca').value, modelo: $('v-modelo').value };
+        if(!v.marca) return alert('Preencha a marca!');
+        veiculos.push(v);
+        localStorage.setItem('veiculos', JSON.stringify(veiculos));
+        atualizarUI();
+        alert('Veículo salvo!');
+    }
 
-function cadastrarAbastecimento(){
-    abastecimentos.push({id: Date.now(), veiculoId: veiculoAtivoId, km: parseFloat($('ab-km').value), litros: parseFloat($('ab-litros').value), valor: parseFloat($('ab-total').value)});
-    kmAtual = parseFloat($('ab-km').value); save(); atualizar(); alert('Abastecimento salvo!');
-}
+    function cadastrarAbastecimento() {
+        kmAtual = $('ab-km').value;
+        localStorage.setItem('km_atual', kmAtual);
+        atualizarUI();
+        alert('Abastecimento registrado!');
+    }
 
-function cadastrarManutencao(){
-    manutencoes.push({id: Date.now(), veiculoId: veiculoAtivoId, desc: $('man-desc').value, valor: parseFloat($('man-valor').value), kmAtual: parseFloat($('man-km-atual').value), kmProx: parseFloat($('man-km-prox').value)});
-    save(); alert('Manutenção salva!');
-}
+    function resetarApp() { if(confirm('Limpar tudo?')) { localStorage.clear(); location.reload(); } }
 
-function abrirModalKm(){ $('modal-km').style.display='flex'; }
-function salvarKM(){ kmAtual = parseFloat($('km-input').value); save(); $('modal-km').style.display='none'; atualizar(); }
-function resetarApp(){ localStorage.clear(); location.reload(); }
-
-window.onload = function(){
-    if($('ab-data')) $('ab-data').value = new Date().toISOString().split('T')[0];
-    atualizar();
-}
+    window.onload = atualizarUI;
 </script>
 </body>
 </html>
