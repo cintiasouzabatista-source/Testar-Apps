@@ -93,10 +93,10 @@ body { background: var(--bg); padding: 16px 16px 95px 16px; color: var(--txt); }
 <div class="view" id="view-config"><h2>Config</h2><button class="btn btn-vermelho" onclick="resetarApp()">Resetar</button></div>
 
 <div class="menu">
-    <button class="tab ativo" onclick="navegar('inicio')">📊<span>Início</span></button>
-    <button class="tab" onclick="navegar('veiculo')">🚗<span>Veículo</span></button>
-    <button class="tab" onclick="navegar('relatorios')">📈<span>Relatório</span></button>
-    <button class="tab" onclick="navegar('config')">⚙️<span>Config</span></button>
+    <button class="tab ativo" onclick="navegar('inicio', event)">🛣️<span>Início</span></button>
+    <button class="tab" onclick="navegar('veiculo', event)">🛞<span>Veículo</span></button>
+    <button class="tab" onclick="navegar('relatorios', event)">📈<span>Relatório</span></button>
+    <button class="tab" onclick="navegar('config', event)">⚙️<span>Config</span></button>
 </div>
 
 <div class="modal" id="modal-km"><div class="modal-box">
@@ -111,10 +111,8 @@ let abastecimentos = JSON.parse(localStorage.getItem('abastecimentos')) || [];
 let manutencoes = JSON.parse(localStorage.getItem('manutencoes')) || [];
 let veiculoAtivoId = localStorage.getItem('veiculo_ativo_id') || null;
 let kmAtual = parseFloat(localStorage.getItem('km_atual')) || 0;
-let ultimaAtualizacaoKm = parseInt(localStorage.getItem('ultima_km')) || 0;
 
 const $ = id => document.getElementById(id);
-const formatar = n => `R$ ${parseFloat(n||0).toFixed(2).replace('.',',')}`;
 
 function save(){
     localStorage.setItem('veiculos', JSON.stringify(veiculos));
@@ -124,19 +122,24 @@ function save(){
     localStorage.setItem('veiculo_ativo_id', veiculoAtivoId);
 }
 
-function navegar(tela){
+// Corrigido: passando o event como parâmetro
+function navegar(tela, event){
     document.querySelectorAll('.view').forEach(v => v.classList.remove('ativa'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
     $(`view-${tela}`).classList.add('ativa');
-    event.target.closest('.tab').classList.add('ativo');
+    event.currentTarget.classList.add('ativo'); // Usa currentTarget para pegar o botão clicado
     atualizar();
 }
 
-function toggleAcordeao(id){ $(id).classList.toggle('aberta'); }
+// Corrigido: buscando corretamente o elemento pelo ID
+function toggleAcordeao(id){ 
+    const el = document.getElementById(id);
+    el.classList.toggle('aberta'); 
+}
 
 function atualizar(){
     if($('select-veiculo')){
-        if(veiculos.length > 0 &&!veiculoAtivoId) veiculoAtivoId = veiculos[0].id;
+        if(veiculos.length > 0 && !veiculoAtivoId) veiculoAtivoId = veiculos[0].id;
         $('select-veiculo').innerHTML = veiculos.map(v=>`<option value="${v.id}" ${v.id==veiculoAtivoId?'selected':''}>${v.marca} ${v.modelo}</option>`).join('') || '<option>Cadastre um veículo</option>';
     }
     if($('km-atual')) $('km-atual').innerText = kmAtual;
@@ -150,27 +153,27 @@ function calcularTotal(){
 
 function cadastrarVeiculo(){
     let novo = { id: Date.now().toString(), marca: $('v-marca').value, modelo: $('v-modelo').value, ano: $('v-ano').value };
-    veiculos.push(novo); veiculoAtivoId = novo.id; save(); atualizar(); alert('Salvo!');
+    veiculos.push(novo); veiculoAtivoId = novo.id; save(); atualizar(); alert('Veículo cadastrado!');
 }
 
 function cadastrarAbastecimento(){
-    abastecimentos.push({id: Date.now(), veiculoId: veiculoAtivoId, km: parseFloat($('ab-km').value), tipo: $('ab-tipo').value, litros: parseFloat($('ab-litros').value), valor: parseFloat($('ab-total').value)});
-    kmAtual = parseFloat($('ab-km').value); save(); atualizar(); alert('Salvo!');
+    abastecimentos.push({id: Date.now(), veiculoId: veiculoAtivoId, km: parseFloat($('ab-km').value), litros: parseFloat($('ab-litros').value), valor: parseFloat($('ab-total').value)});
+    kmAtual = parseFloat($('ab-km').value); save(); atualizar(); alert('Abastecimento salvo!');
 }
 
 function cadastrarManutencao(){
     manutencoes.push({id: Date.now(), veiculoId: veiculoAtivoId, desc: $('man-desc').value, valor: parseFloat($('man-valor').value), kmAtual: parseFloat($('man-km-atual').value), kmProx: parseFloat($('man-km-prox').value)});
-    save(); alert('Salvo!');
+    save(); alert('Manutenção salva!');
 }
 
 function abrirModalKm(){ $('modal-km').style.display='flex'; }
 function salvarKM(){ kmAtual = parseFloat($('km-input').value); save(); $('modal-km').style.display='none'; atualizar(); }
-function resetarApp(){ localStorage.clear(); location.reload(); } // <-- FECHADA CORRETO
+function resetarApp(){ localStorage.clear(); location.reload(); }
 
-window.onload = function(){ // <-- FECHADA CORRETO
+window.onload = function(){
     if($('ab-data')) $('ab-data').value = new Date().toISOString().split('T')[0];
     atualizar();
-} // <-- FECHADA CORRETO
+}
 </script>
 </body>
 </html>
