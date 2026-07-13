@@ -21,7 +21,9 @@ body { background: var(--bg); padding: 16px 16px 95px 16px; color: var(--txt); }
 .secao { background: var(--card); border-radius: 12px; border: 1px solid var(--borda); margin-bottom: 12px; overflow: hidden; }
 .secao-header { padding: 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
 .secao-content { padding: 0 16px 16px 16px; display: none; }
-.secao.aberta.secao-content { display: block; }
+.secao.aberta .secao-content {
+    display: block;
+}
 .input,.select { width: 100%; padding: 12px; border: 1px solid var(--borda); border-radius: 8px; margin-bottom: 10px; font-size: 1rem; }
 .input[readonly] { background: #f1f5f9; }
 .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; background: var(--azul); color: white; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
