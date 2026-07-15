@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Controle Frota</title>
+<title>Minhas Frotas</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
 :root { --primary: #2563eb; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --muted: #94a3b8; --border: #334155; --danger: #ef4444; --warning: #facc15; }
@@ -21,7 +21,7 @@ body { font-family: system-ui; background: var(--bg); color: var(--text); paddin
 input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); margin-top: 6px; }
 .kpi p { color: var(--muted); font-size: 12px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
 .kpi h3 { font-size: 24px; font-weight: 700; }
-.info-veiculo { font-size: 16px; font-weight: 600; color: var(--text); } /* LETRA MAIOR */
+
 .odometro { background: linear-gradient(135deg, var(--primary), #1d4ed8); border: none; color: #fff; padding: 12px 16px; }
 .odometro p { color: rgba(255,255,255,0.9); font-size: 11px; margin-bottom: 4px; }
 .odometro-header { display:flex; justify-content:space-between; align-items:center }
@@ -49,12 +49,10 @@ input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px sol
 <body>
 <div class="container">
     <div class="header">
-        <h1>Controle Frota</h1>
+        <h1>Veiculos</h1>
         <button class="btn-icon" onclick="trocarTema()"><i id="iconTema" class="fas fa-palette"></i></button>
     </div>
-    <select id="selectVeiculo" class="card" style="width:100%; padding:12px; font-size:16px" onchange="trocarVeiculo(this.value)"></select>
-    <p id="infoVeiculo" class="info-veiculo"></p>
-
+  
     <div class="grid-2" style="margin: 12px 0">
         <button class="btn-icon" onclick="abrirModalAbast()"><i class="fas fa-gas-pump"></i> Combustível</button>
         <button class="btn-icon" onclick="abrirModalManut()"><i class="fas fa-wrench"></i> Manutenção</button>
