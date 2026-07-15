@@ -7,8 +7,13 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
 :root { --primary: #2563eb; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --muted: #94a3b8; --border: #334155; --danger: #ef4444; --warning: #facc15; }
+
+/* TEMA ESTRADA */
 body.estrada { --primary: #ea580c; --bg: #1c1917; --card: #292524; --text: #fafaf9; --muted: #a8a29e; --border: #44403c; }
-body.vintage { --primary: #a16207; --bg: #fefce8; --card: #fef9c3; --text: #422006; --muted: #a16207; --border: #fde047; }
+
+/* TEMA WHITE CLEAN NOVO */
+body.white { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --muted: #64748b; --border: #e2e8f0; }
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: system-ui; background: var(--bg); color: var(--text); padding-bottom: 80px; transition: 0.3s; }
 .container { max-width: 600px; margin: 0 auto; padding: 16px; }
@@ -94,7 +99,7 @@ input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(-
 <script>
 let veiculos = JSON.parse(localStorage.getItem('veiculos_frota_v8') || '[]');
 let veiculoAtivoId = localStorage.getItem('veiculoAtivoId_frota_v8') || null;
-let temas = ['dark', 'estrada', 'vintage'];
+let temas = ['dark', 'estrada', 'white']; // TIREI VINTAGE, COLOQUEI WHITE
 let tema = localStorage.getItem('tema_frota') || 'dark';
 let itemEditando = null;
 
@@ -103,7 +108,7 @@ function aplicarTema() {
     const icon = document.getElementById('iconTema');
     if(tema === 'dark') icon.className = 'fas fa-moon';
     if(tema === 'estrada') icon.className = 'fas fa-road';
-    if(tema === 'vintage') icon.className = 'fas fa-book';
+    if(tema === 'white') icon.className = 'fas fa-sun'; // ICONE SOL PRO WHITE
 }
 function trocarTema() {
     let index = temas.indexOf(tema);
@@ -176,27 +181,7 @@ function renderHistorico(){
 
 function abrirModalVeiculo(){ mudarTabVeiculo('novo'); document.getElementById('modalVeiculo').style.display='flex'; }
 function fecharModalVeiculo(){ document.getElementById('modalVeiculo').style.display='none'; }
-
-function mudarTabVeiculo(tab){
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('#tabNovo, #tabEditar, #tabExcluir').forEach(d => d.style.display='none');
-    document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1)).style.display='block';
-    document.querySelector(`.tab:nth-child(${tab==='novo'?1:tab==='editar'?2:3})`).classList.add('active');
-    const v = getVeiculoAtivo();
-    if(tab==='editar' && v){
-        document.getElementById('nomeEditando').innerText = v.nome;
-        document.getElementById('vNomeEdit').value = v.nome;
-        document.getElementById('vModeloEdit').value = v.modelo || '';
-        document.getElementById('vAnoEdit').value = v.ano || '';
-        document.getElementById('vDataAquisicaoEdit').value = v.dataAquisicao || '';
-        document.getElementById('vKmEdit').value = v.config.kmBase;
-        document.getElementById('vTanqueEdit').value = v.tanqueL;
-        document.getElementById('vKmDiaEdit').value = v.config.kmValor;
-    }
-    if(tab==='excluir' && v){
-        document.getElementById('nomeExcluir').innerText = v.nome;
-    }
-} // <-- FECHEI AQUI CORRETO
+function mudarTabVeiculo(tab){ document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('#tabNovo, #tabEditar, #tabExcluir').forEach(d => d.style.display='none'); document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1)).style.display='block'; document.querySelector(`.tab:nth-child(${tab==='novo'?1:tab==='editar'?2:3})`).classList.add('active'); const v = getVeiculoAtivo(); if(tab==='editar' && v){ document.getElementById('nomeEditando').innerText = v.nome; document.getElementById('vNomeEdit').value = v.nome; document.getElementById('vModeloEdit').value = v.modelo || ''; document.getElementById('vAnoEdit').value = v.ano || ''; document.getElementById('vDataAquisicaoEdit').value = v.dataAquisicao || ''; document.getElementById('vKmEdit').value = v.config.kmBase; document.getElementById('vTanqueEdit').value = v.tanqueL; document.getElementById('vKmDiaEdit').value = v.config.kmValor; } if(tab==='excluir' && v){ document.getElementById('nomeExcluir').innerText = v.nome; } }
 
 function salvarVeiculo(){ const nome = document.getElementById('vNome').value; if(!nome) return alert('Digite um nome'); const id = 'v'+Date.now(); veiculos.push({id, nome, modelo: document.getElementById('vModelo').value, ano: document.getElementById('vAno').value, dataAquisicao: document.getElementById('vDataAquisicao').value, tanqueL: parseFloat(document.getElementById('vTanque').value) || 6.5, abast:[], manut:[], config:{ kmBase: parseInt(document.getElementById('vKm').value) || 0, dataBase: new Date().toISOString(), kmValor: parseInt(document.getElementById('vKmDia').value) || 50, diasSemana:[1,2,3,4,5,6,0] }}); veiculoAtivoId = id; salvarTudo(); fecharModalVeiculo(); atualizarPainel(); }
 function atualizarVeiculo(){ const v = getVeiculoAtivo(); v.nome = document.getElementById('vNomeEdit').value; v.modelo = document.getElementById('vModeloEdit').value; v.ano = document.getElementById('vAnoEdit').value; v.dataAquisicao = document.getElementById('vDataAquisicaoEdit').value; v.tanqueL = parseFloat(document.getElementById('vTanqueEdit').value) || 6.5; v.config.kmBase = parseInt(document.getElementById('vKmEdit').value) || 0; v.config.kmValor = parseInt(document.getElementById('vKmDiaEdit').value) || 50; salvarTudo(); fecharModalVeiculo(); atualizarPainel(); }
