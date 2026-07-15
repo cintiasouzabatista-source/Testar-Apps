@@ -21,15 +21,6 @@ body { font-family: system-ui; background: var(--bg); color: var(--text); paddin
 input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); margin-top: 6px; }
 .kpi p { color: var(--muted); font-size: 12px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
 .kpi h3 { font-size: 24px; font-weight: 700; }
-.info-veiculo {
-  background: var(--card);
-  border: 1px solid var(--border);
-  padding: 8px 12px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  font-size: 13px;
-  color: var(--muted);
-}
 .odometro { background: linear-gradient(135deg, var(--primary), #1d4ed8); border: none; color: #fff; padding: 12px 16px; }
 .odometro p { color: rgba(255,255,255,0.9); font-size: 11px; margin-bottom: 4px; }
 .odometro-header { display:flex; justify-content:space-between; align-items:center }
@@ -49,7 +40,7 @@ input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px sol
 .tabs { display:flex; gap:8px; margin-bottom:12px }
 .tab { flex:1; padding:8px; border-radius:8px; background:var(--bg); border:1px solid var(--border); cursor:pointer; text-align:center }
 .tab.active { background:var(--primary); color:#fff }
-.historico-item { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); cursor:pointer } /* CLICAVEL */
+.historico-item { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); cursor:pointer }
 .historico-item:hover { background: rgba(0,0,0,0.1); border-radius: 8px; }
 .total-display { font-weight:700; font-size:18px; color:var(--primary); margin-top:8px }
 </style>
@@ -60,9 +51,8 @@ input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px sol
         <h1>Veiculos</h1>
         <button class="btn-icon" onclick="trocarTema()"><i id="iconTema" class="fas fa-palette"></i></button>
     </div>
-  <select id="selectVeiculo" class="select-veiculo" onchange="trocarVeiculo()"></select>
+  <select id="selectVeiculo" class="select-veiculo" onchange="trocarVeiculo(this.value)"></select>
 
-<div id="infoVeiculo" class="info-veiculo"></div> <!-- APAGA ESSA LINHA AQUI -->
     <div class="grid-2" style="margin: 12px 0">
         <button class="btn-icon" onclick="abrirModalAbast()"><i class="fas fa-gas-pump"></i> Combustível</button>
         <button class="btn-icon" onclick="abrirModalManut()"><i class="fas fa-wrench"></i> Manutenção</button>
@@ -103,6 +93,16 @@ input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px sol
 <div id="modalManut" class="modal"><div class="modal-content"><h3>Nova Manutenção</h3><label>Data</label><input id="mData" type="date"><label>KM</label><input id="mKm" type="number"><label>Tipo</label><input id="mTipo" placeholder="Ex: Troca de Óleo"><label>Valor</label><input id="mValor" type="number"><label>Próx. em KM</label><input id="mProxKm" type="number" value="5000"><div class="modal-actions"><button onclick="fecharModalManut()" class="btn-icon">Cancelar</button><button onclick="salvarManut()" class="btn-icon" style="background:var(--primary); color:#fff">Salvar</button></div></div></div>
 
 <script>
+// MIGRAÇÃO: Se tiver dado antigo, puxa 1x
+function migrarDados() {
+    let antigo = localStorage.getItem('frotaDbV10');
+    if(antigo &&!localStorage.getItem('veiculos_frota_v10')) {
+        localStorage.setItem('veiculos_frota_v10', antigo);
+        localStorage.removeItem('frotaDbV10');
+    }
+}
+migrarDados();
+
 let veiculos = JSON.parse(localStorage.getItem('veiculos_frota_v10') || '[]');
 let veiculoAtivoId = localStorage.getItem('veiculoAtivoId_frota_v10') || null;
 let temas = ['dark', 'estrada', 'white'];
@@ -131,8 +131,6 @@ function atualizarPainel() {
     const v = getVeiculoAtivo(); if(!v) return; renderSelectVeiculo();
     const kmAtual = v.config.kmBase || 0;
     document.getElementById('kmRodados').textContent = kmAtual.toLocaleString('pt-BR') + ' km';
-    const iconeTipo = v.tipo === 'carro'? '<i class="fas fa-car"></i>' : '<i class="fas fa-motorcycle"></i>';
-    document.getElementById('infoVeiculo').innerHTML = `${iconeTipo} ${v.nome} - ${v.modelo || ''} ${v.ano || ''}`;
 
     let media = 0;
     if(v.abast.length >= 2){
@@ -150,7 +148,6 @@ function atualizarPainel() {
 
         document.getElementById('proxAbastKm').textContent = proxAbast.toLocaleString('pt-BR') + ' km';
 
-        // ALERTA COMBUSTIVEL FALTANDO 10KM
         const cardProxAbast = document.getElementById('cardProxAbast');
         if(kmRestantesTanque <= 10 && kmRestantesTanque > 0){
             cardProxAbast.classList.add('alerta-vermelho');
@@ -172,7 +169,6 @@ function atualizarPainel() {
         document.getElementById('proxTrocaKm').textContent = proxTroca.toLocaleString('pt-BR') + ' km';
         document.getElementById('proxTrocaFaltam').textContent = `Faltam ${faltam.toLocaleString('pt-BR')} km`;
 
-        // ALERTA OLEO
         if(faltam <= 0){
             cardProxTroca.classList.add('alerta-vermelho');
             document.getElementById('proxTrocaFaltam').textContent = `ATRASADO ${Math.abs(faltam).toLocaleString('pt-BR')} km!`;
