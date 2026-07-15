@@ -23,7 +23,7 @@
 .filtro-select { width: 100%; padding: 12px; border-radius: var(--radius); border: 1px solid var(--borda); margin-bottom: 10px; background: var(--bg-container); color: var(--texto-principal); }
 .secao-conteudo { background: var(--bg-container); padding: 20px; border-radius: var(--radius); border: 1px solid var(--borda); margin-bottom: 20px; }
 .colunas-container { display: flex; justify-content: space-around; height: 120px; align-items: flex-end; border-bottom: 1px solid var(--borda); text-align: center; }
-.coluna-vertical-barra { width: 30px; border-radius: 6px 6px 0 0; transition: height 0.3s; }
+.coluna-vertical-barra { width: 30px; border-radius: 6px 6px 0 0; }
 .donut-chart { width: 140px; height: 140px; border-radius: 50%; margin: 12px auto; display: flex; align-items: center; justify-content: center; }
 .donut-hole { width: 96px; height: 96px; background: var(--bg-container); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .config-btn-bloco { width: 100%; padding: 16px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-container); color: var(--texto-principal); margin-bottom: 12px; text-align: left; cursor: pointer; }
@@ -120,7 +120,7 @@ let transacoes = [], saldosOcultos = false, idPendente = null, tipoPendente = nu
 let temasDisponiveis = ['padrao', 'escuro']; let temaAtualIndex = 0;
 const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
-function navegarPara(e, idAba) { // <-- AGORA RECEBE O EVENT
+function navegarPara(e, idAba) {
     document.querySelectorAll('.app-view').forEach(v => v.classList.remove('ativa'));
     document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('ativo'));
     document.getElementById(`view-${idAba}`).classList.add('ativa');
@@ -231,8 +231,8 @@ function renderizarGraficos(receitas, totalGastos, saídas, cartões, valorReser
 
 function alternarVisibilidade() { saldosOcultos =!saldosOcultos; }
 function alternarTema() { temaAtualIndex = (temaAtualIndex + 1) % temasDisponiveis.length; document.body.className = `theme-${temasDisponiveis[temaAtualIndex]}`; }
-function resetarAplicativoTotal() { if (confirm("Limpar tudo?")) { transacoes = []; salvarTudo(); } // <-- FECHEI
-function exportarBackup() { const dl = document.createElement('a'); dl.href = "data:text/json," + encodeURIComponent(JSON.stringify(transacoes)); dl.download = `backup.json`; dl.click(); } // <-- FECHEI
+function resetarAplicativoTotal() { if (confirm("Limpar tudo?")) { transacoes = []; salvarTudo(); } } // <-- FECHEI AQUI
+function exportarBackup() { const dl = document.createElement('a'); dl.href = "data:text/json," + encodeURIComponent(JSON.stringify(transacoes)); dl.download = `backup.json`; dl.click(); } // <-- FECHEI AQUI
 function importarBackup(e) { const r = new FileReader(); r.onload = ev => { transacoes = JSON.parse(ev.target.result); salvarTudo(); }; r.readAsText(e.target.files[0]); }
 
 window.onload = () => { const s = localStorage.getItem('saldo_transacoes'); if (s) transacoes = JSON.parse(s); inicializarFiltroMeses(); atualizarAplicativo(); };
