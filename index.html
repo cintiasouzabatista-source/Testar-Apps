@@ -6,16 +6,22 @@
 <title>Fluxo Caixa</title>
 <style>
     :root { --bg-body: #f1f5f9; --bg-container: #ffffff; --texto-principal: #0f172a; --texto-secundario: #64748b; --borda: #e2e8f0; --radius: 12px; --entrada: #10b981; --saida: #ef4444; --cartao: #f59e0b; --reserva-cor: #06b6d4; --header-bg: #2563eb; --header-txt: #ffffff; }
+
     body.theme-escuro { --bg-body: #0f172a; --bg-container: #1e293b; --texto-principal: #f8fafc; --texto-secundario: #94a3b8; --borda: #334155; --header-bg: #1e293b; }
+
+    body.theme-white { --bg-body: #ffffff; --bg-container: #f8fafc; --texto-principal: #1e293b; --texto-secundario: #64748b; --borda: #cbd5e1; --header-bg: #e2e8f0; --header-txt: #0f172a; }
+
+    body.theme-vintage { --bg-body: #fffae0; --bg-container: #fffdf5; --texto-principal: #2b2b2b; --texto-secundario: #5a5a5a; --borda: #2b2b2b; --radius: 0px; --entrada: #49a078; --saida: #d64933; --header-bg: #2b2b2b; --header-txt: #fffae0; }
+
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
-    body { background: var(--bg-body); color: var(--texto-principal); padding: 16px 16px 95px 16px; }
+    body { background: var(--bg-body); color: var(--texto-principal); padding: 16px 16px 95px 16px; transition: all 0.3s; }
 .container { max-width: 500px; margin: 0 auto; }
 .app-header { display: flex; justify-content: space-between; padding: 12px; background: var(--header-bg); border-radius: var(--radius); margin-bottom: 16px; color: var(--header-txt); }
 .icon-btn { background: none; border: none; font-size: 1.2rem; color: var(--header-txt); cursor: pointer; }
 .app-view { display: none; }
 .app-view.ativa { display: block; }
 .cards-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
-.card { background: var(--bg-container); padding: 16px; text-align: center; border-radius: var(--radius); border: 1px solid var(--borda); }
+.card { background: var(--bg-container); padding: 16px; text-align: center; border-radius: var(--radius); border: 1px solid var(--borda); box-shadow: var(--shadow, none); }
 .card.saldo-total { grid-column: span 2; }
 .card.saldo-total p { font-size: 2.2rem; font-weight: 700; }
 .info-subtil-container { margin-top: 12px; border-top: 1px solid var(--borda); padding-top: 16px; }
@@ -117,7 +123,7 @@
 
 <script>
 let transacoes = [], saldosOcultos = false, idPendente = null, tipoPendente = null;
-let temasDisponiveis = ['padrao', 'escuro']; let temaAtualIndex = 0;
+let temasDisponiveis = ['padrao', 'escuro', 'white', 'vintage']; let temaAtualIndex = 0; // <-- 4 TEMAS DE VOLTA
 const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 function navegarPara(e, idAba) {
@@ -221,8 +227,8 @@ function renderizarGraficos(receitas, totalGastos, saídas, cartões, valorReser
     document.getElementById('v-val-cartoes').innerText = `R$ ${cartões.toFixed(2)}`;
     document.getElementById('v-val-reserva').innerText = `R$ ${valorReserva.toFixed(2)}`;
     document.getElementById('v-bar-contas').style.height = `${Math.max((saídas / maxEixoV) * 100, 5)}%`;
-    document.getElementById('v-bar-cartoes').style.height = `${Math.max((cartões / maxEixoV) * 100, 5)}%`;
-    document.getElementById('v-bar-reserva').style.height = `${Math.max((valorReserva / maxEixoV) * 100, 5)}%`;
+    document.getElementById('v-bar-cartoes').style.height = `${Math.max((cartões / maxEixoV) * 100, 2)}%`;
+    document.getElementById('v-bar-reserva').style.height = `${Math.max((valorReserva / maxEixoV) * 100, 2)}%`;
 
     const totalFluxo = receitas + totalGastos; const percGasto = totalFluxo > 0? Math.round((totalGastos / totalFluxo) * 100) : 0;
     document.getElementById('pizza-perc').innerText = `${percGasto}%`;
@@ -231,8 +237,8 @@ function renderizarGraficos(receitas, totalGastos, saídas, cartões, valorReser
 
 function alternarVisibilidade() { saldosOcultos =!saldosOcultos; }
 function alternarTema() { temaAtualIndex = (temaAtualIndex + 1) % temasDisponiveis.length; document.body.className = `theme-${temasDisponiveis[temaAtualIndex]}`; }
-function resetarAplicativoTotal() { if (confirm("Limpar tudo?")) { transacoes = []; salvarTudo(); } } // <-- FECHEI AQUI
-function exportarBackup() { const dl = document.createElement('a'); dl.href = "data:text/json," + encodeURIComponent(JSON.stringify(transacoes)); dl.download = `backup.json`; dl.click(); } // <-- FECHEI AQUI
+function resetarAplicativoTotal() { if (confirm("Limpar tudo?")) { transacoes = []; salvarTudo(); } }
+function exportarBackup() { const dl = document.createElement('a'); dl.href = "data:text/json," + encodeURIComponent(JSON.stringify(transacoes)); dl.download = `backup.json`; dl.click(); }
 function importarBackup(e) { const r = new FileReader(); r.onload = ev => { transacoes = JSON.parse(ev.target.result); salvarTudo(); }; r.readAsText(e.target.files[0]); }
 
 window.onload = () => { const s = localStorage.getItem('saldo_transacoes'); if (s) transacoes = JSON.parse(s); inicializarFiltroMeses(); atualizarAplicativo(); };
