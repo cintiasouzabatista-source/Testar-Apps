@@ -1,247 +1,135 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fluxo Caixa</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Veículos</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-    :root { --bg-body: #f1f5f9; --bg-container: #ffffff; --texto-principal: #0f172a; --texto-secundario: #64748b; --borda: #e2e8f0; --radius: 12px; --entrada: #10b981; --saida: #ef4444; --cartao: #f59e0b; --reserva-cor: #06b6d4; --header-bg: #2563eb; --header-txt: #ffffff; }
-
-    body.theme-escuro { --bg-body: #0f172a; --bg-container: #1e293b; --texto-principal: #f8fafc; --texto-secundario: #94a3b8; --borda: #334155; --header-bg: #1e293b; }
-
-    body.theme-white { --bg-body: #ffffff; --bg-container: #f8fafc; --texto-principal: #1e293b; --texto-secundario: #64748b; --borda: #cbd5e1; --header-bg: #e2e8f0; --header-txt: #0f172a; }
-
-    body.theme-vintage { --bg-body: #fffae0; --bg-container: #fffdf5; --texto-principal: #2b2b2b; --texto-secundario: #5a5a5a; --borda: #2b2b2b; --radius: 0px; --entrada: #49a078; --saida: #d64933; --header-bg: #2b2b2b; --header-txt: #fffae0; }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
-    body { background: var(--bg-body); color: var(--texto-principal); padding: 16px 16px 95px 16px; transition: all 0.3s; }
-.container { max-width: 500px; margin: 0 auto; }
-.app-header { display: flex; justify-content: space-between; padding: 12px; background: var(--header-bg); border-radius: var(--radius); margin-bottom: 16px; color: var(--header-txt); }
-.icon-btn { background: none; border: none; font-size: 1.2rem; color: var(--header-txt); cursor: pointer; }
-.app-view { display: none; }
-.app-view.ativa { display: block; }
-.cards-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
-.card { background: var(--bg-container); padding: 16px; text-align: center; border-radius: var(--radius); border: 1px solid var(--borda); box-shadow: var(--shadow, none); }
-.card.saldo-total { grid-column: span 2; }
-.card.saldo-total p { font-size: 2.2rem; font-weight: 700; }
-.info-subtil-container { margin-top: 12px; border-top: 1px solid var(--borda); padding-top: 16px; }
-.cor-entrada { color: var(--entrada); }.cor-saida { color: var(--saida); }.cor-cartao { color: var(--cartao); }.cor-reserva { color: var(--reserva-cor); }
-.filtro-select { width: 100%; padding: 12px; border-radius: var(--radius); border: 1px solid var(--borda); margin-bottom: 10px; background: var(--bg-container); color: var(--texto-principal); }
-.secao-conteudo { background: var(--bg-container); padding: 20px; border-radius: var(--radius); border: 1px solid var(--borda); margin-bottom: 20px; }
-.colunas-container { display: flex; justify-content: space-around; height: 120px; align-items: flex-end; border-bottom: 1px solid var(--borda); text-align: center; }
-.coluna-vertical-barra { width: 30px; border-radius: 6px 6px 0 0; }
-.donut-chart { width: 140px; height: 140px; border-radius: 50%; margin: 12px auto; display: flex; align-items: center; justify-content: center; }
-.donut-hole { width: 96px; height: 96px; background: var(--bg-container); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-.config-btn-bloco { width: 100%; padding: 16px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-container); color: var(--texto-principal); margin-bottom: 12px; text-align: left; cursor: pointer; }
-.chat-input-area { display: flex; gap: 8px; background: var(--bg-container); padding: 6px 16px; border-radius: 24px; border: 1px solid var(--borda); }
-.chat-input { flex: 1; border: none; background: none; outline: none; color: var(--texto-principal); }
-.btn-enviar { background: var(--header-bg); color: var(--header-txt); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; }
-.menu-rodape-wrapper { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: var(--bg-container); padding: 10px 16px; border-top: 1px solid var(--borda); }
-.menu-rodape { display: grid; grid-template-columns: repeat(4, 1fr); }
-.tab-item { display: flex; flex-direction: column; align-items: center; background: none; border: none; color: var(--texto-secundario); font-size: 0.75rem; cursor: pointer; }
-.tab-item.ativo { color: var(--header-bg); font-weight: 700; }
-.item-transacao { padding: 10px 5px; border-bottom: 1px solid var(--borda); }
-.linha-1 { display: flex; justify-content: space-between; }
-.linha-2 { font-size: 0.75rem; color: var(--texto-secundario); }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
-.modal-container { background: var(--bg-container); color: var(--texto-principal); padding: 20px; border-radius: var(--radius); width: 90%; }
-.btn-resposta { padding: 10px 14px; margin: 6px; border-radius: 20px; border: 1px solid var(--borda); background: var(--bg-body); color: var(--texto-principal); cursor: pointer; font-weight: 600; }
+:root{--primary:#2563eb;--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0}
+body.estrada{--primary:#ea580c;--bg:#fff7ed}
+body{background:var(--bg);color:var(--text);font-family:system-ui;margin:0}
+header{padding:12px 16px;background:var(--card);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+.tabs{display:flex;gap:8px;padding:8px 16px;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--border)}
+.tab{padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer;white-space:nowrap}
+.tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.container{padding:16px;max-width:900px;margin:auto}
+.card{background:var(--card);padding:16px;border-radius:12px;border:1px solid var(--border);margin-bottom:12px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-icon{padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);cursor:pointer;display:flex;gap:8px;align-items:center;justify-content:center}
+.btn-destaque{background:linear-gradient(135deg,var(--primary),#1d4ed8);color:#fff;border:none;font-weight:700;box-shadow:0 4px 12px rgba(37,99,235,0.3)}
+body.estrada.btn-destaque{background:linear-gradient(135deg,#ea580c,#c2410c);box-shadow:0 4px 12px rgba(234,88,12,0.3)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal-content{background:var(--card);padding:20px;border-radius:12px;width:100%;max-width:400px}
+.modal-content label{font-size:12px;color:var(--muted);margin-top:8px;display:block}
+.modal-content input,.modal-content select{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;margin-top:4px;box-sizing:border-box}
+.item{display:flex;justify-content:space-between;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px}
 </style>
 </head>
 <body>
-<div class="container">
-<div class="app-header">
-    <div class="app-title">Meu Saldo</div>
-    <div><button class="icon-btn" onclick="alternarVisibilidade()">🔓</button><button class="icon-btn" onclick="alternarTema()">🫟</button></div>
+<header>
+  <h2><i class="fas fa-car"></i> Meus Veículos</h2>
+  <div><button onclick="alternarTema()"><i class="fas fa-palette"></i></button></div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="trocarView('painel')"><i class="fas fa-gauge"></i> Painel</button>
+  <button class="tab" onclick="trocarView('historico')"><i class="fas fa-clock-rotate-left"></i> Histórico</button>
+  <button class="tab" onclick="trocarView('graficos')"><i class="fas fa-chart-line"></i> Gráficos</button>
+  <button class="tab" onclick="abrirModalNovoVeiculo()"><i class="fas fa-plus"></i> Novo Veículo</button>
 </div>
 
-<div class="app-view ativa" id="view-inicio">
-    <div class="cards-container">
-        <div class="card"><h3>entradas</h3><p class="cor-entrada">R$ <span id="card-entradas">0.00</span></p></div>
-        <div class="card"><h3>saídas</h3><p class="cor-saida">R$ <span id="card-saidas">0.00</span></p></div>
-        <div class="card"><h3>cartão</h3><p class="cor-cartao">R$ <span id="card-cartao">0.00</span></p></div>
-        <div class="card"><h3>reserva</h3><p class="cor-reserva">R$ <span id="card-reserva">0.00</span></p></div>
-        <div class="card saldo-total">
-            <h3>Saldo Atual</h3>
-            <p id="card-saldo">R$ 0.00</p>
-            <div class="info-subtil-container">
-                <div><strong>Média/Dia:</strong> <span id="previsao-valor">R$ 0.00</span></div>
-            </div>
-        </div>
-    </div>
-    <div class="chat-input-area">
-        <input type="text" id="campo-texto" class="chat-input" placeholder="Ex: gasolina 50 ou ifood 40 no nubank">
-        <button class="btn-enviar" onclick="processarComando()">➔</button>
-    </div>
+<div class="container" id="view-painel">
+  <div class="card"><h3 id="nomeVeiculoAtivo">Selecione um veículo</h3></div>
+  <div class="grid-2" style="margin: 12px 0">
+    <button class="btn-icon btn-destaque" onclick="abrirModalAbast()"><i class="fas fa-gas-pump"></i> Combustível</button>
+    <button class="btn-icon btn-destaque" onclick="abrirModalManut()"><i class="fas fa-wrench"></i> Manutenção</button>
+  </div>
+  <div class="card"><h4>Últimos Abastecimentos</h4><div id="listaAbast"></div></div>
+  <div class="card"><h4>Últimas Manutenções</h4><div id="listaManut"></div></div>
 </div>
 
-<div class="app-view" id="view-historico">
-    <select id="filtro-mes" class="filtro-select" onchange="atualizarAplicativo()"></select>
-    <select id="filtro-tipo" class="filtro-select" onchange="atualizarAplicativo()">
-        <option value="todos">Todos</option><option value="entrada">Entradas</option>
-        <option value="saida">Saídas</option><option value="cartao">Cartão</option><option value="reserva">Reserva</option>
-    </select>
-    <div class="secao-conteudo" id="lista-transacoes-container"></div>
+<div class="container" id="view-historico" style="display:none">
+  <div class="card"><h3>Histórico Completo</h3><div id="listaHistorico"></div></div>
 </div>
 
-<div class="app-view" id="view-graficos">
-    <div class="secao-conteudo">
-        <h4>Comparativo do Mês</h4>
-        <div class="colunas-container">
-            <div><span id="v-val-contas">R$ 0.00</span><div class="coluna-vertical-barra" id="v-bar-contas" style="background: var(--saida);"></div><span>Saídas</span></div>
-            <div><span id="v-val-cartoes">R$ 0.00</span><div class="coluna-vertical-barra" id="v-bar-cartoes" style="background: var(--cartao);"></div><span>Cartões</span></div>
-            <div><span id="v-val-reserva">R$ 0.00</span><div class="coluna-vertical-barra" id="v-bar-reserva" style="background: var(--reserva-cor);"></div><span>Reserva</span></div>
-        </div>
-    </div>
-    <div class="secao-conteudo">
-        <h4>Proporção</h4>
-        <div class="donut-chart" id="grafico-pizza-elemento"><div class="donut-hole"><span id="pizza-perc">0%</span></div></div>
-    </div>
+<div class="container" id="view-graficos" style="display:none">
+  <div class="card"><h3>Consumo km/L por Mês</h3><canvas id="graficoConsumo"></canvas></div>
+  <div class="card"><h3>Gastos por Combustível</h3><canvas id="graficoCombustivel"></canvas></div>
 </div>
 
-<div class="app-view" id="view-config">
-    <div class="secao-conteudo">
-        <h4>Gerenciamento de Dados</h4>
-        <button class="config-btn-bloco" onclick="exportarBackup()">📥 Exportar</button>
-        <button class="config-btn-bloco" onclick="document.getElementById('input-file-backup').click()">📤 Importar</button>
-        <input type="file" id="input-file-backup" accept=".json" style="display: none;" onchange="importarBackup(event)">
-        <button class="config-btn-bloco" style="color:var(--saida);" onclick="resetarAplicativoTotal()">🗑️ Limpar Tudo</button>
-    </div>
-</div>
+<div id="modalAbast" class="modal"><div class="modal-content">
+  <h3>Novo Abastecimento</h3>
+  <label>Data</label><input id="aData" type="date">
+  <label>KM</label><input id="aKm" type="number">
+  <label>Combustível</label><select id="aCombustivel"><option>Gasolina</option><option>Etanol</option><option>Diesel</option><option>GNV</option></select>
+  <label>Litros</label><input id="aLitros" type="number" step="0.001">
+  <label>Valor/L</label><input id="aValor" type="number" step="0.01">
+  <button class="btn-icon btn-destaque" style="width:100%;margin-top:12px" onclick="salvarAbast()">Salvar</button>
+  <button class="btn-icon" style="width:100%;margin-top:8px" onclick="fecharModalAbast()">Cancelar</button>
+</div></div>
 
-<div class="menu-rodape-wrapper">
-    <div class="menu-rodape">
-        <button class="tab-item ativo" onclick="navegarPara(event, 'inicio')"><span>💬</span><span>Conversa</span></button>
-        <button class="tab-item" onclick="navegarPara(event, 'historico')"><span>📝</span><span>Histórico</span></button>
-        <button class="tab-item" onclick="navegarPara(event, 'graficos')"><span>📊</span><span>Status</span></button>
-        <button class="tab-item" onclick="navegarPara(event, 'config')"><span>⚙️</span><span>Config</span></button>
-    </div>
-</div>
-</div>
+<div id="modalManut" class="modal"><div class="modal-content">
+  <h3>Nova Manutenção</h3>
+  <label>Data</label><input id="mData" type="date">
+  <label>KM</label><input id="mKm" type="number">
+  <label>Tipo</label><input id="mTipo" placeholder="Troca de Óleo">
+  <label>Valor</label><input id="mValor" type="number" step="0.01">
+  <label>Próx. KM</label><input id="mProxKm" type="number">
+  <button class="btn-icon btn-destaque" style="width:100%;margin-top:12px" onclick="salvarManut()">Salvar</button>
+  <button class="btn-icon" style="width:100%;margin-top:8px" onclick="fecharModalManut()">Cancelar</button>
+</div></div>
 
-<div class="modal-overlay" id="modal-pergunta"><div class="modal-container"><h3 id="texto-pergunta"></h3><div id="botoes-pergunta"></div></div></div>
+<div id="modalNovoVeiculo" class="modal"><div class="modal-content">
+  <h3>Novo Veículo</h3>
+  <label>Nome</label><input id="vNome">
+  <label>Modelo</label><input id="vModelo">
+  <label>Ano</label><input id="vAno" type="number">
+  <button class="btn-icon btn-destaque" style="width:100%;margin-top:12px" onclick="salvarNovoVeiculo()">Salvar</button>
+  <button class="btn-icon" style="width:100%;margin-top:8px" onclick="fecharModalNovoVeiculo()">Cancelar</button>
+</div></div>
 
 <script>
-let transacoes = [], saldosOcultos = false, idPendente = null, tipoPendente = null;
-let temasDisponiveis = ['padrao', 'escuro', 'white', 'vintage']; let temaAtualIndex = 0; // <-- 4 TEMAS DE VOLTA
-const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+let veiculos = JSON.parse(localStorage.getItem('veiculos_v2')||'[]');
+let veiculoAtivoId = localStorage.getItem('veiculoAtivoId_v2');
+let chartConsumo, chartComb;
 
-function navegarPara(e, idAba) {
-    document.querySelectorAll('.app-view').forEach(v => v.classList.remove('ativa'));
-    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('ativo'));
-    document.getElementById(`view-${idAba}`).classList.add('ativa');
-    e.target.closest('.tab-item').classList.add('ativo');
-    atualizarAplicativo();
+function salvarTudo(){localStorage.setItem('veiculos_v2',JSON.stringify(veiculos));localStorage.setItem('veiculoAtivoId_v2',veiculoAtivoId)}
+function getVeiculoAtivo(){return veiculos.find(v=>v.id===veiculoAtivoId)}
+
+function trocarView(v){document.querySelectorAll('.container').forEach(c=>c.style.display='none');document.getElementById('view-'+v).style.display='block';document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));event.target.classList.add('active');if(v==='graficos')renderGraficos();if(v==='historico')renderHistorico()}
+
+function abrirModalAbast(){document.getElementById('modalAbast').style.display='flex';document.getElementById('aData').value=new Date().toISOString().split('T')[0]}
+function fecharModalAbast(){document.getElementById('modalAbast').style.display='none'}
+function salvarAbast(){const v=getVeiculoAtivo();v.abast.push({id:Date.now(),data:aData.value,km:+aKm.value,combustivel:aCombustivel.value,litros:+aLitros.value,valorL:+aValor.value,total:+aLitros.value*+aValor.value});salvarTudo();fecharModalAbast();atualizarPainel()}
+
+function abrirModalManut(){document.getElementById('modalManut').style.display='flex';document.getElementById('mData').value=new Date().toISOString().split('T')[0]}
+function fecharModalManut(){document.getElementById('modalManut').style.display='none'}
+function salvarManut(){const v=getVeiculoAtivo();v.manut.push({id:Date.now(),data:mData.value,km:+mKm.value,tipo:mTipo.value,valor:+mValor.value,proxKm:+mProxKm.value});salvarTudo();fecharModalManut();atualizarPainel()}
+
+function abrirModalNovoVeiculo(){document.getElementById('modalNovoVeiculo').style.display='flex'}
+function fecharModalNovoVeiculo(){document.getElementById('modalNovoVeiculo').style.display='none'}
+function salvarNovoVeiculo(){veiculos.push({id:Date.now(),nome:vNome.value,modelo:vModelo.value,ano:vAno.value,abast:[],manut:[],config:{kmBase:0,dataBase:new Date().toISOString(),kmValor:50,diasSemana:[1,2,3,4,5,6,0]}});veiculoAtivoId=veiculos[veiculos.length-1].id;salvarTudo();fecharModalNovoVeiculo();atualizarPainel()}
+
+function renderGraficos(){
+    const v=getVeiculoAtivo();if(!v)return;
+    const meses={};v.abast.forEach((a,i)=>{if(i===0)return;const mes=a.data.slice(0,7);const km=a.km-v.abast[i-1].km;const consumo=km/a.litros;if(!meses[mes])meses[mes]=[];meses[mes].push(consumo)});
+    const labels=Object.keys(meses).map(m=>m.split('-').reverse().join('/'));
+    const dados=Object.values(meses).map(arr=>arr.reduce((a,b)=>a+b,0)/arr.length);
+    if(chartConsumo)chartConsumo.destroy();
+    chartConsumo=new Chart(document.getElementById('graficoConsumo'),{type:'line',data:{labels,datasets:[{label:'km/L',data:dados,borderColor:'var(--primary)'}]}});
+
+    const gastos={};v.abast.forEach(a=>{gastos[a.combustivel]=(gastos[a.combustivel]||0)+a.total});
+    if(chartComb)chartComb.destroy();
+    chartComb=new Chart(document.getElementById('graficoCombustivel'),{type:'pie',data:{labels:Object.keys(gastos),datasets:[{data:Object.values(gastos)}]}});
 }
 
-function inicializarFiltroMeses() {
-    const hoje = new Date();
-    document.getElementById('filtro-mes').innerHTML = `<option value="${hoje.getMonth()}-${hoje.getFullYear()}">Mês Atual</option><option value="todos">Todos</option>`;
-}
+function renderHistorico(){const v=getVeiculoAtivo();let html='';v.abast.forEach(a=>html+=`<div class="item"><span>${a.data} - ${a.km}km - ${a.combustivel}</span><span>R$${a.total.toFixed(2)}</span></div>`);document.getElementById('listaHistorico').innerHTML=html||'Sem dados'}
+function atualizarPainel(){const v=getVeiculoAtivo();if(!v)return;document.getElementById('nomeVeiculoAtivo').innerText=v.nome;let htmlA='';v.abast.slice(-3).reverse().forEach(a=>htmlA+=`<div class="item"><span>${a.data}</span><span>${a.km}km</span></div>`);document.getElementById('listaAbast').innerHTML=htmlA||'Sem dados'}
 
-document.getElementById('campo-texto').addEventListener('keypress', function(e) { if (e.key === 'Enter') processarComando(); });
-
-function processarComando() {
-    const input = document.getElementById('campo-texto'); const txt = input.value.trim().toLowerCase();
-    const num = txt.match(/\d+([.,]\d+)?/g); if (!num) return alert("Digite um valor");
-    const valor = parseFloat(num[0].replace(',', '.'));
-    let tipo = 'saida';
-    if (/\b(reserva|guardar)\b/.test(txt)) tipo = 'reserva';
-    else if (/\b(cartao|cartão|credito)\b/.test(txt)) tipo = 'cartao';
-    else if (/\b(recebi|ganhei)\b/.test(txt)) tipo = 'entrada';
-
-    let conta = "", cartao = "";
-    if(txt.includes('nubank')) cartao = "Nubank"; if(txt.includes('itau')) cartao = "Itaú"; if(txt.includes('inter')) cartao = "Inter";
-
-    let desc = input.value.replace(num[0], '').replace(/no|na|do|da/gi, '').trim() || "Lançamento";
-    let hoje = new Date();
-    const novoId = Date.now();
-    transacoes.unshift({ id: novoId, descricao: desc, valor: valor, tipo, conta, cartao, mes: hoje.getMonth(), ano: hoje.getFullYear(), dia: hoje.getDate() });
-
-    if((tipo === 'saida' || tipo === 'cartao' || tipo === 'reserva') &&!cartao &&!conta){
-        idPendente = novoId; tipoPendente = tipo;
-        mostrarPerguntaConta(novoId, tipo);
-    } else {
-        salvarTudo();
-    }
-    input.value = '';
-}
-
-function mostrarPerguntaConta(id, tipo) {
-    const modal = document.getElementById('modal-pergunta');
-    let texto = "";
-    if(tipo === 'cartao'){ texto = "Em qual cartão foi essa compra?"; }
-    else if(tipo === 'reserva'){ texto = "Transferir de qual conta pra Reserva?"; }
-    else { texto = "De qual conta saiu esse dinheiro?"; }
-
-    document.getElementById('texto-pergunta').innerText = texto;
-    document.getElementById('botoes-pergunta').innerHTML = `
-        <button class="btn-resposta" onclick="responderConta('${id}','Nubank')">Nubank</button>
-        <button class="btn-resposta" onclick="responderConta('${id}','Itaú')">Itaú</button>
-        <button class="btn-resposta" onclick="responderConta('${id}','Inter')">Inter</button>
-        <button class="btn-resposta" onclick="responderConta('${id}','Dinheiro')">Dinheiro</button>
-    `;
-    modal.style.display = 'flex';
-}
-function responderConta(id, valor) {
-    const t = transacoes.find(i => i.id == id);
-    if(t) {
-        if(tipoPendente === 'cartao') t.cartao = valor;
-        else t.conta = valor;
-    }
-    document.getElementById('modal-pergunta').style.display = 'none'; salvarTudo();
-}
-
-function salvarTudo() { localStorage.setItem('saldo_transacoes', JSON.stringify(transacoes)); atualizarAplicativo(); }
-
-function atualizarAplicativo() {
-    let ent = 0, sai = 0, car = 0, res = 0;
-    transacoes.forEach(t => {
-        if(t.tipo === 'entrada') ent += t.valor;
-        else if(t.tipo === 'saida') sai += t.valor;
-        else if(t.tipo === 'cartao') car += t.valor;
-        else if(t.tipo === 'reserva') res += t.valor;
-    });
-    const saldo = ent - sai - car - res; const gastos = sai + car;
-    document.getElementById('card-entradas').innerText = ent.toFixed(2);
-    document.getElementById('card-saidas').innerText = sai.toFixed(2);
-    document.getElementById('card-cartao').innerText = car.toFixed(2);
-    document.getElementById('card-reserva').innerText = res.toFixed(2);
-    document.getElementById('card-saldo').innerText = `R$ ${saldo.toFixed(2)}`;
-    document.getElementById('previsao-valor').innerText = `R$ ${(gastos / 30).toFixed(2)}`;
-    renderizarHistorico(); renderizarGraficos(ent, gastos, sai, car, res);
-}
-
-function renderizarHistorico() {
-    const l = document.getElementById('lista-transacoes-container'); l.innerHTML = '';
-    transacoes.forEach(t => {
-        let cls = t.tipo === 'entrada'? 'cor-entrada' : t.tipo === 'cartao'? 'cor-cartao' : t.tipo === 'reserva'? 'cor-reserva' : 'cor-saida';
-        let origem = t.cartao || t.conta || '';
-        l.innerHTML += `<div class="item-transacao"><div class="linha-1"><span>${t.descricao}</span><span class="${cls}">${t.tipo === 'entrada'? '+' : '-'} R$ ${t.valor.toFixed(2)}</span></div><div class="linha-2">${t.dia} ${nomesMeses[t.mes]} - ${origem}</div></div>`;
-    });
-}
-
-function renderizarGraficos(receitas, totalGastos, saídas, cartões, valorReserva) {
-    const maxEixoV = Math.max(saídas, cartões, valorReserva, 100);
-    document.getElementById('v-val-contas').innerText = `R$ ${saídas.toFixed(2)}`;
-    document.getElementById('v-val-cartoes').innerText = `R$ ${cartões.toFixed(2)}`;
-    document.getElementById('v-val-reserva').innerText = `R$ ${valorReserva.toFixed(2)}`;
-    document.getElementById('v-bar-contas').style.height = `${Math.max((saídas / maxEixoV) * 100, 5)}%`;
-    document.getElementById('v-bar-cartoes').style.height = `${Math.max((cartões / maxEixoV) * 100, 2)}%`;
-    document.getElementById('v-bar-reserva').style.height = `${Math.max((valorReserva / maxEixoV) * 100, 2)}%`;
-
-    const totalFluxo = receitas + totalGastos; const percGasto = totalFluxo > 0? Math.round((totalGastos / totalFluxo) * 100) : 0;
-    document.getElementById('pizza-perc').innerText = `${percGasto}%`;
-    document.getElementById('grafico-pizza-elemento').style.background = `conic-gradient(var(--saida) 0% ${percGasto}%, var(--entrada) ${percGasto}% 100%)`;
-}
-
-function alternarVisibilidade() { saldosOcultos =!saldosOcultos; }
-function alternarTema() { temaAtualIndex = (temaAtualIndex + 1) % temasDisponiveis.length; document.body.className = `theme-${temasDisponiveis[temaAtualIndex]}`; }
-function resetarAplicativoTotal() { if (confirm("Limpar tudo?")) { transacoes = []; salvarTudo(); } }
-function exportarBackup() { const dl = document.createElement('a'); dl.href = "data:text/json," + encodeURIComponent(JSON.stringify(transacoes)); dl.download = `backup.json`; dl.click(); }
-function importarBackup(e) { const r = new FileReader(); r.onload = ev => { transacoes = JSON.parse(ev.target.result); salvarTudo(); }; r.readAsText(e.target.files[0]); }
-
-window.onload = () => { const s = localStorage.getItem('saldo_transacoes'); if (s) transacoes = JSON.parse(s); inicializarFiltroMeses(); atualizarAplicativo(); };
+document.addEventListener('DOMContentLoaded',()=>{if(!veiculos.length){veiculos.push({id:'v1',nome:'Honda Lead',modelo:'110',ano:'2023',abast:[{id:1,data:'2026-06-30',km:94208,combustivel:'Gasolina',litros:3.58,valorL:6.07,total:21.76}],manut:[],config:{}});veiculoAtivoId='v1'}aplicarTema();atualizarPainel()});
+function aplicarTema(){if(localStorage.getItem('tema')==='estrada')document.body.classList.add('estrada')}
+function alternarTema(){document.body.classList.toggle('estrada');localStorage.setItem('tema',document.body.classList.contains('estrada')?'estrada':'default')}
 </script>
 </body>
 </html>
