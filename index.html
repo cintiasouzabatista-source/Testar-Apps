@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Controle Frota</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-<!-- Biblioteca Chart.js para os gráficos -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root { --primary: #2563eb; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --muted: #94a3b8; --border: #334155; --danger: #ef4444; --warning: #facc15; }
@@ -23,7 +22,6 @@ body { font-family: system-ui; background: var(--bg); color: var(--text); paddin
 input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); margin-top: 6px; }
 .kpi p { color: var(--muted); font-size: 12px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
 .kpi h3 { font-size: 24px; font-weight: 700; }
-.info-veiculo { font-size: 16px; font-weight: 600; color: var(--text); }
 .odometro { background: linear-gradient(135deg, var(--primary), #1d4ed8); border: none; color: #fff; padding: 12px 16px; }
 .odometro p { color: rgba(255,255,255,0.9); font-size: 11px; margin-bottom: 4px; }
 .odometro-header { display:flex; justify-content:space-between; align-items:center }
@@ -59,10 +57,9 @@ input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px sol
     
     <!-- ABA INÍCIO -->
     <div id="viewInicio" class="view-section active">
-        <select id="selectVeiculo" class="card" style="width:100%; padding:12px; font-size:16px" onchange="trocarVeiculo(this.value)"></select>
-        <p id="infoVeiculo" class="info-veiculo"></p>
+        <select id="selectVeiculo" class="card" style="width:100%; padding:12px; font-size:16px; margin-bottom:12px;" onchange="trocarVeiculo(this.value)"></select>
 
-        <div class="grid-2" style="margin: 12px 0">
+        <div class="grid-2" style="margin-bottom: 12px">
             <button class="btn-icon" onclick="abrirModalAbast()"><i class="fas fa-gas-pump"></i> Combustível</button>
             <button class="btn-icon" onclick="abrirModalManut()"><i class="fas fa-wrench"></i> Manutenção</button>
         </div>
@@ -118,8 +115,8 @@ input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px sol
 <div id="modalManut" class="modal"><div class="modal-content"><h3>Nova Manutenção</h3><label>Data</label><input id="mData" type="date"><label>KM</label><input id="mKm" type="number"><label>Tipo</label><input id="mTipo" placeholder="Ex: Troca de Óleo"><label>Valor</label><input id="mValor" type="number"><label>Próx. em KM</label><input id="mProxKm" type="number" value="5000"><div class="modal-actions"><button onclick="fecharModalManut()" class="btn-icon">Cancelar</button><button onclick="salvarManut()" class="btn-icon" style="background:var(--primary); color:#fff">Salvar</button></div></div></div>
 
 <script>
-const CHAVE_STORAGE = 'veiculos_frota_v11';
-const CHAVE_ATIVO = 'veiculoAtivoId_frota_v11';
+const CHAVE_STORAGE = 'veiculos_frota_v12';
+const CHAVE_ATIVO = 'veiculoAtivoId_frota_v12';
 
 let veiculos = JSON.parse(localStorage.getItem(CHAVE_STORAGE) || '[]');
 let veiculoAtivoId = localStorage.getItem(CHAVE_ATIVO) || null;
@@ -148,8 +145,6 @@ function atualizarPainel() {
     const v = getVeiculoAtivo(); if(!v) return; renderSelectVeiculo();
     const kmAtual = v.config.kmBase || 0;
     document.getElementById('kmRodados').textContent = kmAtual.toLocaleString('pt-BR') + ' km';
-    const iconeTipo = v.tipo === 'carro'? '<i class="fas fa-car"></i>' : '<i class="fas fa-motorcycle"></i>';
-    document.getElementById('infoVeiculo').innerHTML = `${iconeTipo} ${v.nome} - ${v.modelo || ''} ${v.ano || ''}`;
 
     let media = 0;
     if(v.abast.length >= 1){
@@ -245,7 +240,6 @@ function renderizarGraficos() {
         }
     }
 
-    // Gráfico de Consumo
     const ctxConsumo = document.getElementById('graficoConsumo').getContext('2d');
     if(chartConsumo) chartConsumo.destroy();
     chartConsumo = new Chart(ctxConsumo, {
@@ -265,7 +259,6 @@ function renderizarGraficos() {
         options: { responsive: true, maintainAspectRatio: false }
     });
 
-    // Gráfico de Gastos
     const ctxGastos = document.getElementById('graficoGastos').getContext('2d');
     if(chartGastos) chartGastos.destroy();
     chartGastos = new Chart(ctxGastos, {
