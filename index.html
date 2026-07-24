@@ -17,6 +17,13 @@
 .icon-btn { background: none; border: none; font-size: 1.2rem; color: var(--header-txt); cursor: pointer; }
 .app-view { display: none; }
 .app-view.ativa { display: block; }
+
+/* Barra de Meses no Topo */
+.meses-topo-wrapper { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; scrollbar-width: none; }
+.meses-topo-wrapper::-webkit-scrollbar { display: none; }
+.mes-chip { background: var(--bg-container); border: 1px solid var(--borda); color: var(--texto-secundario); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+.mes-chip.ativo { background: var(--header-bg); color: var(--header-txt); border-color: transparent; font-weight: 600; }
+
 .cards-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
 .card { background: var(--bg-container); padding: 16px; text-align: center; border-radius: var(--radius); border: 1px solid var(--borda); }
 .card.saldo-total { grid-column: span 2; }
@@ -52,6 +59,11 @@
     <div><button class="icon-btn" onclick="alternarVisibilidade()">🔓</button><button class="icon-btn" onclick="alternarTema()">🫟</button></div>
 </div>
 
+<!-- BARRA DE SELEÇÃO DE MESES NO TOPO -->
+<div class="meses-topo-wrapper" id="barra-meses">
+    <!-- Gerado via JavaScript -->
+</div>
+
 <div class="app-view ativa" id="view-inicio">
     <div class="cards-container">
         <div class="card"><h3>entradas</h3><p class="cor-entrada">R$ <span id="card-entradas">0.00</span></p></div>
@@ -73,9 +85,8 @@
 </div>
 
 <div class="app-view" id="view-historico">
-    <select id="filtro-mes" class="filtro-select" onchange="atualizarAplicativo()"></select>
     <select id="filtro-tipo" class="filtro-select" onchange="atualizarAplicativo()">
-        <option value="todos">Todos</option><option value="entrada">Entradas</option>
+        <option value="todos">Todos os Tipos</option><option value="entrada">Entradas</option>
         <option value="saida">Saídas</option><option value="cartao">Cartão</option><option value="reserva">Reserva</option>
     </select>
     <div class="secao-conteudo" id="lista-transacoes-container"></div>
@@ -120,6 +131,7 @@
 
 <script>
 let transacoes = [], saldosOcultos = false, idPendente = null, tipoPendente = null;
+let mesSelecionadoFiltro = "todos"; // "todos" ou "mes-ano" ex: "6-2026"
 let temasDisponiveis = ['padrao', 'escuro', 'white', 'vintage']; let temaAtualIndex = 0;
 const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
@@ -131,9 +143,33 @@ function navegarPara(idAba) {
     atualizarAplicativo();
 }
 
-function inicializarFiltroMeses() {
+function renderizarBarraMeses() {
+    const barra = document.getElementById('barra-meses');
+    let html = `<button class="mes-chip ${mesSelecionadoFiltro === 'todos' ? 'ativo' : ''}" onclick="selecionarMesFiltro('todos')">🕒 Todos</button>`;
+    
+    // Coleta meses únicos presentes nas transações + mês atual
     const hoje = new Date();
-    document.getElementById('filtro-mes').innerHTML = `<option value="${hoje.getMonth()}-${hoje.getFullYear()}">Mês Atual</option><option value="todos">Todos</option>`;
+    let mesesDisponiveis = new Set();
+    mesesDisponiveis.add(`${hoje.getMonth()}-${hoje.getFullYear()}`);
+    
+    transacoes.forEach(t => {
+        mesesDisponiveis.add(`${t.mes}-${t.ano}`);
+    });
+
+    // Ordena do mais recente para o mais antigo (ou vice-versa)
+    Array.from(mesesDisponiveis).forEach(mStr => {
+        const [mes, ano] = mStr.split('-');
+        const nomeFormatado = `${nomesMeses[mes]}/${ano}`;
+        const ativoCls = mesSelecionadoFiltro === mStr ? 'ativo' : '';
+        html += `<button class="mes-chip ${ativoCls}" onclick="selecionarMesFiltro('${mStr}')">${nomeFormatado}</button>`;
+    });
+
+    barra.innerHTML = html;
+}
+
+function selecionarMesFiltro(valor) {
+    mesSelecionadoFiltro = valor;
+    atualizarAplicativo();
 }
 
 document.getElementById('campo-texto').addEventListener('keypress', function(e) { if (e.key === 'Enter') processarComando(); });
@@ -192,9 +228,19 @@ function responderConta(id, valor) {
 
 function salvarTudo() { localStorage.setItem('saldo_transacoes', JSON.stringify(transacoes)); atualizarAplicativo(); }
 
+function obterTransacoesFiltradas() {
+    return transacoes.filter(t => {
+        if (mesSelecionadoFiltro === "todos") return true;
+        return `${t.mes}-${t.ano}` === mesSelecionadoFiltro;
+    });
+}
+
 function atualizarAplicativo() {
+    renderizarBarraMeses();
+    const transacoesFiltradas = obterTransacoesFiltradas();
+
     let ent = 0, sai = 0, car = 0, res = 0;
-    transacoes.forEach(t => {
+    transacoesFiltradas.forEach(t => {
         if(t.tipo === 'entrada') ent += t.valor;
         else if(t.tipo === 'saida') sai += t.valor;
         else if(t.tipo === 'cartao') car += t.valor;
@@ -207,15 +253,26 @@ function atualizarAplicativo() {
     document.getElementById('card-reserva').innerText = res.toFixed(2);
     document.getElementById('card-saldo').innerText = `R$ ${saldo.toFixed(2)}`;
     document.getElementById('previsao-valor').innerText = `R$ ${(gastos / 30).toFixed(2)}`;
-    renderizarHistorico(); renderizarGraficos(ent, gastos, sai, car, res);
+    renderizarHistorico(transacoesFiltradas); 
+    renderizarGraficos(ent, gastos, sai, car, res);
 }
 
-function renderizarHistorico() {
-    const l = document.getElementById('lista-transacoes-container'); l.innerHTML = '';
-    transacoes.forEach(t => {
+function renderizarHistorico(listaTransacoes) {
+    const tipoFiltro = document.getElementById('filtro-tipo').value;
+    const l = document.getElementById('lista-transacoes-container'); 
+    l.innerHTML = '';
+    
+    const filtradas = listaTransacoes.filter(t => tipoFiltro === 'todos' || t.tipo === tipoFiltro);
+
+    if (filtradas.length === 0) {
+        l.innerHTML = `<div style="text-align:center; color: var(--texto-secundario); padding: 20px;">Nenhuma transação neste período.</div>`;
+        return;
+    }
+
+    filtradas.forEach(t => {
         let cls = t.tipo === 'entrada' ? 'cor-entrada' : t.tipo === 'cartao' ? 'cor-cartao' : t.tipo === 'reserva' ? 'cor-reserva' : 'cor-saida';
         let origem = t.cartao || t.conta || '';
-        l.innerHTML += `<div class="item-transacao"><div class="linha-1"><span>${t.descricao}</span><span class="${cls}">${t.tipo === 'entrada' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</span></div><div class="linha-2">${t.dia} ${nomesMeses[t.mes]} - ${origem}</div></div>`;
+        l.innerHTML += `<div class="item-transacao"><div class="linha-1"><span>${t.descricao}</span><span class="${cls}">${t.tipo === 'entrada' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</span></div><div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} - ${origem}</div></div>`;
     });
 }
 
@@ -268,7 +325,9 @@ function importarBackup(e) {
 window.onload = () => { 
     const s = localStorage.getItem('saldo_transacoes'); 
     if (s) transacoes = JSON.parse(s); 
-    inicializarFiltroMeses(); 
+    // Inicializa filtrando no mês atual por padrão
+    const hoje = new Date();
+    mesSelecionadoFiltro = `${hoje.getMonth()}-${hoje.getFullYear()}`;
     atualizarAplicativo(); 
 };
 </script>
