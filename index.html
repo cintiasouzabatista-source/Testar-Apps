@@ -170,7 +170,6 @@ input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px sol
 const CHAVE_STORAGE = 'veiculos_frota_v13';
 const CHAVE_ATIVO = 'veiculoAtivoId_frota_v13';
 
-// Migração automática de versões anteriores
 if (!localStorage.getItem(CHAVE_STORAGE)) {
     for (let i = 0; i < localStorage.length; i++) {
         let chave = localStorage.key(i);
@@ -351,7 +350,6 @@ function renderizarGraficos() {
 function renderSelectVeiculo() { const sel = document.getElementById('selectVeiculo'); sel.innerHTML = veiculos.map(v => `<option value="${v.id}" ${v.id===veiculoAtivoId?'selected':''}>${v.tipo==='carro'?'🚗':'🏍️'} ${v.nome}</option>`).join(''); }
 function trocarVeiculo(id) { veiculoAtivoId = id; salvarTudo(); atualizarPainel(); }
 
-// Renderiza o histórico recolhido, com clique para expandir ou editar
 function renderHistorico(){ 
     const v = getVeiculoAtivo(); 
     const hist = [...v.abast.map(a => ({...a, tipo:'abast'})),...v.manut.map(m => ({...m, tipo:'manut'}))].sort((a,b) => b.data.localeCompare(a.data)); 
@@ -367,6 +365,7 @@ function renderHistorico(){
                 ${h.tipo==='abast'? `<p><b>Litros:</b> ${h.litros}L | <b>Valor/L:</b> R$ ${h.valorL.toFixed(2)} | <b>Combustível:</b> ${h.combustivel||'Gasolina'}</p>` : `<p><b>Tipo:</b> ${h.tipoTexto || h.tipo} | <b>Próx KM:</b> ${h.proxKm||'--'}</p>`}
                 <div style="margin-top:8px; display:flex; gap:6px;">
                     <button class="btn-icon small" style="background:var(--primary); color:#fff; border:none;" onclick="event.stopPropagation(); abrirModalEditarItem('${h.tipo}','${h.id}')"><i class="fas fa-edit"></i> Editar</button>
+                    <button class="btn-icon small btn-danger" onclick="event.stopPropagation(); deletarItemDireto('${h.tipo}','${h.id}')"><i class="fas fa-trash"></i> Excluir</button>
                 </div>
             </div>
         </div>
@@ -406,7 +405,6 @@ function salvarVeiculo(){ const nome = document.getElementById('vNome').value; i
 function atualizarVeiculo(){ const v = getVeiculoAtivo(); v.tipo = document.getElementById('vTipoEdit').value; v.nome = document.getElementById('vNomeEdit').value; v.modelo = document.getElementById('vModeloEdit').value; v.ano = document.getElementById('vAnoEdit').value; v.dataAquisicao = document.getElementById('vDataAquisicaoEdit').value; v.tanqueL = parseFloat(document.getElementById('vTanqueEdit').value) || 6.5; v.config.kmBase = parseInt(document.getElementById('vKmEdit').value) || 0; v.config.kmValor = parseInt(document.getElementById('vKmDiaEdit').value) || 50; salvarTudo(); fecharModalVeiculo(); atualizarPainel(); }
 function excluirVeiculo(){ if(veiculos.length <= 1) return alert('Precisa ter pelo menos 1 veículo'); veiculos = veiculos.filter(v => v.id!== veiculoAtivoId); veiculoAtivoId = veiculos[0].id; salvarTudo(); fecharModalVeiculo(); atualizarPainel(); }
 
-// FUNÇÕES DE BACKUP E RESET
 function exportarBackup() {
     const dados = { veiculos, veiculoAtivoId, tema };
     const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
@@ -483,13 +481,32 @@ function salvarManut(){ const v=getVeiculoAtivo(); const obj={id:'m'+Date.now(),
 function abrirModalHistorico(){ document.getElementById('modalHistorico').style.display='flex'; }
 function fecharModalHistorico(){ document.getElementById('modalHistorico').style.display='none'; }
 
-function deletarItem(tipo,id){ if(!confirm('Apagar este registro?')) return; const v=getVeiculoAtivo(); if(tipo==='abast') v.abast = v.abast.filter(x=>x.id!==id); else v.manut = v.manut.filter(x=>x.id!==id); salvarTudo(); fecharModalEditarItem(); fecharModalHistorico(); atualizarPainel(); }
+function deletarItemDireto(tipo, id) {
+    if(!confirm('Deseja realmente apagar este registro?')) return;
+    const v = getVeiculoAtivo();
+    if(tipo === 'abast') {
+        v.abast = v.abast.filter(x => String(x.id) !== String(id));
+    } else {
+        v.manut = v.manut.filter(x => String(x.id) !== String(id));
+    }
+    salvarTudo();
+    atualizarPainel();
+}
 
-function abrirModalEditarItem(tipo,id){ itemEditando = {tipo,id}; const v = getVeiculoAtivo(); const item = tipo==='abast'? v.abast.find(x=>x.id===id) : v.manut.find(x=>x.id===id); document.getElementById('tituloEditarItem').innerText = tipo==='abast'? 'Editar Abastecimento' : 'Editar Manutenção'; if(tipo==='abast'){ document.getElementById('formEditarItem').innerHTML = `<label>Data</label><input id="eData" type="date" value="${item.data}"><label>KM</label><input id="eKm" type="number" value="${item.km}"><label>Litros</label><input id="eLitros" type="number" step="0.001" value="${item.litros}"><label>Valor/L</label><input id="eValor" type="number" step="0.01" value="${item.valorL}"><div class="total-display" id="eTotal">Total: R$ ${(item.litros*item.valorL).toFixed(2)}</div>`; } else { document.getElementById('formEditarItem').innerHTML = `<label>Data</label><input id="eData" type="date" value="${item.data}"><label>KM</label><input id="eKm" type="number" value="${item.km}"><label>Tipo</label><input id="eTipo" value="${item.tipo}"><label>Valor</label><input id="eValor" type="number" value="${item.valor}"><label>Próx. em KM</label><input id="eProxKm" type="number" value="${item.proxKm}">`; } document.getElementById('modalEditarItem').style.display='flex'; }
+function deletarItem(tipo,id){ 
+    if(!confirm('Apagar este registro?')) return; 
+    const v=getVeiculoAtivo(); 
+    if(tipo==='abast') v.abast = v.abast.filter(x=>String(x.id)!==String(id)); 
+    else v.manut = v.manut.filter(x=>String(x.id)!==String(id)); 
+    salvarTudo(); 
+    fecharModalEditarItem(); 
+    atualizarPainel(); 
+}
+
+function abrirModalEditarItem(tipo,id){ itemEditando = {tipo,id}; const v = getVeiculoAtivo(); const item = tipo==='abast'? v.abast.find(x=>String(x.id)===String(id)) : v.manut.find(x=>String(x.id)===String(id)); document.getElementById('tituloEditarItem').innerText = tipo==='abast'? 'Editar Abastecimento' : 'Editar Manutenção'; if(tipo==='abast'){ document.getElementById('formEditarItem').innerHTML = `<label>Data</label><input id="eData" type="date" value="${item.data}"><label>KM</label><input id="eKm" type="number" value="${item.km}"><label>Litros</label><input id="eLitros" type="number" step="0.001" value="${item.litros}"><label>Valor/L</label><input id="eValor" type="number" step="0.01" value="${item.valorL}"><div class="total-display" id="eTotal">Total: R$ ${(item.litros*item.valorL).toFixed(2)}</div>`; } else { document.getElementById('formEditarItem').innerHTML = `<label>Data</label><input id="eData" type="date" value="${item.data}"><label>KM</label><input id="eKm" type="number" value="${item.km}"><label>Tipo</label><input id="eTipo" value="${item.tipo}"><label>Valor</label><input id="eValor" type="number" value="${item.valor}"><label>Próx. em KM</label><input id="eProxKm" type="number" value="${item.proxKm}">`; } document.getElementById('modalEditarItem').style.display='flex'; }
 function fecharModalEditarItem(){ document.getElementById('modalEditarItem').style.display='none'; }
-function salvarEdicaoItem(){ const v = getVeiculoAtivo(); if(itemEditando.tipo==='abast'){ const item = v.abast.find(x=>x.id===itemEditando.id); item.data = document.getElementById('eData').value; item.km = +document.getElementById('eKm').value; item.litros = +document.getElementById('eLitros').value; item.valorL = +document.getElementById('eValor').value; item.total = item.litros * item.valorL; } else { const item = v.manut.find(x=>x.id===itemEditando.id); item.data = document.getElementById('eData').value; item.km = +document.getElementById('eKm').value; item.tipo = document.getElementById('eTipo').value; item.valor = +document.getElementById('eValor').value; item.proxKm = +document.getElementById('eProxKm').value; } salvarTudo(); fecharModalEditarItem(); atualizarPainel(); }
+function salvarEdicaoItem(){ const v = getVeiculoAtivo(); if(itemEditando.tipo==='abast'){ const item = v.abast.find(x=>String(x.id)===String(itemEditando.id)); item.data = document.getElementById('eData').value; item.km = +document.getElementById('eKm').value; item.litros = +document.getElementById('eLitros').value; item.valorL = +document.getElementById('eValor').value; item.total = item.litros * item.valorL; } else { const item = v.manut.find(x=>String(x.id)===String(itemEditando.id)); item.data = document.getElementById('eData').value; item.km = +document.getElementById('eKm').value; item.tipo = document.getElementById('eTipo').value; item.valor = +document.getElementById('eValor').value; item.proxKm = +document.getElementById('eProxKm').value; } salvarTudo(); fecharModalEditarItem(); atualizarPainel(); }
 
-// CONFIGURAÇÃO DE GESTOS (SWIPE)
 let toqueXInicio = 0;
 let toqueXFim = 0;
 
