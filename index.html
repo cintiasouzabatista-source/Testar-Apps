@@ -18,10 +18,11 @@
 .app-view { display: none; }
 .app-view.ativa { display: block; }
 
-.meses-topo-wrapper { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; scrollbar-width: none; }
-.meses-topo-wrapper::-webkit-scrollbar { display: none; }
-.mes-chip { background: var(--bg-container); border: 1px solid var(--borda); color: var(--texto-secundario); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
-.mes-chip.ativo { background: var(--header-bg); color: var(--header-txt); border-color: transparent; font-weight: 600; }
+/* Navegação de Mês por Setas e Clique */
+.seletor-mes-topo { display: flex; align-items: center; justify-content: space-between; background: var(--bg-container); border: 1px solid var(--borda); border-radius: var(--radius); padding: 10px 16px; margin-bottom: 16px; }
+.btn-mes-nav { background: none; border: none; font-size: 1.1rem; color: var(--texto-principal); cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+.btn-mes-nav:hover { background: var(--bg-body); }
+.mes-titulo-atual { font-weight: 600; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--texto-principal); }
 
 .cards-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
 .card { background: var(--bg-container); padding: 16px; text-align: center; border-radius: var(--radius); border: 1px solid var(--borda); }
@@ -52,7 +53,6 @@
 .modal-container { background: var(--bg-container); color: var(--texto-principal); padding: 20px; border-radius: var(--radius); width: 90%; max-width: 400px; }
 .btn-resposta { padding: 10px 14px; margin: 6px; border-radius: 20px; border: 1px solid var(--borda); background: var(--bg-body); color: var(--texto-principal); cursor: pointer; font-weight: 600; }
 
-/* Estilos extras para modal de edição */
 .form-grupo { margin-bottom: 12px; }
 .form-grupo label { display: block; font-size: 0.85rem; color: var(--texto-secundario); margin-bottom: 4px; }
 .form-grupo input, .form-grupo select { width: 100%; padding: 10px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-container); color: var(--texto-principal); }
@@ -61,6 +61,11 @@
 .btn-salvar { background: var(--header-bg); color: var(--header-txt); }
 .btn-excluir { background: var(--saida); color: #fff; }
 .btn-cancelar { background: var(--borda); color: var(--texto-principal); }
+
+/* Grid de seleção rápida de meses no Modal */
+.grid-meses-modal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-height: 300px; overflow-y: auto; margin-top: 10px; }
+.btn-mes-grid { padding: 10px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-body); color: var(--texto-principal); font-size: 0.85rem; cursor: pointer; text-align: center; }
+.btn-mes-grid.ativo { background: var(--header-bg); color: var(--header-txt); border-color: transparent; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -70,7 +75,12 @@
     <div><button class="icon-btn" onclick="alternarVisibilidade()">🔓</button><button class="icon-btn" onclick="alternarTema()">🫟</button></div>
 </div>
 
-<div class="meses-topo-wrapper" id="barra-meses"></div>
+<!-- BARRA DE NAVEGAÇÃO DE MÊS COM SETAS E CLIQUE -->
+<div class="seletor-mes-topo">
+    <button class="btn-mes-nav" onclick="mudarMes(-1)">◀</button>
+    <div class="mes-titulo-atual" id="label-mes-topo" onclick="abrirModalSeletorMes()">📅 Mês Atual</div>
+    <button class="btn-mes-nav" onclick="mudarMes(1)">▶</button>
+</div>
 
 <div class="app-view ativa" id="view-inicio">
     <div class="cards-container">
@@ -143,6 +153,17 @@
     </div>
 </div>
 
+<!-- MODAL SELECIONAR MÊS RÁPIDO -->
+<div class="modal-overlay" id="modal-seletor-mes">
+    <div class="modal-container">
+        <h3>Selecione o Mês / Ano</h3>
+        <div class="grid-meses-modal" id="grid-meses-container"></div>
+        <div class="modal-botoes" style="margin-top: 16px;">
+            <button class="btn-acao-modal btn-cancelar" onclick="fecharModalSeletorMes()">Fechar</button>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL EDITAR/EXCLUIR TRANSAÇÃO -->
 <div class="modal-overlay" id="modal-editar">
     <div class="modal-container">
@@ -179,9 +200,11 @@
 
 <script>
 let transacoes = [], saldosOcultos = false, idPendente = null, tipoPendente = null;
-let mesSelecionadoFiltro = "todos";
+let anoAtualGlobal = new Date().getFullYear();
+let mesAtualGlobal = new Date().getMonth();
 let temasDisponiveis = ['padrao', 'escuro', 'white', 'vintage']; let temaAtualIndex = 0;
 const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const nomesMesesCompletos = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
 function navegarPara(idAba) {
     document.querySelectorAll('.app-view').forEach(v => v.classList.remove('ativa'));
@@ -191,30 +214,51 @@ function navegarPara(idAba) {
     atualizarAplicativo();
 }
 
-function renderizarBarraMeses() {
-    const barra = document.getElementById('barra-meses');
-    let html = `<button class="mes-chip ${mesSelecionadoFiltro === 'todos' ? 'ativo' : ''}" onclick="selecionarMesFiltro('todos')">🕒 Todos</button>`;
-    
-    const hoje = new Date();
-    let mesesDisponiveis = new Set();
-    mesesDisponiveis.add(`${hoje.getMonth()}-${hoje.getFullYear()}`);
-    
-    transacoes.forEach(t => {
-        mesesDisponiveis.add(`${t.mes}-${t.ano}`);
-    });
-
-    Array.from(mesesDisponiveis).forEach(mStr => {
-        const [mes, ano] = mStr.split('-');
-        const nomeFormatado = `${nomesMeses[mes]}/${ano}`;
-        const ativoCls = mesSelecionadoFiltro === mStr ? 'ativo' : '';
-        html += `<button class="mes-chip ${ativoCls}" onclick="selecionarMesFiltro('${mStr}')">${nomeFormatado}</button>`;
-    });
-
-    barra.innerHTML = html;
+function atualizarLabelTopo() {
+    document.getElementById('label-mes-topo').innerHTML = `📅 ${nomesMesesCompletos[mesAtualGlobal]} de ${anoAtualGlobal}`;
 }
 
-function selecionarMesFiltro(valor) {
-    mesSelecionadoFiltro = valor;
+function mudarMes(direcao) {
+    mesAtualGlobal += direcao;
+    if (mesAtualGlobal > 11) {
+        mesAtualGlobal = 0;
+        anoAtualGlobal++;
+    } else if (mesAtualGlobal < 0) {
+        mesAtualGlobal = 11;
+        anoAtualGlobal--;
+    }
+    atualizarAplicativo();
+}
+
+function abrirModalSeletorMes() {
+    const container = document.getElementById('grid-meses-container');
+    let html = '';
+    
+    // Lista os últimos anos e próximos anos com base nas transações ou padrão atual
+    let anosEnvolvidos = new Set([new Date().getFullYear(), anoAtualGlobal]);
+    transacoes.forEach(t => anosEnvolvidos.add(t.ano));
+    
+    const anosArray = Array.from(anosEnvolvidos).sort();
+
+    anosArray.forEach(ano => {
+        for (let m = 0; m < 12; m++) {
+            let ativoCls = (m === mesAtualGlobal && ano === anoAtualGlobal) ? 'ativo' : '';
+            html += `<button class="btn-mes-grid ${ativoCls}" onclick="selecionarMesAno(${m}, ${ano})">${nomesMeses[m]}/${ano}</button>`;
+        }
+    });
+
+    container.innerHTML = html;
+    document.getElementById('modal-seletor-mes').style.display = 'flex';
+}
+
+function fecharModalSeletorMes() {
+    document.getElementById('modal-seletor-mes').style.display = 'none';
+}
+
+function selecionarMesAno(m, ano) {
+    mesAtualGlobal = m;
+    anoAtualGlobal = ano;
+    fecharModalSeletorMes();
     atualizarAplicativo();
 }
 
@@ -241,15 +285,25 @@ function processarComando() {
     if(txt.includes('mp')) { if(tipo==='cartao') cartao = "Mercado Pago"; else conta = "Mercado Pago"; }
 
     let desc = input.value.replace(num[0], '').replace(/no|na|do|da/gi, '').trim() || "Lançamento";
-    let hoje = new Date();
     const novoId = Date.now();
-    transacoes.unshift({ id: novoId, descricao: desc, valor: valor, tipo, conta, cartao, mes: hoje.getMonth(), ano: hoje.getFullYear(), dia: hoje.getDate() });
+    
+    // Insere no mês e ano que estão selecionados atualmente na tela
+    transacoes.unshift({ 
+        id: novoId, 
+        descricao: desc, 
+        valor: valor, 
+        tipo, 
+        conta, 
+        cartao, 
+        mes: mesAtualGlobal, 
+        ano: anoAtualGlobal, 
+        dia: new Date().getDate() 
+    });
 
     if((tipo === 'saida' || tipo === 'cartao' || tipo === 'reserva') && !cartao && !conta){
         idPendente = novoId; tipoPendente = tipo;
         mostrarPerguntaConta(novoId, tipo);
     } else if(tipo === 'entrada' && !conta) {
-        // Se for entrada sem conta informada, pergunta qual conta recebeu
         idPendente = novoId; tipoPendente = tipo;
         mostrarPerguntaConta(novoId, tipo);
     } else {
@@ -289,14 +343,11 @@ function responderConta(id, valor) {
 function salvarTudo() { localStorage.setItem('saldo_transacoes', JSON.stringify(transacoes)); atualizarAplicativo(); }
 
 function obterTransacoesFiltradas() {
-    return transacoes.filter(t => {
-        if (mesSelecionadoFiltro === "todos") return true;
-        return `${t.mes}-${t.ano}` === mesSelecionadoFiltro;
-    });
+    return transacoes.filter(t => t.mes === mesAtualGlobal && t.ano === anoAtualGlobal);
 }
 
 function atualizarAplicativo() {
-    renderizarBarraMeses();
+    atualizarLabelTopo();
     const transacoesFiltradas = obterTransacoesFiltradas();
 
     let ent = 0, sai = 0, car = 0, res = 0;
@@ -432,8 +483,6 @@ function importarBackup(e) {
 window.onload = () => { 
     const s = localStorage.getItem('saldo_transacoes'); 
     if (s) transacoes = JSON.parse(s); 
-    const hoje = new Date();
-    mesSelecionadoFiltro = `${hoje.getMonth()}-${hoje.getFullYear()}`;
     atualizarAplicativo(); 
 };
 </script>
