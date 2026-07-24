@@ -18,7 +18,6 @@
 .app-view { display: none; }
 .app-view.ativa { display: block; }
 
-/* Barra de Meses no Topo */
 .meses-topo-wrapper { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; scrollbar-width: none; }
 .meses-topo-wrapper::-webkit-scrollbar { display: none; }
 .mes-chip { background: var(--bg-container); border: 1px solid var(--borda); color: var(--texto-secundario); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
@@ -40,16 +39,28 @@
 .chat-input-area { display: flex; gap: 8px; background: var(--bg-container); padding: 6px 16px; border-radius: 24px; border: 1px solid var(--borda); }
 .chat-input { flex: 1; border: none; background: none; outline: none; color: var(--texto-principal); }
 .btn-enviar { background: var(--header-bg); color: var(--header-txt); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; }
-.menu-rodape-wrapper { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: var(--bg-container); padding: 10px 16px; border-top: 1px solid var(--borda); }
+.menu-rodape-wrapper { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: var(--bg-container); padding: 10px 16px; border-top: 1px solid var(--borda); z-index: 99; }
 .menu-rodape { display: grid; grid-template-columns: repeat(4, 1fr); }
 .tab-item { display: flex; flex-direction: column; align-items: center; background: none; border: none; color: var(--texto-secundario); font-size: 0.75rem; cursor: pointer; }
 .tab-item.ativo { color: var(--header-bg); font-weight: 700; }
-.item-transacao { padding: 10px 5px; border-bottom: 1px solid var(--borda); }
+.item-transacao { padding: 10px 5px; border-bottom: 1px solid var(--borda); cursor: pointer; transition: background 0.1s; }
+.item-transacao:hover { background: var(--bg-body); }
 .linha-1 { display: flex; justify-content: space-between; }
 .linha-2 { font-size: 0.75rem; color: var(--texto-secundario); }
+
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
 .modal-container { background: var(--bg-container); color: var(--texto-principal); padding: 20px; border-radius: var(--radius); width: 90%; max-width: 400px; }
 .btn-resposta { padding: 10px 14px; margin: 6px; border-radius: 20px; border: 1px solid var(--borda); background: var(--bg-body); color: var(--texto-principal); cursor: pointer; font-weight: 600; }
+
+/* Estilos extras para modal de edição */
+.form-grupo { margin-bottom: 12px; }
+.form-grupo label { display: block; font-size: 0.85rem; color: var(--texto-secundario); margin-bottom: 4px; }
+.form-grupo input, .form-grupo select { width: 100%; padding: 10px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-container); color: var(--texto-principal); }
+.modal-botoes { display: flex; gap: 8px; margin-top: 16px; }
+.btn-acao-modal { flex: 1; padding: 10px; border-radius: var(--radius); border: none; font-weight: 600; cursor: pointer; }
+.btn-salvar { background: var(--header-bg); color: var(--header-txt); }
+.btn-excluir { background: var(--saida); color: #fff; }
+.btn-cancelar { background: var(--borda); color: var(--texto-principal); }
 </style>
 </head>
 <body>
@@ -59,10 +70,7 @@
     <div><button class="icon-btn" onclick="alternarVisibilidade()">🔓</button><button class="icon-btn" onclick="alternarTema()">🫟</button></div>
 </div>
 
-<!-- BARRA DE SELEÇÃO DE MESES NO TOPO -->
-<div class="meses-topo-wrapper" id="barra-meses">
-    <!-- Gerado via JavaScript -->
-</div>
+<div class="meses-topo-wrapper" id="barra-meses"></div>
 
 <div class="app-view ativa" id="view-inicio">
     <div class="cards-container">
@@ -79,7 +87,7 @@
         </div>
     </div>
     <div class="chat-input-area">
-        <input type="text" id="campo-texto" class="chat-input" placeholder="Ex: gasolina 50 ou ifood 40 no nubank">
+        <input type="text" id="campo-texto" class="chat-input" placeholder="Ex: salário 3500 ou gasolina 50">
         <button class="btn-enviar" onclick="processarComando()">➔</button>
     </div>
 </div>
@@ -127,11 +135,51 @@
 </div>
 </div>
 
-<div class="modal-overlay" id="modal-pergunta"><div class="modal-container"><h3 id="texto-pergunta"></h3><div id="botoes-pergunta"></div></div></div>
+<!-- MODAL PERGUNTA CONTA -->
+<div class="modal-overlay" id="modal-pergunta">
+    <div class="modal-container">
+        <h3 id="texto-pergunta"></h3>
+        <div id="botoes-pergunta"></div>
+    </div>
+</div>
+
+<!-- MODAL EDITAR/EXCLUIR TRANSAÇÃO -->
+<div class="modal-overlay" id="modal-editar">
+    <div class="modal-container">
+        <h3>Editar Transação</h3>
+        <input type="hidden" id="edit-id">
+        <div class="form-grupo" style="margin-top: 12px;">
+            <label>Descrição</label>
+            <input type="text" id="edit-desc">
+        </div>
+        <div class="form-grupo">
+            <label>Valor (R$)</label>
+            <input type="number" step="0.01" id="edit-valor">
+        </div>
+        <div class="form-grupo">
+            <label>Tipo</label>
+            <select id="edit-tipo">
+                <option value="entrada">Entrada</option>
+                <option value="saida">Saída</option>
+                <option value="cartao">Cartão</option>
+                <option value="reserva">Reserva</option>
+            </select>
+        </div>
+        <div class="form-grupo">
+            <label>Conta / Cartão / Origem</label>
+            <input type="text" id="edit-origem" placeholder="Ex: Nubank, Itaú, Dinheiro...">
+        </div>
+        <div class="modal-botoes">
+            <button class="btn-acao-modal btn-excluir" onclick="excluirTransacaoModal()">Excluir</button>
+            <button class="btn-acao-modal btn-cancelar" onclick="fecharModalEditar()">Cancelar</button>
+            <button class="btn-acao-modal btn-salvar" onclick="salvarEdicaoModal()">Salvar</button>
+        </div>
+    </div>
+</div>
 
 <script>
 let transacoes = [], saldosOcultos = false, idPendente = null, tipoPendente = null;
-let mesSelecionadoFiltro = "todos"; // "todos" ou "mes-ano" ex: "6-2026"
+let mesSelecionadoFiltro = "todos";
 let temasDisponiveis = ['padrao', 'escuro', 'white', 'vintage']; let temaAtualIndex = 0;
 const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
@@ -147,7 +195,6 @@ function renderizarBarraMeses() {
     const barra = document.getElementById('barra-meses');
     let html = `<button class="mes-chip ${mesSelecionadoFiltro === 'todos' ? 'ativo' : ''}" onclick="selecionarMesFiltro('todos')">🕒 Todos</button>`;
     
-    // Coleta meses únicos presentes nas transações + mês atual
     const hoje = new Date();
     let mesesDisponiveis = new Set();
     mesesDisponiveis.add(`${hoje.getMonth()}-${hoje.getFullYear()}`);
@@ -156,7 +203,6 @@ function renderizarBarraMeses() {
         mesesDisponiveis.add(`${t.mes}-${t.ano}`);
     });
 
-    // Ordena do mais recente para o mais antigo (ou vice-versa)
     Array.from(mesesDisponiveis).forEach(mStr => {
         const [mes, ano] = mStr.split('-');
         const nomeFormatado = `${nomesMeses[mes]}/${ano}`;
@@ -178,13 +224,21 @@ function processarComando() {
     const input = document.getElementById('campo-texto'); const txt = input.value.trim().toLowerCase();
     const num = txt.match(/\d+([.,]\d+)?/g); if (!num) return alert("Digite um valor");
     const valor = parseFloat(num[0].replace(',', '.'));
+    
     let tipo = 'saida';
-    if (/\b(reserva|guardar)\b/.test(txt)) tipo = 'reserva';
-    else if (/\b(cartao|cartão|credito)\b/.test(txt)) tipo = 'cartao';
-    else if (/\b(recebi|ganhei)\b/.test(txt)) tipo = 'entrada';
+    if (/\b(reserva|guardar)\b/.test(txt)) {
+        tipo = 'reserva';
+    } else if (/\b(cartao|cartão|credito)\b/.test(txt)) {
+        tipo = 'cartao';
+    } else if (/\b(recebi|ganhei|salario|salário|pix|deposito|depósito|renda)\b/.test(txt)) {
+        tipo = 'entrada';
+    }
 
     let conta = "", cartao = "";
-    if(txt.includes('nubank')) cartao = "Nubank"; if(txt.includes('itau')) cartao = "Itaú"; if(txt.includes('inter')) cartao = "Inter"; if(txt.includes('mp')) cartao = "Mercado Pago";
+    if(txt.includes('nubank')) { if(tipo==='cartao') cartao = "Nubank"; else conta = "Nubank"; }
+    if(txt.includes('itau')) { if(tipo==='cartao') cartao = "Itaú"; else conta = "Itaú"; }
+    if(txt.includes('inter')) { if(tipo==='cartao') cartao = "Inter"; else conta = "Inter"; }
+    if(txt.includes('mp')) { if(tipo==='cartao') cartao = "Mercado Pago"; else conta = "Mercado Pago"; }
 
     let desc = input.value.replace(num[0], '').replace(/no|na|do|da/gi, '').trim() || "Lançamento";
     let hoje = new Date();
@@ -192,6 +246,10 @@ function processarComando() {
     transacoes.unshift({ id: novoId, descricao: desc, valor: valor, tipo, conta, cartao, mes: hoje.getMonth(), ano: hoje.getFullYear(), dia: hoje.getDate() });
 
     if((tipo === 'saida' || tipo === 'cartao' || tipo === 'reserva') && !cartao && !conta){
+        idPendente = novoId; tipoPendente = tipo;
+        mostrarPerguntaConta(novoId, tipo);
+    } else if(tipo === 'entrada' && !conta) {
+        // Se for entrada sem conta informada, pergunta qual conta recebeu
         idPendente = novoId; tipoPendente = tipo;
         mostrarPerguntaConta(novoId, tipo);
     } else {
@@ -205,6 +263,7 @@ function mostrarPerguntaConta(id, tipo) {
     let texto = "";
     if(tipo === 'cartao'){ texto = "Em qual cartão foi essa compra?"; }
     else if(tipo === 'reserva'){ texto = "Transferir de qual conta pra Reserva?"; }
+    else if(tipo === 'entrada'){ texto = "Em qual conta você recebeu?"; }
     else { texto = "De qual conta saiu esse dinheiro?"; }
 
     document.getElementById('texto-pergunta').innerText = texto;
@@ -223,7 +282,8 @@ function responderConta(id, valor) {
         if(tipoPendente === 'cartao') t.cartao = valor;
         else t.conta = valor;
     }
-    document.getElementById('modal-pergunta').style.display = 'none'; salvarTudo();
+    document.getElementById('modal-pergunta').style.display = 'none'; 
+    salvarTudo();
 }
 
 function salvarTudo() { localStorage.setItem('saldo_transacoes', JSON.stringify(transacoes)); atualizarAplicativo(); }
@@ -272,8 +332,55 @@ function renderizarHistorico(listaTransacoes) {
     filtradas.forEach(t => {
         let cls = t.tipo === 'entrada' ? 'cor-entrada' : t.tipo === 'cartao' ? 'cor-cartao' : t.tipo === 'reserva' ? 'cor-reserva' : 'cor-saida';
         let origem = t.cartao || t.conta || '';
-        l.innerHTML += `<div class="item-transacao"><div class="linha-1"><span>${t.descricao}</span><span class="${cls}">${t.tipo === 'entrada' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</span></div><div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} - ${origem}</div></div>`;
+        l.innerHTML += `<div class="item-transacao" onclick="abrirModalEditar(${t.id})">
+            <div class="linha-1"><span>${t.descricao}</span><span class="${cls}">${t.tipo === 'entrada' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</span></div>
+            <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} - ${origem}</div>
+        </div>`;
     });
+}
+
+function abrirModalEditar(id) {
+    const t = transacoes.find(i => i.id == id);
+    if(!t) return;
+    document.getElementById('edit-id').value = t.id;
+    document.getElementById('edit-desc').value = t.descricao;
+    document.getElementById('edit-valor').value = t.valor;
+    document.getElementById('edit-tipo').value = t.tipo;
+    document.getElementById('edit-origem').value = t.cartao || t.conta || '';
+    document.getElementById('modal-editar').style.display = 'flex';
+}
+
+function fecharModalEditar() {
+    document.getElementById('modal-editar').style.display = 'none';
+}
+
+function salvarEdicaoModal() {
+    const id = document.getElementById('edit-id').value;
+    const t = transacoes.find(i => i.id == id);
+    if(t) {
+        t.descricao = document.getElementById('edit-desc').value || "Lançamento";
+        t.valor = parseFloat(document.getElementById('edit-valor').value) || 0;
+        t.tipo = document.getElementById('edit-tipo').value;
+        const origemVal = document.getElementById('edit-origem').value;
+        if(t.tipo === 'cartao') {
+            t.cartao = origemVal;
+            t.conta = "";
+        } else {
+            t.conta = origemVal;
+            t.cartao = "";
+        }
+    }
+    fecharModalEditar();
+    salvarTudo();
+}
+
+function excluirTransacaoModal() {
+    if(confirm("Deseja realmente excluir esta transação?")) {
+        const id = document.getElementById('edit-id').value;
+        transacoes = transacoes.filter(i => i.id != id);
+        fecharModalEditar();
+        salvarTudo();
+    }
 }
 
 function renderizarGraficos(receitas, totalGastos, saídas, cartões, valorReserva) {
@@ -325,7 +432,6 @@ function importarBackup(e) {
 window.onload = () => { 
     const s = localStorage.getItem('saldo_transacoes'); 
     if (s) transacoes = JSON.parse(s); 
-    // Inicializa filtrando no mês atual por padrão
     const hoje = new Date();
     mesSelecionadoFiltro = `${hoje.getMonth()}-${hoje.getFullYear()}`;
     atualizarAplicativo(); 
