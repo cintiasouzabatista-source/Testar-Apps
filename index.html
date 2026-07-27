@@ -233,9 +233,9 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
 
 <div id="modalConfig" class="modal">
     <div class="modal-content">
-        <h3 style="margin-bottom: 12px;"><i class="fas fa-cog"></i> Configurações & Ajustes</h3>
+        <h3 style="margin-bottom: 10px;"><i class="fas fa-cog"></i> Configurações & Ajustes</h3>
         <button class="btn-icon" style="width:100%; margin-bottom:8px;" onclick="exportarBackup()"><i class="fas fa-download"></i> Baixar Backup (JSON)</button>
-        <label class="btn-icon" style="margin-bottom:12px; cursor:pointer;"><i class="fas fa-upload"></i> Restaurar Backup <input type="file" id="fileBackup" style="display:none" onchange="importarBackup(event)"></label>
+        <label class="btn-icon" style="width:100%; margin-bottom:8px;"  cursor:pointer;"><i class="fas fa-upload"></i> Restaurar Backup <input type="file" id="fileBackup" style="display:none" onchange="importarBackup(event)"></label>
         <hr style="border-color:var(--border); margin:12px 0;">
         <button class="btn-icon btn-danger" style="width:100%;" onclick="resetarApp()"><i class="fas fa-trash-alt"></i> Resetar / Limpar Tudo</button>
         <div class="modal-actions" style="margin-top:14px;"><button onclick="fecharModalConfig()" class="btn-icon" style="width:100%;">Fechar</button></div>
