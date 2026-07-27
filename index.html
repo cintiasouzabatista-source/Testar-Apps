@@ -14,6 +14,7 @@ body.white { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #1e293b
 body { font-family: system-ui; background: var(--bg); color: var(--text); padding-bottom: 80px; transition: 0.3s; position: relative; }
 .container { max-width: 600px; margin: 0 auto; padding: 16px; }
 .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px }
+.header-actions { display: flex; gap: 8px; }
 .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .btn-icon { background: var(--card); border: 1px solid var(--border); padding: 10px 12px; border-radius: 10px; cursor: pointer; color: var(--text); font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; text-decoration: none; }
@@ -43,7 +44,7 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
 @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 50; }
-.nav-btn { background: none; border: none; color: var(--muted); font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; width: 16.6%; }
+.nav-btn { background: none; border: none; color: var(--muted); font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; width: 20%; }
 .nav-btn.active { color: var(--primary); }
 .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:100 }
 .modal-content { background:var(--card); padding:16px; border-radius:16px; width:92%; max-width:480px; max-height:90vh; overflow-y:auto }
@@ -72,6 +73,11 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
 .doc-info i { font-size: 22px; color: var(--danger); flex-shrink: 0; }
 .doc-info div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; }
 .doc-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+/* Estilo para Gráficos em Barras Horizontais Customizadas */
+.chart-horiz-row { display: flex; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; overflow: hidden; height: 38px; position: relative; }
+.chart-horiz-bar { background: var(--primary); height: 100%; display: flex; align-items: center; padding: 0 10px; color: #fff; font-weight: 700; font-size: 12px; transition: width 0.4s ease; white-space: nowrap; gap: 6px; }
+.chart-horiz-info { position: absolute; right: 12px; font-size: 12px; color: var(--muted); font-weight: 600; z-index: 2; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -81,7 +87,10 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
 <div class="container">
     <div class="header">
         <h1>Controle Frota</h1>
-        <button class="btn-icon" style="width: auto;" onclick="trocarTema()"><i id="iconTema" class="fas fa-palette"></i></button>
+        <div class="header-actions">
+            <button class="btn-icon" style="width: auto;" onclick="abrirModalConfig()"><i class="fas fa-cog"></i></button>
+            <button class="btn-icon" style="width: auto;" onclick="trocarTema()"><i id="iconTema" class="fas fa-palette"></i></button>
+        </div>
     </div>
     
     <!-- ABA INÍCIO -->
@@ -117,12 +126,12 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
     <!-- ABA GRÁFICOS -->
     <div id="viewGraficos" class="view-section">
         <div class="card">
-            <h3 style="margin-bottom: 12px; font-size: 16px;"><i class="fas fa-chart-line"></i> Histórico de Consumo (km/L)</h3>
-            <canvas id="graficoConsumo" style="max-height: 220px;"></canvas>
+            <h3 style="margin-bottom: 12px; font-size: 15px;"><i class="fas fa-chart-line"></i> Eficiência de Consumo (km/L por Abastecimento)</h3>
+            <div id="containerGraficoConsumo"></div>
         </div>
         <div class="card">
-            <h3 style="margin-bottom: 12px; font-size: 16px;"><i class="fas fa-chart-bar"></i> Gastos com Abastecimentos (R$)</h3>
-            <canvas id="graficoGastos" style="max-height: 220px;"></canvas>
+            <h3 style="margin-bottom: 12px; font-size: 15px;"><i class="fas fa-chart-bar"></i> Gastos por Abastecimento (R$)</h3>
+            <div id="containerGraficoGastos"></div>
         </div>
     </div>
 </div>
@@ -133,7 +142,6 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
     <button class="nav-btn" onclick="abrirModalHistorico()"><i class="fas fa-list"></i> Hist.</button>
     <button class="nav-btn" onclick="abrirModalDocumentos()"><i class="fas fa-file-pdf"></i> Docs</button>
     <button class="nav-btn" onclick="abrirModalVeiculo()"><i class="fas fa-motorcycle"></i> Veículos</button>
-    <button class="nav-btn" onclick="abrirModalConfig()"><i class="fas fa-cog"></i> Ajustes</button>
 </nav>
 
 <!-- MODAIS -->
@@ -233,9 +241,9 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
 
 <div id="modalConfig" class="modal">
     <div class="modal-content">
-        <h3 style="margin-bottom: 10px;"><i class="fas fa-cog"></i> Configurações & Ajustes</h3>
+        <h3 style="margin-bottom: 12px;"><i class="fas fa-cog"></i> Configurações & Ajustes</h3>
         <button class="btn-icon" style="width:100%; margin-bottom:8px;" onclick="exportarBackup()"><i class="fas fa-download"></i> Baixar Backup (JSON)</button>
-        <label class="btn-icon" style="width:100%; margin-bottom:8px;"  cursor:pointer;"><i class="fas fa-upload"></i> Restaurar Backup <input type="file" id="fileBackup" style="display:none" onchange="importarBackup(event)"></label>
+        <label class="btn-icon" style="margin-bottom:12px; cursor:pointer;"><i class="fas fa-upload"></i> Restaurar Backup <input type="file" id="fileBackup" style="display:none" onchange="importarBackup(event)"></label>
         <hr style="border-color:var(--border); margin:12px 0;">
         <button class="btn-icon btn-danger" style="width:100%;" onclick="resetarApp()"><i class="fas fa-trash-alt"></i> Resetar / Limpar Tudo</button>
         <div class="modal-actions" style="margin-top:14px;"><button onclick="fecharModalConfig()" class="btn-icon" style="width:100%;">Fechar</button></div>
@@ -274,7 +282,6 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
 const CHAVE_STORAGE = 'veiculos_frota_v15_2';
 const CHAVE_ATIVO = 'veiculoAtivoId_frota_v15_2';
 
-// Rotina inteligente para resgatar dados salvos em QUALQUER versão anterior do app
 function recuperarDadosAntigos() {
     let dadosSalvos = localStorage.getItem(CHAVE_STORAGE);
     if (dadosSalvos) return;
@@ -303,8 +310,6 @@ let veiculoAtivoId = localStorage.getItem(CHAVE_ATIVO) || null;
 let temas = ['dark', 'estrada', 'white'];
 let tema = localStorage.getItem('tema_frota') || 'dark';
 let itemEditando = null;
-let chartConsumo = null;
-let chartGastos = null;
 
 function aplicarTema() { document.body.className = tema; const icon = document.getElementById('iconTema'); if(tema === 'dark') icon.className = 'fas fa-moon'; if(tema === 'estrada') icon.className = 'fas fa-road'; if(tema === 'white') icon.className = 'fas fa-sun'; }
 function trocarTema() { let index = temas.indexOf(tema); tema = temas[(index + 1) % 3]; localStorage.setItem('tema_frota', tema); aplicarTema(); }
@@ -424,8 +429,12 @@ function atualizarPainel() {
 function renderizarGraficos() {
     const v = getVeiculoAtivo(); if(!v) return;
     const abastOrdenados = [...v.abast].sort((a,b) => a.data.localeCompare(b.data));
-    const labels = abastOrdenados.map(a => formatarDataCurta(a.data));
-    const gastos = abastOrdenados.map(a => a.total);
+    
+    if(abastOrdenados.length === 0) {
+        document.getElementById('containerGraficoConsumo').innerHTML = '<p style="color:var(--muted); font-size:12px; text-align:center;">Nenhum dado cadastrado.</p>';
+        document.getElementById('containerGraficoGastos').innerHTML = '<p style="color:var(--muted); font-size:12px; text-align:center;">Nenhum dado cadastrado.</p>';
+        return;
+    }
 
     let consumos = [];
     for(let i = 0; i < abastOrdenados.length; i++) {
@@ -433,25 +442,43 @@ function renderizarGraficos() {
         else {
             let kmRodados = abastOrdenados[i].km - abastOrdenados[i-1].km;
             let litros = abastOrdenados[i].litros;
-            consumos.push(litros > 0 ? (kmRodados / litros).toFixed(2) : 0);
+            consumos.push(litros > 0 ? parseFloat((kmRodados / litros).toFixed(2)) : 0);
         }
     }
-
-    const ctxConsumo = document.getElementById('graficoConsumo').getContext('2d');
-    if(chartConsumo) chartConsumo.destroy();
-    chartConsumo = new Chart(ctxConsumo, {
-        type: 'line',
-        data: { labels: labels, datasets: [{ label: 'km/L', data: consumos, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', borderWidth: 2, fill: true, tension: 0.2 }] },
-        options: { responsive: true, maintainAspectRatio: false }
+    const maxConsumo = Math.max(...consumos, 10);
+    
+    let htmlConsumo = '';
+    abastOrdenados.forEach((a, idx) => {
+        const val = consumos[idx];
+        const pct = Math.min(Math.max((val / maxConsumo) * 100, 5), 100);
+        htmlConsumo += `
+            <div class="chart-horiz-row">
+                <div class="chart-horiz-bar" style="width: ${pct}%">
+                    <i class="fas fa-road"></i> ${formatarDataCurta(a.data)}
+                </div>
+                <div class="chart-horiz-info">${val > 0 ? val + ' km/L' : 'Inicial'}</div>
+            </div>
+        `;
     });
+    document.getElementById('containerGraficoConsumo').innerHTML = htmlConsumo;
 
-    const ctxGastos = document.getElementById('graficoGastos').getContext('2d');
-    if(chartGastos) chartGastos.destroy();
-    chartGastos = new Chart(ctxGastos, {
-        type: 'bar',
-        data: { labels: labels, datasets: [{ label: 'Valor (R$)', data: gastos, backgroundColor: '#ea580c', borderWidth: 1 }] },
-        options: { responsive: true, maintainAspectRatio: false }
+    const gastos = abastOrdenados.map(a => a.total);
+    const maxGasto = Math.max(...gastos, 50);
+
+    let htmlGastos = '';
+    abastOrdenados.forEach((a, idx) => {
+        const val = gastos[idx];
+        const pct = Math.min(Math.max((val / maxGasto) * 100, 5), 100);
+        htmlGastos += `
+            <div class="chart-horiz-row">
+                <div class="chart-horiz-bar" style="width: ${pct}%; background: #ea580c;">
+                    <i class="fas fa-gas-pump"></i> ${formatarDataCurta(a.data)}
+                </div>
+                <div class="chart-horiz-info">R$ ${val.toFixed(2)}</div>
+            </div>
+        `;
     });
+    document.getElementById('containerGraficoGastos').innerHTML = htmlGastos;
 }
 
 function adicionarPdf() {
