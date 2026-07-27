@@ -29,6 +29,10 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
 .odometro h3 { font-size: 20px; }
 .odometro small { color: rgba(255,255,255,0.8); font-size: 11px; }
 
+/* Alertas Dinâmicos nos Cards */
+.card.alerta-amarelo { border-color: var(--warning); background: rgba(250, 204, 21, 0.05); }
+.card.alerta-vermelho { border-color: var(--danger); background: rgba(239, 68, 68, 0.08); }
+
 /* Notificação Flutuante no Topo */
 #containerNotificacoes { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; z-index: 999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
 .toast-alerta { pointer-events: auto; background: var(--card); border-left: 6px solid var(--warning); border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 12px 16px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: space-between; animation: slideDown 0.3s ease; }
@@ -147,7 +151,7 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
             <div class="accordion-body">
                 <div class="grid-2">
                     <div><label>Tipo</label><select id="vTipo"><option value="moto">Moto</option><option value="carro">Carro</option></select></div>
-                    <div><label>Nome</label><input id="vNome" placeholder="Ex: Biz 125"></div>
+                    <div><label>Nome</label><input id="vNome" placeholder="Ex: Honda Lead"></div>
                 </div>
                 <div class="grid-2">
                     <div><label>Modelo</label><input id="vModelo" placeholder="Ex: 110"></div>
@@ -158,9 +162,10 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
                     <div><label>KM Atual</label><input id="vKm" type="number" placeholder="0"></div>
                 </div>
                 <div class="grid-2">
-                    <div><label>Tanque (L)</label><input id="vTanque" type="number" value="6.5"></div>
-                    <div><label>KM/Dia</label><input id="vKmDia" type="number" value="50"></div>
+                    <div><label>Tanque Total (L)</label><input id="vTanque" type="number" step="0.1" value="6.5"></div>
+                    <div><label>Reserva (L)</label><input id="vReserva" type="number" step="0.1" value="1.8"></div>
                 </div>
+                <div><label>Média KM/Dia</label><input id="vKmDia" type="number" value="50"></div>
                 <div class="modal-actions"><button onclick="salvarVeiculo()" class="btn-icon" style="background:var(--primary); color:#fff; width:100%;">Salvar Novo Veículo</button></div>
             </div>
         </div>
@@ -184,9 +189,10 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
                     <div><label>KM Atual</label><input id="vKmEdit" type="number"></div>
                 </div>
                 <div class="grid-2">
-                    <div><label>Tanque (L)</label><input id="vTanqueEdit" type="number"></div>
-                    <div><label>KM/Dia</label><input id="vKmDiaEdit" type="number"></div>
+                    <div><label>Tanque Total (L)</label><input id="vTanqueEdit" type="number" step="0.1"></div>
+                    <div><label>Reserva (L)</label><input id="vReservaEdit" type="number" step="0.1"></div>
                 </div>
+                <div><label>Média KM/Dia</label><input id="vKmDiaEdit" type="number"></div>
                 <div class="modal-actions"><button onclick="atualizarVeiculo()" class="btn-icon" style="background:var(--primary); color:#fff; width:100%;">Atualizar Veículo</button></div>
             </div>
         </div>
@@ -265,8 +271,8 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
 <div id="modalManut" class="modal"><div class="modal-content"><h3>Nova Manutenção</h3><label>Data</label><input id="mData" type="date"><label>KM</label><input id="mKm" type="number"><label>Tipo</label><input id="mTipo" placeholder="Ex: Troca de Óleo"><label>Valor</label><input id="mValor" type="number"><label>Próx. em KM</label><input id="mProxKm" type="number" value="5000"><div class="modal-actions"><button onclick="fecharModalManut()" class="btn-icon">Cancelar</button><button onclick="salvarManut()" class="btn-icon" style="background:var(--primary); color:#fff">Salvar</button></div></div></div>
 
 <script>
-const CHAVE_STORAGE = 'veiculos_frota_v14';
-const CHAVE_ATIVO = 'veiculoAtivoId_frota_v14';
+const CHAVE_STORAGE = 'veiculos_frota_v15';
+const CHAVE_ATIVO = 'veiculoAtivoId_frota_v15';
 
 if (!localStorage.getItem(CHAVE_STORAGE)) {
     for (let i = 0; i < localStorage.length; i++) {
@@ -327,6 +333,8 @@ function mudarAba(nomeAba, el) {
 function atualizarPainel() {
     const v = getVeiculoAtivo(); if(!v) return; renderSelectVeiculo();
     if(!v.documentos) v.documentos = []; 
+    if(v.reservaL === undefined) v.reservaL = 1.8; // Compatibilidade com cadastros antigos
+    
     const kmAtual = v.config.kmBase || 0;
     document.getElementById('kmRodados').textContent = kmAtual.toLocaleString('pt-BR') + ' km';
 
@@ -350,12 +358,31 @@ function atualizarPainel() {
 
         if(v.abast.length >= 2 && media > 0) {
             const kmRodadosAposAbast = kmAtual - ultimoAbast.km;
-            const autonomiaTanque = (v.tanqueL || 6.5) * media;
-            const kmRestantesTanque = autonomiaTanque - kmRodadosAposAbast;
-            const proxAbast = kmAtual + kmRestantesTanque;
+            const tanqueTotal = v.tanqueL || 6.5;
+            const reserva = v.reservaL || 1.8;
+            const volumeUtilPrincipal = tanqueTotal - reserva; // ex: 6.5 - 1.8 = 4.7L
             
-            document.getElementById('proxAbastKm').textContent = proxAbast.toLocaleString('pt-BR', {maximumFractionDigits: 0}) + ' km';
-            document.getElementById('proxAbastTexto').textContent = `Autonomia: ~${kmRestantesTanque.toFixed(0)}km`;
+            const autonomiaPrincipal = volumeUtilPrincipal * media;
+            const autonomiaTotalTanque = tanqueTotal * media;
+            
+            const kmRestantesPrincipal = autonomiaPrincipal - kmRodadosAposAbast;
+            const proxAbastPrincipal = ultimoAbast.km + autonomiaPrincipal;
+            
+            if(kmRestantesPrincipal > 0) {
+                document.getElementById('proxAbastKm').textContent = proxAbastPrincipal.toLocaleString('pt-BR', {maximumFractionDigits: 0}) + ' km';
+                document.getElementById('proxAbastTexto').textContent = `Principal: ~${kmRestantesPrincipal.toFixed(0)}km restantes`;
+            } else {
+                // Entrou na reserva!
+                cardProxAbast.classList.add('alerta-vermelho');
+                const kmRestantesReserva = autonomiaTotalTanque - kmRodadosAposAbast;
+                if(kmRestantesReserva > 0) {
+                    document.getElementById('proxAbastKm').textContent = 'RESERVA!';
+                    document.getElementById('proxAbastTexto').textContent = `Restam ~${kmRestantesReserva.toFixed(0)}km (${reserva}L)`;
+                } else {
+                    document.getElementById('proxAbastKm').textContent = 'SECOU!';
+                    document.getElementById('proxAbastTexto').textContent = `Tanque esgotado!`;
+                }
+            }
         } else {
             document.getElementById('proxAbastKm').textContent = '-- km';
             document.getElementById('proxAbastTexto').textContent = `Precisa de histórico`;
@@ -526,6 +553,7 @@ function alternarAccordion(id) {
 function abrirModalVeiculo(){ 
     const v = getVeiculoAtivo();
     if(v){
+        if(v.reservaL === undefined) v.reservaL = 1.8;
         document.getElementById('nomeEditandoTitulo').innerText = v.nome;
         document.getElementById('nomeExcluir').innerText = v.nome;
         document.getElementById('vTipoEdit').value = v.tipo || 'moto'; 
@@ -534,7 +562,8 @@ function abrirModalVeiculo(){
         document.getElementById('vAnoEdit').value = v.ano || ''; 
         document.getElementById('vDataAquisicaoEdit').value = v.dataAquisicao || ''; 
         document.getElementById('vKmEdit').value = v.config.kmBase; 
-        document.getElementById('vTanqueEdit').value = v.tanqueL; 
+        document.getElementById('vTanqueEdit').value = v.tanqueL || 6.5; 
+        document.getElementById('vReservaEdit').value = v.reservaL;
         document.getElementById('vKmDiaEdit').value = v.config.kmValor;
     }
     document.getElementById('modalVeiculo').style.display='flex'; 
@@ -547,8 +576,39 @@ function fecharModalDocumentos() { document.getElementById('modalDocumentos').st
 function abrirModalConfig() { document.getElementById('modalConfig').style.display = 'flex'; }
 function fecharModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
 
-function salvarVeiculo(){ const nome = document.getElementById('vNome').value; if(!nome) return alert('Digite um nome'); const id = 'v'+Date.now(); veiculos.push({id, tipo: document.getElementById('vTipo').value, nome, modelo: document.getElementById('vModelo').value, ano: document.getElementById('vAno').value, dataAquisicao: document.getElementById('vDataAquisicao').value, tanqueL: parseFloat(document.getElementById('vTanque').value) || 6.5, abast:[], manut:[], documentos:[], config:{ kmBase: parseInt(document.getElementById('vKm').value) || 0, dataBase: new Date().toISOString(), kmValor: parseInt(document.getElementById('vKmDia').value) || 50, diasSemana:[1,2,3,4,5,6,0] }}); veiculoAtivoId = id; salvarTudo(); fecharModalVeiculo(); atualizarPainel(); }
-function atualizarVeiculo(){ const v = getVeiculoAtivo(); v.tipo = document.getElementById('vTipoEdit').value; v.nome = document.getElementById('vNomeEdit').value; v.modelo = document.getElementById('vModeloEdit').value; v.ano = document.getElementById('vAnoEdit').value; v.dataAquisicao = document.getElementById('vDataAquisicaoEdit').value; v.tanqueL = parseFloat(document.getElementById('vTanqueEdit').value) || 6.5; v.config.kmBase = parseInt(document.getElementById('vKmEdit').value) || 0; v.config.kmValor = parseInt(document.getElementById('vKmDiaEdit').value) || 50; salvarTudo(); fecharModalVeiculo(); atualizarPainel(); }
+function salvarVeiculo(){ 
+    const nome = document.getElementById('vNome').value; 
+    if(!nome) return alert('Digite um nome'); 
+    const id = 'v'+Date.now(); 
+    veiculos.push({
+        id, 
+        tipo: document.getElementById('vTipo').value, 
+        nome, 
+        modelo: document.getElementById('vModelo').value, 
+        ano: document.getElementById('vAno').value, 
+        dataAquisicao: document.getElementById('vDataAquisicao').value, 
+        tanqueL: parseFloat(document.getElementById('vTanque').value) || 6.5, 
+        reservaL: parseFloat(document.getElementById('vReserva').value) || 1.8,
+        abast:[], manut:[], documentos:[], 
+        config:{ kmBase: parseInt(document.getElementById('vKm').value) || 0, dataBase: new Date().toISOString(), kmValor: parseInt(document.getElementById('vKmDia').value) || 50, diasSemana:[1,2,3,4,5,6,0] }
+    }); 
+    veiculoAtivoId = id; salvarTudo(); fecharModalVeiculo(); atualizarPainel(); 
+}
+
+function atualizarVeiculo(){ 
+    const v = getVeiculoAtivo(); 
+    v.tipo = document.getElementById('vTipoEdit').value; 
+    v.nome = document.getElementById('vNomeEdit').value; 
+    v.modelo = document.getElementById('vModeloEdit').value; 
+    v.ano = document.getElementById('vAnoEdit').value; 
+    v.dataAquisicao = document.getElementById('vDataAquisicaoEdit').value; 
+    v.tanqueL = parseFloat(document.getElementById('vTanqueEdit').value) || 6.5; 
+    v.reservaL = parseFloat(document.getElementById('vReservaEdit').value) || 1.8;
+    v.config.kmBase = parseInt(document.getElementById('vKmEdit').value) || 0; 
+    v.config.kmValor = parseInt(document.getElementById('vKmDiaEdit').value) || 50; 
+    salvarTudo(); fecharModalVeiculo(); atualizarPainel(); 
+}
+
 function excluirVeiculo(){ if(veiculos.length <= 1) return alert('Precisa ter pelo menos 1 veículo'); veiculos = veiculos.filter(v => v.id!== veiculoAtivoId); veiculoAtivoId = veiculos[0].id; salvarTudo(); fecharModalVeiculo(); atualizarPainel(); }
 
 function exportarBackup() {
@@ -638,14 +698,14 @@ function abrirModalEditarItem(tipo,id){
     document.getElementById('modalEditarItem').style.display='flex'; 
 }
 function fecharModalEditarItem(){ document.getElementById('modalEditarItem').style.display='none'; }
-function salvarEdicaoItem(){ const v = getVeiculoAtivo(); if(itemEditando.tipo==='abast'){ const item = v.abast.find(x=>String(x.id)===String(itemEditando.id)); item.data = document.getElementById('eData').value; item.km = +document.getElementById('eKm').value; item.litros = +document.getElementById('eLitros').value; item.valorL = +document.getElementById('eValor').value; item.total = item.litros * item.valorL; } else { const item = v.manut.find(x=>String(x.id)===String(itemEditando.id)); item.data = document.getElementById('eData').value; item.km = +document.getElementById('eKm').value; item.tipo = document.getElementById('eTipo').value; item.valor = +document.getElementById('eValor').value; item.proxKm = +document.getElementById('eProxKm').value; } salvarTudo(); fecharModalEditarItem(); atualizarPainel(); }
+function salvarEdicaoItem(){ const v = getVeiculoAtivo(); if(itemEditando.tipo==='abast'){ const item = v.abast.find(x=>String(x.id)===String(itemEditando.id)); item.data = document.getElementById('eData').value; item.km = +document.getElementById('eKm'].value; item.litros = +document.getElementById('eLitros').value; item.valorL = +document.getElementById('eValor').value; item.total = item.litros * item.valorL; } else { const item = v.manut.find(x=>String(x.id)===String(itemEditando.id)); item.data = document.getElementById('eData').value; item.km = +document.getElementById('eKm'].value; item.tipo = document.getElementById('eTipo').value; item.valor = +document.getElementById('eValor').value; item.proxKm = +document.getElementById('eProxKm').value; } salvarTudo(); fecharModalEditarItem(); atualizarPainel(); }
 
 document.addEventListener('DOMContentLoaded', () => {
     veiculos = JSON.parse(localStorage.getItem(CHAVE_STORAGE) || '[]');
     veiculoAtivoId = localStorage.getItem(CHAVE_ATIVO) || null;
     if(!veiculos.length || !veiculos.find(v => v.id === veiculoAtivoId)) veiculoAtivoId = veiculos[0]?.id || null;
     if(!veiculos.length){
-        veiculos.push({id:Date.now(),nome:'Meu Veículo',tipo:'moto',modelo:'',ano:'',abast:[],manut:[],documentos:[],config:{kmBase:0,dataBase:new Date().toISOString(),kmValor:50,diasSemana:[1,2,3,4,5,6,0]}});
+        veiculos.push({id:Date.now(),nome:'Honda Lead',tipo:'moto',modelo:'110',ano:'2023',tanqueL:6.5,reservaL:1.8,abast:[],manut:[],documentos:[],config:{kmBase:0,dataBase:new Date().toISOString(),kmValor:50,diasSemana:[1,2,3,4,5,6,0]}});
         veiculoAtivoId=veiculos[0].id; salvarTudo();
     }
     aplicarTema(); atualizarPainel();
