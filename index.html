@@ -351,13 +351,18 @@ function atualizarPainel() {
 
     let media = 0;
     if(v.abast.length >= 1){
-        const ultimoAbast = v.abast[v.abast.length - 1];
+        const abastOrdenadosParaCalculo = [...v.abast].sort((a,b) => a.data.localeCompare(b.data));
+        const ultimoAbast = abastOrdenadosParaCalculo[abastOrdenadosParaCalculo.length - 1];
+        
         document.getElementById('ultimoAbastData').textContent = formatarDataCurta(ultimoAbast.data);
         document.getElementById('ultimoAbastValor').textContent = `R$ ${ultimoAbast.total.toFixed(2)} - ${ultimoAbast.litros}L (${ultimoAbast.combustivel || 'Gasolina'})`;
 
-        if(v.abast.length >= 2){
+        if(abastOrdenadosParaCalculo.length >= 2){
             let totalKm = 0, totalL = 0;
-            for(let i = 1; i < v.abast.length; i++) { totalKm += v.abast[i].km - v.abast[i-1].km; totalL += v.abast[i].litros; }
+            for(let i = 1; i < abastOrdenadosParaCalculo.length; i++) { 
+                totalKm += abastOrdenadosParaCalculo[i].km - abastOrdenadosParaCalculo[i-1].km; 
+                totalL += abastOrdenadosParaCalculo[i].litros; 
+            }
             media = totalL > 0? (totalKm / totalL) : 0;
             document.getElementById('consumoMedia').textContent = `Consumo: ${media.toFixed(2)} km/L`;
         } else {
@@ -367,7 +372,7 @@ function atualizarPainel() {
         const cardProxAbast = document.getElementById('cardProxAbast');
         cardProxAbast.classList.remove('alerta-amarelo', 'alerta-vermelho');
 
-        if(v.abast.length >= 2 && media > 0) {
+        if(abastOrdenadosParaCalculo.length >= 2 && media > 0) {
             const kmRodadosAposAbast = kmAtual - ultimoAbast.km;
             const tanqueTotal = v.tanqueL || 6.5;
             const reserva = v.reservaL || 1.8;
@@ -428,6 +433,8 @@ function atualizarPainel() {
 
 function renderizarGraficos() {
     const v = getVeiculoAtivo(); if(!v) return;
+    
+    // ORDENAÇÃO CORRETA POR DATA (Cronológica: do mais antigo para o mais recente)
     const abastOrdenados = [...v.abast].sort((a,b) => a.data.localeCompare(b.data));
     
     if(abastOrdenados.length === 0) {
