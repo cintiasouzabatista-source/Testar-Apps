@@ -16,8 +16,8 @@ body { font-family: system-ui; background: var(--bg); color: var(--text); paddin
 .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px }
 .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.btn-icon { background: var(--card); border: 1px solid var(--border); padding: 10px 12px; border-radius: 10px; cursor: pointer; color: var(--text); font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-.btn-icon.small { padding: 6px 8px; font-size: 14px; }
+.btn-icon { background: var(--card); border: 1px solid var(--border); padding: 10px 12px; border-radius: 10px; cursor: pointer; color: var(--text); font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; text-decoration: none; }
+.btn-icon.small { padding: 6px 8px; font-size: 13px; width: auto; }
 .btn-danger { background: var(--danger); color: #fff; border: none; }
 input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); margin-top: 4px; font-size: 14px; }
 label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; margin-top: 6px; }
@@ -77,7 +77,7 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
 <div class="container">
     <div class="header">
         <h1>Controle Frota</h1>
-        <button class="btn-icon" onclick="trocarTema()"><i id="iconTema" class="fas fa-palette"></i></button>
+        <button class="btn-icon" style="width: auto;" onclick="trocarTema()"><i id="iconTema" class="fas fa-palette"></i></button>
     </div>
     
     <!-- ABA INÍCIO -->
@@ -220,18 +220,18 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
                 <div style="margin-bottom: 8px;">
                     <label>Nome do Documento</label>
                     <input id="docNomeInput" type="text" placeholder="Ex: NFS Posto Ipiranga">
-                    <label style="margin-top:8px;">Selecionar Arquivo PDF</label>
+                    <label style="margin-top:6px;">Selecionar Arquivo PDF</label>
                     <input id="docFileInput" type="file" accept="application/pdf" style="padding: 4px;">
                     <button class="btn-icon" style="background:var(--primary); color:#fff; width:100%; margin-top:8px;" onclick="adicionarPdf()"><i class="fas fa-upload"></i> Importar PDF</button>
                 </div>
                 <hr style="border-color:var(--border); margin:10px 0;">
-                <h4 style="font-size: 11px; margin-bottom: 8px;">Arquivos Salvos</h4>
+                <h4 style="font-size: 13px; margin-bottom: 6px;">Arquivos Salvos</h4>
                 <div id="listaDocumentos"></div>
             </div>
         </div>
 
         <button class="btn-icon" style="width:100%; margin-bottom:8px;" onclick="exportarBackup()"><i class="fas fa-download"></i> Baixar Backup (JSON)</button>
-        <label class="btn-icon" style="display:block; text-align:center; width:100%; cursor:pointer; margin-bottom:12px;"><i class="fas fa-upload"></i> Restaurar Backup <input type="file" id="fileBackup" style="display:none" onchange="importarBackup(event)"></label>
+        <label class="btn-icon" style="margin-bottom:12px; cursor:pointer;"><i class="fas fa-upload"></i> Restaurar Backup <input type="file" id="fileBackup" style="display:none" onchange="importarBackup(event)"></label>
         <hr style="border-color:var(--border); margin:12px 0;">
         <button class="btn-icon btn-danger" style="width:100%;" onclick="resetarApp()"><i class="fas fa-trash-alt"></i> Resetar / Limpar Tudo</button>
         <div class="modal-actions" style="margin-top:14px;"><button onclick="fecharModalConfig()" class="btn-icon" style="width:100%;">Fechar</button></div>
@@ -453,7 +453,6 @@ function renderizarDocumentos() {
     const v = getVeiculoAtivo(); if(!v) return;
     if(!v.documentos) v.documentos = [];
 
-    // Ordenação estritamente em ordem alfabética pelo nome
     v.documentos.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'accent' }));
 
     const container = document.getElementById('listaDocumentos');
