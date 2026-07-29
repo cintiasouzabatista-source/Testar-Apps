@@ -46,7 +46,7 @@
 .tab-item.ativo { color: var(--header-bg); font-weight: 700; }
 .item-transacao { padding: 10px 5px; border-bottom: 1px solid var(--borda); cursor: pointer; transition: background 0.1s; }
 .item-transacao:hover { background: var(--bg-body); }
-.linha-1 { display: flex; justify-content: space-between; }
+.linha-1 { display: flex; justify-content: space-between; align-items: center; }
 .linha-2 { font-size: 0.75rem; color: var(--texto-secundario); }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
@@ -108,7 +108,7 @@
 <div class="app-view" id="view-historico">
     <select id="filtro-tipo" class="filtro-select" onchange="atualizarAplicativo()">
         <option value="todos">Todos os Tipos</option><option value="entrada">Entradas</option>
-        <option value="saida">Saídas</option><option value="cartao">Cartão</option><option value="reserva">Reserva</option><option value="arquivo">📁 Anexos</option>
+        <option value="saida">Saídas</option><option value="cartao">Cartão</option><option value="reserva">Reserva</option><option value="arquivo">📄 Anexos PDF</option>
     </select>
     <div class="secao-conteudo" id="lista-transacoes-container"></div>
 </div>
@@ -185,7 +185,7 @@
     </div>
 </div>
 
-<!-- MODAL EDITAR / VISUALIZAR ANEXO (ATUALIZADO PARA EXIBIR PDF) -->
+<!-- MODAL EDITAR / VISUALIZAR ANEXO -->
 <div class="modal-overlay" id="modal-editar">
     <div class="modal-container">
         <h3 id="titulo-modal-acao">Editar Transação</h3>
@@ -215,10 +215,10 @@
             </div>
         </div>
 
-        <!-- Visualizador real de PDF integrado -->
+        <!-- Visualizador de PDF com Nome Editável -->
         <div id="campos-arquivo-anexo" style="display: none;">
             <div class="form-grupo" style="margin-top: 12px;">
-                <label>Nome do Arquivo</label>
+                <label>Nome do Arquivo (Editável)</label>
                 <input type="text" id="edit-nome-arquivo">
             </div>
             <div class="form-grupo">
@@ -370,19 +370,18 @@ function cancelarTransacaoPendente() {
     salvarTudo();
 }
 
-// Leitor atualizado para converter o PDF em dados exibíveis na tela
 function processarArquivoUnico(e) {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = function(event) {
-        const fileDataUrl = event.target.result; // URL em Base64 do PDF ou arquivo
+        const fileDataUrl = event.target.result;
         
         transacoes.unshift({
             id: Date.now() + Math.random(),
             tipo: 'arquivo',
-            descricao: `📁 ${file.name}`,
+            descricao: file.name,
             valor: 0,
             conteudoArquivo: fileDataUrl,
             mes: mesAtualGlobal,
@@ -391,10 +390,10 @@ function processarArquivoUnico(e) {
         });
 
         salvarTudo();
-        alert('PDF/Arquivo anexado e pronto para visualização!');
+        alert('PDF anexado com sucesso!');
         e.target.value = '';
     };
-    reader.readAsDataURL(file); // Lê como Data URL para permitir renderização no iframe
+    reader.readAsDataURL(file);
 }
 
 function salvarTudo() { localStorage.setItem('saldo_transacoes', JSON.stringify(transacoes)); atualizarAplicativo(); }
@@ -440,8 +439,8 @@ function renderizarHistorico(listaTransacoes) {
     filtradas.forEach(t => {
         if (t.tipo === 'arquivo') {
             l.innerHTML += `<div class="item-transacao" onclick="abrirModalEditar(${t.id})">
-                <div class="linha-1"><span style="font-weight:600;" class="cor-arquivo">${t.descricao}</span><span style="font-size:0.8rem; color:var(--texto-secundario);">Visualizar PDF 👁️</span></div>
-                <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} - Documento Anexado</div>
+                <div class="linha-1"><span style="font-weight:600;" class="cor-arquivo">📄 ${t.descricao}</span><span style="font-size:1.1rem; cursor:pointer;" title="Visualizar PDF">👁️</span></div>
+                <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} - Documento PDF</div>
             </div>`;
         } else {
             let cls = t.tipo === 'entrada' ? 'cor-entrada' : t.tipo === 'cartao' ? 'cor-cartao' : t.tipo === 'reserva' ? 'cor-reserva' : 'cor-saida';
@@ -464,7 +463,6 @@ function abrirModalEditar(id) {
         document.getElementById('campos-transacao-normal').style.display = 'none';
         document.getElementById('campos-arquivo-anexo').style.display = 'block';
         document.getElementById('edit-nome-arquivo').value = t.descricao;
-        // Injeta o PDF direto no elemento iframe para renderizar visualmente
         document.getElementById('pdf-visualizador-iframe').src = t.conteudoArquivo || '';
     } else {
         document.getElementById('titulo-modal-acao').innerText = "Editar Transação";
@@ -485,7 +483,7 @@ function salvarEdicaoModal() {
     const t = transacoes.find(i => i.id == id);
     if(t) {
         if (t.tipo === 'arquivo') {
-            t.descricao = document.getElementById('edit-nome-arquivo').value || "📁 Arquivo";
+            t.descricao = document.getElementById('edit-nome-arquivo').value || "Documento.pdf";
         } else {
             t.descricao = document.getElementById('edit-desc').value || "Lançamento";
             t.valor = parseFloat(document.getElementById('edit-valor').value) || 0;
