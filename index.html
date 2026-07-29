@@ -60,6 +60,11 @@
 .btn-excluir { background: var(--saida); color: #fff; }
 .btn-cancelar { background: var(--borda); color: var(--texto-principal); }
 
+/* Estilo para os botões em pílula do modal de origem */
+.grid-origens-modal { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; justify-content: center; }
+.btn-origem-pill { background: var(--bg-body); border: 1px solid var(--borda); border-radius: 20px; padding: 8px 16px; font-size: 0.85rem; color: var(--texto-principal); cursor: pointer; transition: all 0.2s; }
+.btn-origem-pill:hover { background: var(--header-bg); color: var(--header-txt); border-color: transparent; }
+
 .grid-meses-modal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-height: 300px; overflow-y: auto; margin-top: 10px; }
 .btn-mes-grid { padding: 10px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-body); color: var(--texto-principal); font-size: 0.85rem; cursor: pointer; text-align: center; }
 .btn-mes-grid.ativo { background: var(--header-bg); color: var(--header-txt); border-color: transparent; font-weight: bold; }
@@ -154,15 +159,25 @@
     </div>
 </div>
 
-<!-- MODAL PERGUNTAR CONTA/ORIGEM (INTERATIVO) -->
+<!-- MODAL PERGUNTAR CONTA/ORIGEM COM BOTÕES EM PÍLULA -->
 <div class="modal-overlay" id="modal-origem">
     <div class="modal-container">
-        <h3>Qual a Conta ou Cartão?</h3>
+        <h3>Em qual cartão foi essa compra?</h3>
         <p id="info-transacao-temp" style="font-size: 0.85rem; color: var(--texto-secundario); margin: 8px 0 16px 0;"></p>
         
         <div class="form-grupo">
             <label>Selecione ou digite o banco / origem:</label>
-            <input type="text" id="input-origem-prompt" placeholder="Ex: Nubank, Itaú, Pix, Carteira...">
+            <div class="grid-origens-modal">
+                <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Nubank')">Nubank</button>
+                <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Itaú')">Itaú</button>
+                <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Inter')">Inter</button>
+                <button class="btn-origem-pill" onclick="selecionarOrigemRapida('MP')">MP</button>
+                <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Bradesco')">Bradesco</button>
+                <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Pic Pay')">Pic Pay</button>
+                <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Dinheiro')">Dinheiro</button>
+            </div>
+            <!-- Campo opcional para digitação caso queira outro nome -->
+            <input type="text" id="input-origem-prompt" placeholder="Outro (ex: Pix, Carteira...)" style="margin-top: 12px;">
         </div>
 
         <div class="modal-botoes">
@@ -229,7 +244,6 @@ let temasDisponiveis = ['padrao', 'escuro', 'white', 'vintage']; let temaAtualIn
 const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 const nomesMesesCompletos = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
-// Variável temporária para guardar a transação aguardando a pergunta da conta
 let transacaoPendente = null;
 
 function navegarPara(idAba) {
@@ -310,7 +324,6 @@ function adicionarTransacaoPorTexto(txt) {
     let desc = ultimoToken ? txt.replace(ultimoToken[0], '').trim() : "Lançamento";
     if (!desc) desc = "Lançamento";
 
-    // Guarda temporariamente e abre a pergunta interativa da conta/cartão
     transacaoPendente = { 
         id: Date.now() + Math.random(), 
         descricao: desc, 
@@ -324,7 +337,12 @@ function adicionarTransacaoPorTexto(txt) {
     document.getElementById('info-transacao-temp').innerText = `Registro: ${desc} (R$ ${valor.toFixed(2)})`;
     document.getElementById('input-origem-prompt').value = '';
     document.getElementById('modal-origem').style.display = 'flex';
-    document.getElementById('input-origem-prompt').focus();
+}
+
+// Função para clique rápido nos botões de pílula
+function selecionarOrigemRapida(nomeOrigem) {
+    document.getElementById('input-origem-prompt').value = nomeOrigem;
+    confirmarOrigemTransacao();
 }
 
 function confirmarOrigemTransacao() {
@@ -344,7 +362,6 @@ function confirmarOrigemTransacao() {
 }
 
 function cancelarTransacaoPendente() {
-    // Se cancelar a pergunta da conta, salva sem conta mesmo
     if (transacaoPendente) {
         transacoes.unshift(transacaoPendente);
         transacaoPendente = null;
