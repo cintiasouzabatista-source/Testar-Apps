@@ -100,7 +100,7 @@
     
     <div class="chat-input-area">
         <button class="btn-anexar" onclick="document.getElementById('input-arquivo-chat').click()" title="Anexar arquivo/extrato">📎</button>
-        <input type="file" id="input-arquivo-chat" accept=".txt,.csv" style="display: none;" onchange="processarArquivoUnico(event)">
+       <input type="file" id="input-arquivo-chat" accept=".txt,.csv,.pdf" style="display: none;" onchange="processarArquivoUnico(event)">
         <input type="text" id="campo-texto" class="chat-input" placeholder="Ex: mercado 150 ou salario 3500">
         <button class="btn-enviar" onclick="processarComando()">➔</button>
     </div>
@@ -374,26 +374,47 @@ function processarArquivoUnico(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function(event) {
-        const conteudo = event.target.result;
-        
+    const isPdf = file.type === 'pdf' || file.name.toLowerCase().endsWith('.pdf');
+
+    if (isPdf) {
+        // Tratamento específico para PDF (salva a referência e metadados)
         transacoes.unshift({
             id: Date.now() + Math.random(),
             tipo: 'arquivo',
             descricao: `📁 ${file.name}`,
             valor: 0,
-            conteudoArquivo: conteudo,
+            conteudoArquivo: `[Documento PDF Anexado: ${file.name} - ${(file.size / 1024).toFixed(1)} KB]`,
             mes: mesAtualGlobal,
             ano: anoAtualGlobal,
             dia: new Date().getDate()
         });
 
         salvarTudo();
-        alert('Arquivo anexado com sucesso ao histórico!');
+        alert('PDF anexado com sucesso ao histórico!');
         e.target.value = '';
-    };
-    reader.readAsText(file);
+    } else {
+        // Leitura padrão para TXT ou CSV
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const conteudo = event.target.result;
+            
+            transacoes.unshift({
+                id: Date.now() + Math.random(),
+                tipo: 'arquivo',
+                descricao: `📁 ${file.name}`,
+                valor: 0,
+                conteudoArquivo: conteudo,
+                mes: mesAtualGlobal,
+                ano: anoAtualGlobal,
+                dia: new Date().getDate()
+            });
+
+            salvarTudo();
+            alert('Arquivo anexado com sucesso ao histórico!');
+            e.target.value = '';
+        };
+        reader.readAsText(file);
+    }
 }
 
 function salvarTudo() { localStorage.setItem('saldo_transacoes', JSON.stringify(transacoes)); atualizarAplicativo(); }
