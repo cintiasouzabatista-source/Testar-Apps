@@ -96,7 +96,7 @@
     <div class="chat-input-area">
         <button class="btn-anexar" onclick="document.getElementById('input-arquivo-chat').click()" title="Anexar arquivo/extrato">📎</button>
         <input type="file" id="input-arquivo-chat" accept=".txt,.csv" style="display: none;" onchange="processarArquivoUnico(event)">
-        <input type="text" id="campo-texto" class="chat-input" placeholder="Ex: salário 3500 ou gasolina 50">
+        <input type="text" id="campo-texto" class="chat-input" placeholder="Ex: salário 3500 ou gasolina 50 nubank">
         <button class="btn-enviar" onclick="processarComando()">➔</button>
     </div>
 </div>
@@ -191,7 +191,7 @@
             </div>
             <div class="form-grupo">
                 <label>Conteúdo do Anexo</label>
-                <textarea id="edit-conteudo-arquivo" rows="8" readonly style="font-family: monospace; font-size: 0.8rem; resize: vertical;"></textarea>
+                <textarea id="edit-conteudo-arquivo" rows="10" readonly style="font-family: monospace; font-size: 0.8rem; resize: vertical; width: 100%; padding: 8px;"></textarea>
             </div>
         </div>
 
@@ -284,11 +284,14 @@ function adicionarTransacaoPorTexto(txt) {
     else if (/\b(cartao|cartão|credito)\b/.test(txtLower)) tipo = 'cartao';
     else if (/\b(recebi|ganhei|salario|salário|pix|deposito|depósito|renda)\b/.test(txtLower)) tipo = 'entrada';
 
+    // Identificação de Conta e Cartão
     let conta = "", cartao = "";
-    if(txtLower.includes('nubank')) { if(tipo==='cartao') cartao = "Nubank"; else conta = "Nubank"; }
-    if(txtLower.includes('itau')) { if(tipo==='cartao') cartao = "Itaú"; else conta = "Itaú"; }
-    if(txtLower.includes('inter')) { if(tipo==='cartao') cartao = "Inter"; else conta = "Inter"; }
-    if(txtLower.includes('mp') || txtLower.includes('mercado pago')) { if(tipo==='cartao') cartao = "Mercado Pago"; else conta = "Mercado Pago"; }
+    if (txtLower.includes('nubank')) { if (tipo === 'cartao') cartao = "Nubank"; else conta = "Nubank"; }
+    else if (txtLower.includes('itau') || txtLower.includes('itaú')) { if (tipo === 'cartao') cartao = "Itaú"; else conta = "Itaú"; }
+    else if (txtLower.includes('inter')) { if (tipo === 'cartao') cartao = "Inter"; else conta = "Inter"; }
+    else if (txtLower.includes('mp') || txtLower.includes('mercado pago')) { if (tipo === 'cartao') cartao = "Mercado Pago"; else conta = "Mercado Pago"; }
+    else if (txtLower.includes('bradesco')) { if (tipo === 'cartao') cartao = "Bradesco"; else conta = "Bradesco"; }
+    else if (txtLower.includes('santander')) { if (tipo === 'cartao') cartao = "Santander"; else conta = "Santander"; }
 
     const ultimoToken = txt.match(/[\d.,]+$/);
     let desc = ultimoToken ? txt.replace(ultimoToken[0], '').trim() : "Lançamento";
@@ -309,7 +312,6 @@ function adicionarTransacaoPorTexto(txt) {
     salvarTudo();
 }
 
-// ANEXA O ARQUIVO INTEIRO COMO UM ÚNICO BLOCO LEVE NO HISTÓRICO
 function processarArquivoUnico(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -387,7 +389,7 @@ function renderizarHistorico(listaTransacoes) {
             let origem = t.cartao || t.conta || '';
             l.innerHTML += `<div class="item-transacao" onclick="abrirModalEditar(${t.id})">
                 <div class="linha-1"><span>${t.descricao}</span><span class="${cls}">${t.tipo === 'entrada' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</span></div>
-                <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} - ${origem}</div>
+                <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} ${origem ? '- ' + origem : ''}</div>
             </div>`;
         }
     });
