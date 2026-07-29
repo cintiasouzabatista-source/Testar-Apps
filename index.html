@@ -28,7 +28,7 @@
 .card.saldo-total { grid-column: span 2; }
 .card.saldo-total p { font-size: 2.2rem; font-weight: 700; }
 .info-subtil-container { margin-top: 12px; border-top: 1px solid var(--borda); padding-top: 16px; }
-.cor-entrada { color: var(--entrada); }.cor-saida { color: var(--saida); }.cor-cartao { color: var(--cartao); }.cor-reserva { color: var(--reserva-cor); }
+.cor-entrada { color: var(--entrada); }.cor-saida { color: var(--saida); }.cor-cartao { color: var(--cartao); }.cor-reserva { color: var(--reserva-cor); }.cor-arquivo { color: var(--header-bg); }
 .filtro-select { width: 100%; padding: 12px; border-radius: var(--radius); border: 1px solid var(--borda); margin-bottom: 10px; background: var(--bg-container); color: var(--texto-principal); }
 .secao-conteudo { background: var(--bg-container); padding: 20px; border-radius: var(--radius); border: 1px solid var(--borda); margin-bottom: 20px; }
 .colunas-container { display: flex; justify-content: space-around; height: 120px; align-items: flex-end; border-bottom: 1px solid var(--borda); text-align: center; }
@@ -51,11 +51,9 @@
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
 .modal-container { background: var(--bg-container); color: var(--texto-principal); padding: 20px; border-radius: var(--radius); width: 90%; max-width: 400px; }
-.btn-resposta { padding: 10px 14px; margin: 6px; border-radius: 20px; border: 1px solid var(--borda); background: var(--bg-body); color: var(--texto-principal); cursor: pointer; font-weight: 600; }
-
 .form-grupo { margin-bottom: 12px; }
 .form-grupo label { display: block; font-size: 0.85rem; color: var(--texto-secundario); margin-bottom: 4px; }
-.form-grupo input, .form-grupo select { width: 100%; padding: 10px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-container); color: var(--texto-principal); }
+.form-grupo input, .form-grupo select, .form-grupo textarea { width: 100%; padding: 10px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-container); color: var(--texto-principal); }
 .modal-botoes { display: flex; gap: 8px; margin-top: 16px; }
 .btn-acao-modal { flex: 1; padding: 10px; border-radius: var(--radius); border: none; font-weight: 600; cursor: pointer; }
 .btn-salvar { background: var(--header-bg); color: var(--header-txt); }
@@ -96,8 +94,8 @@
     </div>
     
     <div class="chat-input-area">
-        <button class="btn-anexar" onclick="document.getElementById('input-arquivo-chat').click()" title="Anexar arquivo de texto/extrato">📎</button>
-        <input type="file" id="input-arquivo-chat" accept=".txt,.csv" style="display: none;" onchange="processarArquivo(event)">
+        <button class="btn-anexar" onclick="document.getElementById('input-arquivo-chat').click()" title="Anexar arquivo/extrato">📎</button>
+        <input type="file" id="input-arquivo-chat" accept=".txt,.csv" style="display: none;" onchange="processarArquivoUnico(event)">
         <input type="text" id="campo-texto" class="chat-input" placeholder="Ex: salário 3500 ou gasolina 50">
         <button class="btn-enviar" onclick="processarComando()">➔</button>
     </div>
@@ -106,7 +104,7 @@
 <div class="app-view" id="view-historico">
     <select id="filtro-tipo" class="filtro-select" onchange="atualizarAplicativo()">
         <option value="todos">Todos os Tipos</option><option value="entrada">Entradas</option>
-        <option value="saida">Saídas</option><option value="cartao">Cartão</option><option value="reserva">Reserva</option>
+        <option value="saida">Saídas</option><option value="cartao">Cartão</option><option value="reserva">Reserva</option><option value="arquivo">📁 Anexos</option>
     </select>
     <div class="secao-conteudo" id="lista-transacoes-container"></div>
 </div>
@@ -146,13 +144,6 @@
 </div>
 </div>
 
-<div class="modal-overlay" id="modal-pergunta">
-    <div class="modal-container">
-        <h3 id="texto-pergunta"></h3>
-        <div id="botoes-pergunta"></div>
-    </div>
-</div>
-
 <div class="modal-overlay" id="modal-seletor-mes">
     <div class="modal-container">
         <h3>Selecione o Mês / Ano</h3>
@@ -163,31 +154,47 @@
     </div>
 </div>
 
+<!-- MODAL EDITAR / VER ANEXO -->
 <div class="modal-overlay" id="modal-editar">
     <div class="modal-container">
-        <h3>Editar Transação</h3>
+        <h3 id="titulo-modal-acao">Editar Transação</h3>
         <input type="hidden" id="edit-id">
-        <div class="form-grupo" style="margin-top: 12px;">
-            <label>Descrição</label>
-            <input type="text" id="edit-desc">
+        
+        <div id="campos-transacao-normal">
+            <div class="form-grupo" style="margin-top: 12px;">
+                <label>Descrição</label>
+                <input type="text" id="edit-desc">
+            </div>
+            <div class="form-grupo">
+                <label>Valor (R$)</label>
+                <input type="number" step="0.01" id="edit-valor">
+            </div>
+            <div class="form-grupo">
+                <label>Tipo</label>
+                <select id="edit-tipo">
+                    <option value="entrada">Entrada</option>
+                    <option value="saida">Saída</option>
+                    <option value="cartao">Cartão</option>
+                    <option value="reserva">Reserva</option>
+                </select>
+            </div>
+            <div class="form-grupo">
+                <label>Conta / Cartão / Origem</label>
+                <input type="text" id="edit-origem" placeholder="Ex: Nubank, Itaú, Mercado Pago...">
+            </div>
         </div>
-        <div class="form-grupo">
-            <label>Valor (R$)</label>
-            <input type="number" step="0.01" id="edit-valor">
+
+        <div id="campos-arquivo-anexo" style="display: none;">
+            <div class="form-grupo" style="margin-top: 12px;">
+                <label>Nome do Arquivo</label>
+                <input type="text" id="edit-nome-arquivo">
+            </div>
+            <div class="form-grupo">
+                <label>Conteúdo do Anexo</label>
+                <textarea id="edit-conteudo-arquivo" rows="8" readonly style="font-family: monospace; font-size: 0.8rem; resize: vertical;"></textarea>
+            </div>
         </div>
-        <div class="form-grupo">
-            <label>Tipo</label>
-            <select id="edit-tipo">
-                <option value="entrada">Entrada</option>
-                <option value="saida">Saída</option>
-                <option value="cartao">Cartão</option>
-                <option value="reserva">Reserva</option>
-            </select>
-        </div>
-        <div class="form-grupo">
-            <label>Conta / Cartão / Origem</label>
-            <input type="text" id="edit-origem" placeholder="Ex: Nubank, Itaú, Mercado Pago, Bradesco, PicPay, Dinheiro...">
-        </div>
+
         <div class="modal-botoes">
             <button class="btn-acao-modal btn-excluir" onclick="excluirTransacaoModal()">Excluir</button>
             <button class="btn-acao-modal btn-cancelar" onclick="fecharModalEditar()">Cancelar</button>
@@ -197,7 +204,7 @@
 </div>
 
 <script>
-let transacoes = [], saldosOcultos = false, idPendente = null, tipoPendente = null;
+let transacoes = [], saldosOcultos = false;
 let anoAtualGlobal = new Date().getFullYear();
 let mesAtualGlobal = new Date().getMonth();
 let temasDisponiveis = ['padrao', 'escuro', 'white', 'vintage']; let temaAtualIndex = 0;
@@ -218,13 +225,8 @@ function atualizarLabelTopo() {
 
 function mudarMes(direcao) {
     mesAtualGlobal += direcao;
-    if (mesAtualGlobal > 11) {
-        mesAtualGlobal = 0;
-        anoAtualGlobal++;
-    } else if (mesAtualGlobal < 0) {
-        mesAtualGlobal = 11;
-        anoAtualGlobal--;
-    }
+    if (mesAtualGlobal > 11) { mesAtualGlobal = 0; anoAtualGlobal++; }
+    else if (mesAtualGlobal < 0) { mesAtualGlobal = 11; anoAtualGlobal--; }
     atualizarAplicativo();
 }
 
@@ -246,16 +248,8 @@ function abrirModalSeletorMes() {
     document.getElementById('modal-seletor-mes').style.display = 'flex';
 }
 
-function fecharModalSeletorMes() {
-    document.getElementById('modal-seletor-mes').style.display = 'none';
-}
-
-function selecionarMesAno(m, ano) {
-    mesAtualGlobal = m;
-    anoAtualGlobal = ano;
-    fecharModalSeletorMes();
-    atualizarAplicativo();
-}
+function fecharModalSeletorMes() { document.getElementById('modal-seletor-mes').style.display = 'none'; }
+function selecionarMesAno(m, ano) { mesAtualGlobal = m; anoAtualGlobal = ano; fecharModalSeletorMes(); atualizarAplicativo(); }
 
 document.getElementById('campo-texto').addEventListener('keypress', function(e) { if (e.key === 'Enter') processarComando(); });
 
@@ -268,37 +262,27 @@ function processarComando() {
 }
 
 function extrairValorCorreto(txt) {
-    // Procura por números no formato monetário (ex: 50,00 ou 1.250,50 ou 35.50)
     const matches = txt.match(/\b\d{1,3}(?:\.\d{3})*(?:,\d{2})?\b|\b\d+(?:[.,]\d{1,2})?\b/g);
     if (!matches || matches.length === 0) return null;
-    
-    // Pega o último número válido da linha geralmente associado ao valor financeiro
     let valStr = matches[matches.length - 1];
-    
-    // Se tiver ponto e vírgula, trata padrão brasileiro
     if (valStr.includes('.') && valStr.includes(',')) {
         valStr = valStr.replace(/\./g, '').replace(',', '.');
     } else if (valStr.includes(',')) {
         valStr = valStr.replace(',', '.');
     }
-    
     const val = parseFloat(valStr);
     return isNaN(val) ? null : val;
 }
 
-function adicionarTransacaoPorTexto(txt, descPersonalizada = null) {
+function adicionarTransacaoPorTexto(txt) {
     const valor = extrairValorCorreto(txt);
     if (valor === null || valor === 0) return;
     
     const txtLower = txt.toLowerCase();
     let tipo = 'saida';
-    if (/\b(reserva|guardar)\b/.test(txtLower)) {
-        tipo = 'reserva';
-    } else if (/\b(cartao|cartão|credito)\b/.test(txtLower)) {
-        tipo = 'cartao';
-    } else if (/\b(recebi|ganhei|salario|salário|pix|deposito|depósito|renda)\b/.test(txtLower)) {
-        tipo = 'entrada';
-    }
+    if (/\b(reserva|guardar)\b/.test(txtLower)) tipo = 'reserva';
+    else if (/\b(cartao|cartão|credito)\b/.test(txtLower)) tipo = 'cartao';
+    else if (/\b(recebi|ganhei|salario|salário|pix|deposito|depósito|renda)\b/.test(txtLower)) tipo = 'entrada';
 
     let conta = "", cartao = "";
     if(txtLower.includes('nubank')) { if(tipo==='cartao') cartao = "Nubank"; else conta = "Nubank"; }
@@ -306,18 +290,12 @@ function adicionarTransacaoPorTexto(txt, descPersonalizada = null) {
     if(txtLower.includes('inter')) { if(tipo==='cartao') cartao = "Inter"; else conta = "Inter"; }
     if(txtLower.includes('mp') || txtLower.includes('mercado pago')) { if(tipo==='cartao') cartao = "Mercado Pago"; else conta = "Mercado Pago"; }
 
-    let desc = descPersonalizada;
-    if (!desc) {
-        // Remove o valor do texto para usar o restante como descrição limpa
-        const ultimoToken = txt.match(/[\d.,]+$/);
-        desc = ultimoToken ? txt.replace(ultimoToken[0], '').trim() : "Lançamento";
-        if (!desc) desc = "Lançamento";
-    }
+    const ultimoToken = txt.match(/[\d.,]+$/);
+    let desc = ultimoToken ? txt.replace(ultimoToken[0], '').trim() : "Lançamento";
+    if (!desc) desc = "Lançamento";
 
-    const novoId = Date.now() + Math.random();
-    
     transacoes.unshift({ 
-        id: novoId, 
+        id: Date.now() + Math.random(), 
         descricao: desc, 
         valor: valor, 
         tipo, 
@@ -331,30 +309,29 @@ function adicionarTransacaoPorTexto(txt, descPersonalizada = null) {
     salvarTudo();
 }
 
-// FUNÇÃO ATUALIZADA PARA ANEXOS: Usa o nome do arquivo no histórico
-function processarArquivo(e) {
+// ANEXA O ARQUIVO INTEIRO COMO UM ÚNICO BLOCO LEVE NO HISTÓRICO
+function processarArquivoUnico(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    const nomeArquivo = file.name;
     const reader = new FileReader();
-    
     reader.onload = function(event) {
         const conteudo = event.target.result;
-        const linhas = conteudo.split(/\r?\n/);
-        let contador = 0;
-
-        linhas.forEach(linha => {
-            const linhaLimpa = linha.trim();
-            if(linhaLimpa.length > 0) {
-                // Passa o nome do arquivo formatado como descrição da despesa
-                adicionarTransacaoPorTexto(linhaLimpa, `📄 ${nomeArquivo}`);
-                contador++;
-            }
+        
+        transacoes.unshift({
+            id: Date.now() + Math.random(),
+            tipo: 'arquivo',
+            descricao: `📁 ${file.name}`,
+            valor: 0,
+            conteudoArquivo: conteudo,
+            mes: mesAtualGlobal,
+            ano: anoAtualGlobal,
+            dia: new Date().getDate()
         });
 
-        alert(`Arquivo processado com sucesso! ${contador} registros importados.`);
-        e.target.value = ''; 
+        salvarTudo();
+        alert('Arquivo anexado com sucesso ao histórico!');
+        e.target.value = '';
     };
     reader.readAsText(file);
 }
@@ -395,17 +372,24 @@ function renderizarHistorico(listaTransacoes) {
     const filtradas = listaTransacoes.filter(t => tipoFiltro === 'todos' || t.tipo === tipoFiltro);
 
     if (filtradas.length === 0) {
-        l.innerHTML = `<div style="text-align:center; color: var(--texto-secundario); padding: 20px;">Nenhuma transação neste período.</div>`;
+        l.innerHTML = `<div style="text-align:center; color: var(--texto-secundario); padding: 20px;">Nenhum registro neste período.</div>`;
         return;
     }
 
     filtradas.forEach(t => {
-        let cls = t.tipo === 'entrada' ? 'cor-entrada' : t.tipo === 'cartao' ? 'cor-cartao' : t.tipo === 'reserva' ? 'cor-reserva' : 'cor-saida';
-        let origem = t.cartao || t.conta || '';
-        l.innerHTML += `<div class="item-transacao" onclick="abrirModalEditar(${t.id})">
-            <div class="linha-1"><span>${t.descricao}</span><span class="${cls}">${t.tipo === 'entrada' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</span></div>
-            <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} - ${origem}</div>
-        </div>`;
+        if (t.tipo === 'arquivo') {
+            l.innerHTML += `<div class="item-transacao" onclick="abrirModalEditar(${t.id})">
+                <div class="linha-1"><span style="font-weight:600;" class="cor-arquivo">${t.descricao}</span><span style="font-size:0.8rem; color:var(--texto-secundario);">Ver Anexo 📎</span></div>
+                <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} - Arquivo importado</div>
+            </div>`;
+        } else {
+            let cls = t.tipo === 'entrada' ? 'cor-entrada' : t.tipo === 'cartao' ? 'cor-cartao' : t.tipo === 'reserva' ? 'cor-reserva' : 'cor-saida';
+            let origem = t.cartao || t.conta || '';
+            l.innerHTML += `<div class="item-transacao" onclick="abrirModalEditar(${t.id})">
+                <div class="linha-1"><span>${t.descricao}</span><span class="${cls}">${t.tipo === 'entrada' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</span></div>
+                <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} - ${origem}</div>
+            </div>`;
+        }
     });
 }
 
@@ -413,31 +397,40 @@ function abrirModalEditar(id) {
     const t = transacoes.find(i => i.id == id);
     if(!t) return;
     document.getElementById('edit-id').value = t.id;
-    document.getElementById('edit-desc').value = t.descricao;
-    document.getElementById('edit-valor').value = t.valor;
-    document.getElementById('edit-tipo').value = t.tipo;
-    document.getElementById('edit-origem').value = t.cartao || t.conta || '';
+
+    if (t.tipo === 'arquivo') {
+        document.getElementById('titulo-modal-acao').innerText = "Visualizar Anexo";
+        document.getElementById('campos-transacao-normal').style.display = 'none';
+        document.getElementById('campos-arquivo-anexo').style.display = 'block';
+        document.getElementById('edit-nome-arquivo').value = t.descricao;
+        document.getElementById('edit-conteudo-arquivo').value = t.conteudoArquivo || "Conteúdo indisponível.";
+    } else {
+        document.getElementById('titulo-modal-acao').innerText = "Editar Transação";
+        document.getElementById('campos-transacao-normal').style.display = 'block';
+        document.getElementById('campos-arquivo-anexo').style.display = 'none';
+        document.getElementById('edit-desc').value = t.descricao;
+        document.getElementById('edit-valor').value = t.valor;
+        document.getElementById('edit-tipo').value = t.tipo;
+        document.getElementById('edit-origem').value = t.cartao || t.conta || '';
+    }
     document.getElementById('modal-editar').style.display = 'flex';
 }
 
-function fecharModalEditar() {
-    document.getElementById('modal-editar').style.display = 'none';
-}
+function fecharModalEditar() { document.getElementById('modal-editar').style.display = 'none'; }
 
 function salvarEdicaoModal() {
     const id = document.getElementById('edit-id').value;
     const t = transacoes.find(i => i.id == id);
     if(t) {
-        t.descricao = document.getElementById('edit-desc').value || "Lançamento";
-        t.valor = parseFloat(document.getElementById('edit-valor').value) || 0;
-        t.tipo = document.getElementById('edit-tipo').value;
-        const origemVal = document.getElementById('edit-origem').value;
-        if(t.tipo === 'cartao') {
-            t.cartao = origemVal;
-            t.conta = "";
+        if (t.tipo === 'arquivo') {
+            t.descricao = document.getElementById('edit-nome-arquivo').value || "📁 Arquivo";
         } else {
-            t.conta = origemVal;
-            t.cartao = "";
+            t.descricao = document.getElementById('edit-desc').value || "Lançamento";
+            t.valor = parseFloat(document.getElementById('edit-valor').value) || 0;
+            t.tipo = document.getElementById('edit-tipo').value;
+            const origemVal = document.getElementById('edit-origem').value;
+            if(t.tipo === 'cartao') { t.cartao = origemVal; t.conta = ""; }
+            else { t.conta = origemVal; t.cartao = ""; }
         }
     }
     fecharModalEditar();
@@ -445,7 +438,7 @@ function salvarEdicaoModal() {
 }
 
 function excluirTransacaoModal() {
-    if(confirm("Deseja realmente excluir esta transação?")) {
+    if(confirm("Deseja realmente excluir este item?")) {
         const id = document.getElementById('edit-id').value;
         transacoes = transacoes.filter(i => i.id != id);
         fecharModalEditar();
@@ -467,37 +460,11 @@ function renderizarGraficos(receitas, totalGastos, saídas, cartões, valorReser
     document.getElementById('grafico-pizza-elemento').style.background = `conic-gradient(var(--saida) 0% ${percGasto}%, var(--entrada) ${percGasto}% 100%)`;
 }
 
-function alternarVisibilidade() { 
-    saldosOcultos = !saldosOcultos; 
-}
-
-function alternarTema() { 
-    temaAtualIndex = (temaAtualIndex + 1) % temasDisponiveis.length; 
-    document.body.className = temaAtualIndex === 0 ? '' : `theme-${temasDisponiveis[temaAtualIndex]}`; 
-}
-
-function resetarAplicativoTotal() { 
-    if (confirm("Limpar tudo?")) { 
-        transacoes = []; 
-        salvarTudo(); 
-    } 
-}
-
-function exportarBackup() { 
-    const dl = document.createElement('a'); 
-    dl.href = "data:text/json," + encodeURIComponent(JSON.stringify(transacoes)); 
-    dl.download = `backup.json`; 
-    dl.click(); 
-}
-
-function importarBackup(e) { 
-    const r = new FileReader(); 
-    r.onload = ev => { 
-        transacoes = JSON.parse(ev.target.result); 
-        salvarTudo(); 
-    }; 
-    r.readAsText(e.target.files[0]); 
-}
+function alternarVisibilidade() { saldosOcultos = !saldosOcultos; }
+function alternarTema() { temaAtualIndex = (temaAtualIndex + 1) % temasDisponiveis.length; document.body.className = temaAtualIndex === 0 ? '' : `theme-${temasDisponiveis[temaAtualIndex]}`; }
+function resetarAplicativoTotal() { if (confirm("Limpar tudo?")) { transacoes = []; salvarTudo(); } }
+function exportarBackup() { const dl = document.createElement('a'); dl.href = "data:text/json," + encodeURIComponent(JSON.stringify(transacoes)); dl.download = `backup.json`; dl.click(); }
+function importarBackup(e) { const r = new FileReader(); r.onload = ev => { transacoes = JSON.parse(ev.target.result); salvarTudo(); }; r.readAsText(e.target.files[0]); }
 
 window.onload = () => { 
     const s = localStorage.getItem('saldo_transacoes'); 
