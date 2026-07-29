@@ -95,7 +95,6 @@
         </div>
     </div>
     
-    <!-- ÁREA DE CHAT COM BOTÃO DE ANEXAR ARQUIVO -->
     <div class="chat-input-area">
         <button class="btn-anexar" onclick="document.getElementById('input-arquivo-chat').click()" title="Anexar arquivo de texto/extrato">📎</button>
         <input type="file" id="input-arquivo-chat" accept=".txt,.csv" style="display: none;" onchange="processarArquivo(event)">
@@ -261,32 +260,60 @@ function selecionarMesAno(m, ano) {
 document.getElementById('campo-texto').addEventListener('keypress', function(e) { if (e.key === 'Enter') processarComando(); });
 
 function processarComando() {
-    const input = document.getElementById('campo-texto'); const txt = input.value.trim().toLowerCase();
+    const input = document.getElementById('campo-texto'); 
+    const txt = input.value.trim(); 
     if(!txt) return;
-    adicionarTextoComoTransacao(txt);
+    adicionarTransacaoPorTexto(txt);
     input.value = '';
 }
 
-function adicionarTextoComoTransacao(txt) {
-    const num = txt.match(/\d+([.,]\d+)?/g); if (!num) return;
-    const valor = parseFloat(num[0].replace(',', '.'));
+function extrairValorCorreto(txt) {
+    // Procura por números no formato monetário (ex: 50,00 ou 1.250,50 ou 35.50)
+    const matches = txt.match(/\b\d{1,3}(?:\.\d{3})*(?:,\d{2})?\b|\b\d+(?:[.,]\d{1,2})?\b/g);
+    if (!matches || matches.length === 0) return null;
     
+    // Pega o último número válido da linha geralmente associado ao valor financeiro
+    let valStr = matches[matches.length - 1];
+    
+    // Se tiver ponto e vírgula, trata padrão brasileiro
+    if (valStr.includes('.') && valStr.includes(',')) {
+        valStr = valStr.replace(/\./g, '').replace(',', '.');
+    } else if (valStr.includes(',')) {
+        valStr = valStr.replace(',', '.');
+    }
+    
+    const val = parseFloat(valStr);
+    return isNaN(val) ? null : val;
+}
+
+function adicionarTransacaoPorTexto(txt, descPersonalizada = null) {
+    const valor = extrairValorCorreto(txt);
+    if (valor === null || valor === 0) return;
+    
+    const txtLower = txt.toLowerCase();
     let tipo = 'saida';
-    if (/\b(reserva|guardar)\b/.test(txt)) {
+    if (/\b(reserva|guardar)\b/.test(txtLower)) {
         tipo = 'reserva';
-    } else if (/\b(cartao|cartão|credito)\b/.test(txt)) {
+    } else if (/\b(cartao|cartão|credito)\b/.test(txtLower)) {
         tipo = 'cartao';
-    } else if (/\b(recebi|ganhei|salario|salário|pix|deposito|depósito|renda)\b/.test(txt)) {
+    } else if (/\b(recebi|ganhei|salario|salário|pix|deposito|depósito|renda)\b/.test(txtLower)) {
         tipo = 'entrada';
     }
 
     let conta = "", cartao = "";
-    if(txt.includes('nubank')) { if(tipo==='cartao') cartao = "Nubank"; else conta = "Nubank"; }
-    if(txt.includes('itau')) { if(tipo==='cartao') cartao = "Itaú"; else conta = "Itaú"; }
-    if(txt.includes('inter')) { if(tipo==='cartao') cartao = "Inter"; else conta = "Inter"; }
-    if(txt.includes('mp')) { if(tipo==='cartao') cartao = "Mercado Pago"; else conta = "Mercado Pago"; }
+    if(txtLower.includes('nubank')) { if(tipo==='cartao') cartao = "Nubank"; else conta = "Nubank"; }
+    if(txtLower.includes('itau')) { if(tipo==='cartao') cartao = "Itaú"; else conta = "Itaú"; }
+    if(txtLower.includes('inter')) { if(tipo==='cartao') cartao = "Inter"; else conta = "Inter"; }
+    if(txtLower.includes('mp') || txtLower.includes('mercado pago')) { if(tipo==='cartao') cartao = "Mercado Pago"; else conta = "Mercado Pago"; }
 
-    let desc = txt.replace(num[0], '').replace(/no|na|do|da/gi, '').trim() || "Lançamento";
+    let desc = descPersonalizada;
+    if (!desc) {
+        // Remove o valor do texto para usar o restante como descrição limpa
+        const ultimoToken = txt.match(/[\d.,]+$/);
+        desc = ultimoToken ? txt.replace(ultimoToken[0], '').trim() : "Lançamento";
+        if (!desc) desc = "Lançamento";
+    }
+
     const novoId = Date.now() + Math.random();
     
     transacoes.unshift({ 
@@ -304,26 +331,30 @@ function adicionarTextoComoTransacao(txt) {
     salvarTudo();
 }
 
-// FUNÇÃO PARA LER ARQUIVOS ANEXADOS (TXT/CSV linha por linha)
+// FUNÇÃO ATUALIZADA PARA ANEXOS: Usa o nome do arquivo no histórico
 function processarArquivo(e) {
     const file = e.target.files[0];
     if (!file) return;
 
+    const nomeArquivo = file.name;
     const reader = new FileReader();
+    
     reader.onload = function(event) {
         const conteudo = event.target.result;
         const linhas = conteudo.split(/\r?\n/);
         let contador = 0;
 
         linhas.forEach(linha => {
-            if(linha.trim().length > 0) {
-                adicionarTextoComoTransacao(linha);
+            const linhaLimpa = linha.trim();
+            if(linhaLimpa.length > 0) {
+                // Passa o nome do arquivo formatado como descrição da despesa
+                adicionarTransacaoPorTexto(linhaLimpa, `📄 ${nomeArquivo}`);
                 contador++;
             }
         });
 
         alert(`Arquivo processado com sucesso! ${contador} registros importados.`);
-        e.target.value = ''; // Limpa o input
+        e.target.value = ''; 
     };
     reader.readAsText(file);
 }
