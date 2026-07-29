@@ -13,7 +13,8 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
     body { background: var(--bg-body); color: var(--texto-principal); padding: 16px 16px 95px 16px; }
 .container { max-width: 500px; margin: 0 auto; }
-.app-header { display: flex; justify-content: space-between; padding: 12px; background: var(--header-bg); border-radius: var(--radius); margin-bottom: 16px; color: var(--header-txt); }
+.app-header { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--header-bg); border-radius: var(--radius); margin-bottom: 16px; color: var(--header-txt); }
+.header-botoes { display: flex; gap: 8px; }
 .icon-btn { background: none; border: none; font-size: 1.2rem; color: var(--header-txt); cursor: pointer; }
 .app-view { display: none; }
 .app-view.ativa { display: block; }
@@ -41,7 +42,7 @@
 .btn-enviar, .btn-anexar { background: var(--header-bg); color: var(--header-txt); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
 .btn-anexar { background: var(--borda); color: var(--texto-principal); }
 .menu-rodape-wrapper { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: var(--bg-container); padding: 10px 16px; border-top: 1px solid var(--borda); z-index: 99; }
-.menu-rodape { display: grid; grid-template-columns: repeat(4, 1fr); }
+.menu-rodape { display: grid; grid-template-columns: repeat(3, 1fr); }
 .tab-item { display: flex; flex-direction: column; align-items: center; background: none; border: none; color: var(--texto-secundario); font-size: 0.75rem; cursor: pointer; }
 .tab-item.ativo { color: var(--header-bg); font-weight: 700; }
 .item-transacao { padding: 10px 5px; border-bottom: 1px solid var(--borda); cursor: pointer; transition: background 0.1s; }
@@ -73,7 +74,11 @@
 <div class="container">
 <div class="app-header">
     <div class="app-title">Meu Saldo</div>
-    <div><button class="icon-btn" onclick="alternarVisibilidade()">🔓</button><button class="icon-btn" onclick="alternarTema()">🫟</button></div>
+    <div class="header-botoes">
+        <button class="icon-btn" onclick="alternarVisibilidade()" title="Ocultar/Exibir Valores">🔓</button>
+        <button class="icon-btn" onclick="alternarTema()" title="Mudar Tema">🎨</button>
+        <button class="icon-btn" onclick="navegarPara('config')" title="Configurações">⚙️</button>
+    </div>
 </div>
 
 <div class="seletor-mes-topo">
@@ -143,7 +148,6 @@
         <button class="tab-item ativo" onclick="navegarPara('inicio')"><span>💬</span><span>Conversa</span></button>
         <button class="tab-item" onclick="navegarPara('historico')"><span>📝</span><span>Histórico</span></button>
         <button class="tab-item" onclick="navegarPara('graficos')"><span>📊</span><span>Status</span></button>
-        <button class="tab-item" onclick="navegarPara('config')"><span>⚙️</span><span>Config</span></button>
     </div>
 </div>
 </div>
@@ -241,7 +245,8 @@
 let transacoes = [], saldosOcultos = false;
 let anoAtualGlobal = new Date().getFullYear();
 let mesAtualGlobal = new Date().getMonth();
-let temasDisponiveis = ['padrao', 'escuro', 'white', 'vintage']; let temaAtualIndex = 0;
+let temasDisponiveis = ['padrao', 'escuro', 'white', 'vintage']; 
+let temaAtualIndex = 0;
 const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 const nomesMesesCompletos = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
@@ -251,7 +256,8 @@ function navegarPara(idAba) {
     document.querySelectorAll('.app-view').forEach(v => v.classList.remove('ativa'));
     document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('ativo'));
     document.getElementById(`view-${idAba}`).classList.add('ativa');
-    event.target.closest('.tab-item').classList.add('ativo');
+    const botaoTab = document.querySelector(`button[onclick="navegarPara('${idAba}')"]`);
+    if (botaoTab) botaoTab.classList.add('ativo');
     atualizarAplicativo();
 }
 
@@ -396,7 +402,11 @@ function processarArquivoUnico(e) {
     reader.readAsDataURL(file);
 }
 
-function salvarTudo() { localStorage.setItem('saldo_transacoes', JSON.stringify(transacoes)); atualizarAplicativo(); }
+function salvarTudo() { 
+    localStorage.setItem('saldo_transacoes', JSON.stringify(transacoes)); 
+    localStorage.setItem('saldo_tema_idx', temaAtualIndex);
+    atualizarAplicativo(); 
+}
 
 function obterTransacoesFiltradas() {
     return transacoes.filter(t => t.mes === mesAtualGlobal && t.ano === anoAtualGlobal);
@@ -521,7 +531,17 @@ function renderizarGraficos(receitas, totalGastos, saídas, cartões, valorReser
 }
 
 function alternarVisibilidade() { saldosOcultos = !saldosOcultos; }
-function alternarTema() { temaAtualIndex = (temaAtualIndex + 1) % temasDisponiveis.length; document.body.className = temaAtualIndex === 0 ? '' : `theme-${temasDisponiveis[temaAtualIndex]}`; }
+
+function alternarTema() { 
+    temaAtualIndex = (temaAtualIndex + 1) % temasDisponiveis.length; 
+    aplicarTemaAtual();
+    salvarTudo(); 
+}
+
+function aplicarTemaAtual() {
+    document.body.className = temaAtualIndex === 0 ? '' : `theme-${temasDisponiveis[temaAtualIndex]}`;
+}
+
 function resetarAplicativoTotal() { if (confirm("Limpar tudo?")) { transacoes = []; salvarTudo(); } }
 function exportarBackup() { const dl = document.createElement('a'); dl.href = "data:text/json," + encodeURIComponent(JSON.stringify(transacoes)); dl.download = `backup.json`; dl.click(); }
 function importarBackup(e) { const r = new FileReader(); r.onload = ev => { transacoes = JSON.parse(ev.target.result); salvarTudo(); }; r.readAsText(e.target.files[0]); }
@@ -529,6 +549,13 @@ function importarBackup(e) { const r = new FileReader(); r.onload = ev => { tran
 window.onload = () => { 
     const s = localStorage.getItem('saldo_transacoes'); 
     if (s) transacoes = JSON.parse(s); 
+
+    const temaSalvo = localStorage.getItem('saldo_tema_idx');
+    if (temaSalvo !== null) {
+        temaAtualIndex = parseInt(temaSalvo);
+        aplicarTemaAtual();
+    }
+
     atualizarAplicativo(); 
 };
 </script>
