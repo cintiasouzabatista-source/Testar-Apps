@@ -50,7 +50,7 @@
 .linha-2 { font-size: 0.75rem; color: var(--texto-secundario); }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
-.modal-container { background: var(--bg-container); color: var(--texto-principal); padding: 20px; border-radius: var(--radius); width: 90%; max-width: 400px; }
+.modal-container { background: var(--bg-container); color: var(--texto-principal); padding: 20px; border-radius: var(--radius); width: 92%; max-width: 450px; }
 .form-grupo { margin-bottom: 12px; }
 .form-grupo label { display: block; font-size: 0.85rem; color: var(--texto-secundario); margin-bottom: 4px; }
 .form-grupo input, .form-grupo select, .form-grupo textarea { width: 100%; padding: 10px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-container); color: var(--texto-principal); }
@@ -60,7 +60,6 @@
 .btn-excluir { background: var(--saida); color: #fff; }
 .btn-cancelar { background: var(--borda); color: var(--texto-principal); }
 
-/* Estilo para os botões em pílula do modal de origem */
 .grid-origens-modal { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; justify-content: center; }
 .btn-origem-pill { background: var(--bg-body); border: 1px solid var(--borda); border-radius: 20px; padding: 8px 16px; font-size: 0.85rem; color: var(--texto-principal); cursor: pointer; transition: all 0.2s; }
 .btn-origem-pill:hover { background: var(--header-bg); color: var(--header-txt); border-color: transparent; }
@@ -100,7 +99,7 @@
     
     <div class="chat-input-area">
         <button class="btn-anexar" onclick="document.getElementById('input-arquivo-chat').click()" title="Anexar arquivo/extrato">📎</button>
-       <input type="file" id="input-arquivo-chat" accept=".txt,.csv,.pdf" style="display: none;" onchange="processarArquivoUnico(event)">
+        <input type="file" id="input-arquivo-chat" accept=".txt,.csv,.pdf" style="display: none;" onchange="processarArquivoUnico(event)">
         <input type="text" id="campo-texto" class="chat-input" placeholder="Ex: mercado 150 ou salario 3500">
         <button class="btn-enviar" onclick="processarComando()">➔</button>
     </div>
@@ -159,7 +158,7 @@
     </div>
 </div>
 
-<!-- MODAL PERGUNTAR CONTA/ORIGEM COM BOTÕES EM PÍLULA -->
+<!-- MODAL PERGUNTAR CONTA/ORIGEM -->
 <div class="modal-overlay" id="modal-origem">
     <div class="modal-container">
         <h3>Em qual cartão foi essa compra?</h3>
@@ -176,7 +175,6 @@
                 <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Pic Pay')">Pic Pay</button>
                 <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Dinheiro')">Dinheiro</button>
             </div>
-            <!-- Campo opcional para digitação caso queira outro nome -->
             <input type="text" id="input-origem-prompt" placeholder="Outro (ex: Pix, Carteira...)" style="margin-top: 12px;">
         </div>
 
@@ -187,7 +185,7 @@
     </div>
 </div>
 
-<!-- MODAL EDITAR / VER ANEXO -->
+<!-- MODAL EDITAR / VISUALIZAR ANEXO (ATUALIZADO PARA EXIBIR PDF) -->
 <div class="modal-overlay" id="modal-editar">
     <div class="modal-container">
         <h3 id="titulo-modal-acao">Editar Transação</h3>
@@ -217,14 +215,17 @@
             </div>
         </div>
 
+        <!-- Visualizador real de PDF integrado -->
         <div id="campos-arquivo-anexo" style="display: none;">
             <div class="form-grupo" style="margin-top: 12px;">
                 <label>Nome do Arquivo</label>
                 <input type="text" id="edit-nome-arquivo">
             </div>
             <div class="form-grupo">
-                <label>Conteúdo do Anexo</label>
-                <textarea id="edit-conteudo-arquivo" rows="10" readonly style="font-family: monospace; font-size: 0.8rem; resize: vertical; width: 100%; padding: 8px;"></textarea>
+                <label>Visualizador do PDF</label>
+                <div style="border: 1px solid var(--borda); border-radius: var(--radius); overflow: hidden; background: #000;">
+                    <iframe id="pdf-visualizador-iframe" style="width: 100%; height: 260px; border: none;"></iframe>
+                </div>
             </div>
         </div>
 
@@ -339,7 +340,6 @@ function adicionarTransacaoPorTexto(txt) {
     document.getElementById('modal-origem').style.display = 'flex';
 }
 
-// Função para clique rápido nos botões de pílula
 function selecionarOrigemRapida(nomeOrigem) {
     document.getElementById('input-origem-prompt').value = nomeOrigem;
     confirmarOrigemTransacao();
@@ -370,51 +370,31 @@ function cancelarTransacaoPendente() {
     salvarTudo();
 }
 
+// Leitor atualizado para converter o PDF em dados exibíveis na tela
 function processarArquivoUnico(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    const isPdf = file.type === 'pdf' || file.name.toLowerCase().endsWith('.pdf');
-
-    if (isPdf) {
-        // Tratamento específico para PDF (salva a referência e metadados)
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const fileDataUrl = event.target.result; // URL em Base64 do PDF ou arquivo
+        
         transacoes.unshift({
             id: Date.now() + Math.random(),
             tipo: 'arquivo',
             descricao: `📁 ${file.name}`,
             valor: 0,
-            conteudoArquivo: `[Documento PDF Anexado: ${file.name} - ${(file.size / 1024).toFixed(1)} KB]`,
+            conteudoArquivo: fileDataUrl,
             mes: mesAtualGlobal,
             ano: anoAtualGlobal,
             dia: new Date().getDate()
         });
 
         salvarTudo();
-        alert('PDF anexado com sucesso ao histórico!');
+        alert('PDF/Arquivo anexado e pronto para visualização!');
         e.target.value = '';
-    } else {
-        // Leitura padrão para TXT ou CSV
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const conteudo = event.target.result;
-            
-            transacoes.unshift({
-                id: Date.now() + Math.random(),
-                tipo: 'arquivo',
-                descricao: `📁 ${file.name}`,
-                valor: 0,
-                conteudoArquivo: conteudo,
-                mes: mesAtualGlobal,
-                ano: anoAtualGlobal,
-                dia: new Date().getDate()
-            });
-
-            salvarTudo();
-            alert('Arquivo anexado com sucesso ao histórico!');
-            e.target.value = '';
-        };
-        reader.readAsText(file);
-    }
+    };
+    reader.readAsDataURL(file); // Lê como Data URL para permitir renderização no iframe
 }
 
 function salvarTudo() { localStorage.setItem('saldo_transacoes', JSON.stringify(transacoes)); atualizarAplicativo(); }
@@ -460,8 +440,8 @@ function renderizarHistorico(listaTransacoes) {
     filtradas.forEach(t => {
         if (t.tipo === 'arquivo') {
             l.innerHTML += `<div class="item-transacao" onclick="abrirModalEditar(${t.id})">
-                <div class="linha-1"><span style="font-weight:600;" class="cor-arquivo">${t.descricao}</span><span style="font-size:0.8rem; color:var(--texto-secundario);">Ver Anexo 📎</span></div>
-                <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} - Arquivo importado</div>
+                <div class="linha-1"><span style="font-weight:600;" class="cor-arquivo">${t.descricao}</span><span style="font-size:0.8rem; color:var(--texto-secundario);">Visualizar PDF 👁️</span></div>
+                <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} - Documento Anexado</div>
             </div>`;
         } else {
             let cls = t.tipo === 'entrada' ? 'cor-entrada' : t.tipo === 'cartao' ? 'cor-cartao' : t.tipo === 'reserva' ? 'cor-reserva' : 'cor-saida';
@@ -484,7 +464,8 @@ function abrirModalEditar(id) {
         document.getElementById('campos-transacao-normal').style.display = 'none';
         document.getElementById('campos-arquivo-anexo').style.display = 'block';
         document.getElementById('edit-nome-arquivo').value = t.descricao;
-        document.getElementById('edit-conteudo-arquivo').value = t.conteudoArquivo || "Conteúdo indisponível.";
+        // Injeta o PDF direto no elemento iframe para renderizar visualmente
+        document.getElementById('pdf-visualizador-iframe').src = t.conteudoArquivo || '';
     } else {
         document.getElementById('titulo-modal-acao').innerText = "Editar Transação";
         document.getElementById('campos-transacao-normal').style.display = 'block';
