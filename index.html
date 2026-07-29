@@ -64,6 +64,8 @@
 .grid-origens-modal { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; justify-content: center; }
 .btn-origem-pill { background: var(--bg-body); border: 1px solid var(--borda); border-radius: 20px; padding: 8px 16px; font-size: 0.85rem; color: var(--texto-principal); cursor: pointer; transition: all 0.2s; }
 .btn-origem-pill:hover { background: var(--header-bg); color: var(--header-txt); border-color: transparent; }
+.btn-tipo-mov { flex: 1; padding: 10px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-body); color: var(--texto-principal); font-weight: 600; cursor: pointer; text-align: center; }
+.btn-tipo-mov.ativo { background: var(--header-bg); color: var(--header-txt); border-color: transparent; }
 
 .grid-meses-modal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-height: 300px; overflow-y: auto; margin-top: 10px; }
 .btn-mes-grid { padding: 10px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-body); color: var(--texto-principal); font-size: 0.85rem; cursor: pointer; text-align: center; }
@@ -162,14 +164,20 @@
     </div>
 </div>
 
-<!-- MODAL PERGUNTAR CONTA/ORIGEM -->
+<!-- MODAL PERGUNTAR CONTA/CARTAO -->
 <div class="modal-overlay" id="modal-origem">
     <div class="modal-container">
-        <h3>Em qual cartão foi essa compra?</h3>
+        <h3 id="modal-titulo-pergunta">Onde foi essa movimentação?</h3>
         <p id="info-transacao-temp" style="font-size: 0.85rem; color: var(--texto-secundario); margin: 8px 0 16px 0;"></p>
         
         <div class="form-grupo">
-            <label>Selecione ou digite o banco / origem:</label>
+            <label>Tipo de Movimentação:</label>
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <button type="button" class="btn-tipo-mov ativo" id="tipo-mov-conta" onclick="selecionarTipoMovimentacao('conta')">Conta (Débito/Dinheiro/Pix)</button>
+                <button type="button" class="btn-tipo-mov" id="tipo-mov-cartao" onclick="selecionarTipoMovimentacao('cartao')">Cartão de Crédito</button>
+            </div>
+
+            <label id="label-origem-escolha">Selecione ou digite a conta:</label>
             <div class="grid-origens-modal">
                 <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Nubank')">Nubank</button>
                 <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Itaú')">Itaú</button>
@@ -251,6 +259,7 @@ const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set
 const nomesMesesCompletos = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
 let transacaoPendente = null;
+let tipoMovimentoSelecionado = 'conta'; // 'conta' ou 'cartao'
 
 function navegarPara(idAba) {
     document.querySelectorAll('.app-view').forEach(v => v.classList.remove('ativa'));
@@ -341,9 +350,37 @@ function adicionarTransacaoPorTexto(txt) {
         dia: new Date().getDate() 
     };
 
+    // Ajusta o tipo padrão no modal dependendo da detecção automática
+    tipoMovimentoSelecionado = (tipo === 'cartao') ? 'cartao' : 'conta';
+    atualizarVisualTipoMov();
+
     document.getElementById('info-transacao-temp').innerText = `Registro: ${desc} (R$ ${valor.toFixed(2)})`;
     document.getElementById('input-origem-prompt').value = '';
     document.getElementById('modal-origem').style.display = 'flex';
+}
+
+function selecionarTipoMovimentacao(tipo) {
+    tipoMovimentoSelecionado = tipo;
+    atualizarVisualTipoMov();
+}
+
+function atualizarVisualTipoMov() {
+    const btnConta = document.getElementById('tipo-mov-conta');
+    const btnCartao = document.getElementById('tipo-mov-cartao');
+    const labelOrigem = document.getElementById('label-origem-escolha');
+    const tituloPergunta = document.getElementById('modal-titulo-pergunta');
+
+    if (tipoMovimentoSelecionado === 'cartao') {
+        btnCartao.classList.add('ativo');
+        btnConta.classList.remove('ativo');
+        labelOrigem.innerText = 'Selecione ou digite o cartão:';
+        tituloPergunta.innerText = 'Em qual cartão foi essa compra?';
+    } else {
+        btnConta.classList.add('ativo');
+        btnCartao.classList.remove('ativo');
+        labelOrigem.innerText = 'Selecione ou digite a conta / banco:';
+        tituloPergunta.innerText = 'Em qual conta foi essa movimentação?';
+    }
 }
 
 function selecionarOrigemRapida(nomeOrigem) {
@@ -355,9 +392,13 @@ function confirmarOrigemTransacao() {
     if (!transacaoPendente) return;
     const origemVal = document.getElementById('input-origem-prompt').value.trim();
     
-    if (transacaoPendente.tipo === 'cartao') {
+    if (tipoMovimentoSelecionado === 'cartao') {
+        transacaoPendente.tipo = 'cartao';
         transacaoPendente.cartao = origemVal;
+        transacaoPendente.conta = '';
     } else {
+        // Se for conta, mantém o tipo original (saida, entrada, reserva) mas define a conta
+        transacaoPendente.cartao = '';
         transacaoPendente.conta = origemVal;
     }
 
