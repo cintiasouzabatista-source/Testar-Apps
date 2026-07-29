@@ -1,1 +1,606 @@
 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2563eb">
+<title>Fluxo Caixa</title>
+<style>
+    :root { --bg-body: #f1f5f9; --bg-container: #ffffff; --texto-principal: #0f172a; --texto-secundario: #64748b; --borda: #e2e8f0; --radius: 12px; --entrada: #10b981; --saida: #ef4444; --cartao: #f59e0b; --reserva-cor: #06b6d4; --header-bg: #2563eb; --header-txt: #ffffff; }
+    body.theme-escuro { --bg-body: #0f172a; --bg-container: #1e293b; --texto-principal: #f8fafc; --texto-secundario: #94a3b8; --borda: #334155; --header-bg: #1e293b; }
+    body.theme-white { --bg-body: #ffffff; --bg-container: #f8fafc; --texto-principal: #1e293b; --borda: #cbd5e1; --header-bg: #e2e8f0; --header-txt: #0f172a; }
+    body.theme-vintage { --bg-body: #fffae0; --bg-container: #fffdf5; --texto-principal: #2b2b2b; --borda: #2b2b2b; --radius: 0px; --entrada: #49a078; --saida: #d64933; --header-bg: #2b2b2b; --header-txt: #fffae0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+    body { background: var(--bg-body); color: var(--texto-principal); padding: 16px 16px 95px 16px; }
+.container { max-width: 500px; margin: 0 auto; }
+.app-header { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--header-bg); border-radius: var(--radius); margin-bottom: 16px; color: var(--header-txt); }
+.header-botoes { display: flex; gap: 8px; }
+.icon-btn { background: none; border: none; font-size: 1.2rem; color: var(--header-txt); cursor: pointer; }
+.app-view { display: none; }
+.app-view.ativa { display: block; }
+
+.seletor-mes-topo { display: flex; align-items: center; justify-content: space-between; background: var(--bg-container); border: 1px solid var(--borda); border-radius: var(--radius); padding: 10px 16px; margin-bottom: 16px; }
+.btn-mes-nav { background: none; border: none; font-size: 1.1rem; color: var(--texto-principal); cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+.btn-mes-nav:hover { background: var(--bg-body); }
+.mes-titulo-atual { font-weight: 600; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--texto-principal); }
+
+.cards-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+.card { background: var(--bg-container); padding: 16px; text-align: center; border-radius: var(--radius); border: 1px solid var(--borda); }
+.card.saldo-total { grid-column: span 2; }
+.card.saldo-total p { font-size: 2.2rem; font-weight: 700; }
+.info-subtil-container { margin-top: 12px; border-top: 1px solid var(--borda); padding-top: 16px; }
+.cor-entrada { color: var(--entrada); }.cor-saida { color: var(--saida); }.cor-cartao { color: var(--cartao); }.cor-reserva { color: var(--reserva-cor); }.cor-arquivo { color: var(--header-bg); }
+.filtro-select { width: 100%; padding: 12px; border-radius: var(--radius); border: 1px solid var(--borda); margin-bottom: 10px; background: var(--bg-container); color: var(--texto-principal); }
+.secao-conteudo { background: var(--bg-container); padding: 20px; border-radius: var(--radius); border: 1px solid var(--borda); margin-bottom: 20px; }
+.colunas-container { display: flex; justify-content: space-around; height: 120px; align-items: flex-end; border-bottom: 1px solid var(--borda); text-align: center; }
+.coluna-vertical-barra { width: 30px; border-radius: 6px 6px 0 0; transition: height 0.3s; }
+.donut-chart { width: 140px; height: 140px; border-radius: 50%; margin: 12px auto; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.donut-hole { width: 96px; height: 96px; background: var(--bg-container); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.config-btn-bloco { width: 100%; padding: 16px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-container); color: var(--texto-principal); margin-bottom: 12px; text-align: left; cursor: pointer; }
+.chat-input-area { display: flex; align-items: center; gap: 8px; background: var(--bg-container); padding: 6px 16px; border-radius: 24px; border: 1px solid var(--borda); }
+.chat-input { flex: 1; border: none; background: none; outline: none; color: var(--texto-principal); }
+.btn-enviar, .btn-anexar { background: var(--header-bg); color: var(--header-txt); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+.btn-anexar { background: var(--borda); color: var(--texto-principal); }
+.menu-rodape-wrapper { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: var(--bg-container); padding: 10px 16px; border-top: 1px solid var(--borda); z-index: 99; }
+.menu-rodape { display: grid; grid-template-columns: repeat(3, 1fr); }
+.tab-item { display: flex; flex-direction: column; align-items: center; background: none; border: none; color: var(--texto-secundario); font-size: 0.75rem; cursor: pointer; }
+.tab-item.ativo { color: var(--header-bg); font-weight: 700; }
+.item-transacao { padding: 10px 5px; border-bottom: 1px solid var(--borda); cursor: pointer; transition: background 0.1s; }
+.item-transacao:hover { background: var(--bg-body); }
+.linha-1 { display: flex; justify-content: space-between; align-items: center; }
+.linha-2 { font-size: 0.75rem; color: var(--texto-secundario); }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
+.modal-container { background: var(--bg-container); color: var(--texto-principal); padding: 20px; border-radius: var(--radius); width: 92%; max-width: 450px; }
+.form-grupo { margin-bottom: 12px; }
+.form-grupo label { display: block; font-size: 0.85rem; color: var(--texto-secundario); margin-bottom: 4px; }
+.form-grupo input, .form-grupo select, .form-grupo textarea { width: 100%; padding: 10px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-container); color: var(--texto-principal); }
+.modal-botoes { display: flex; gap: 8px; margin-top: 16px; }
+.btn-acao-modal { flex: 1; padding: 10px; border-radius: var(--radius); border: none; font-weight: 600; cursor: pointer; }
+.btn-salvar { background: var(--header-bg); color: var(--header-txt); }
+.btn-excluir { background: var(--saida); color: #fff; }
+.btn-cancelar { background: var(--borda); color: var(--texto-principal); }
+
+.grid-origens-modal { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; justify-content: center; }
+.btn-origem-pill { background: var(--bg-body); border: 1px solid var(--borda); border-radius: 20px; padding: 8px 16px; font-size: 0.85rem; color: var(--texto-principal); cursor: pointer; transition: all 0.2s; }
+.btn-origem-pill:hover { background: var(--header-bg); color: var(--header-txt); border-color: transparent; }
+
+/* Cores distintas para os botões de tipo de movimentação */
+.btn-tipo-mov { flex: 1; padding: 12px 10px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-body); color: var(--texto-secundario); font-weight: 600; cursor: pointer; text-align: center; font-size: 0.85rem; transition: all 0.2s; }
+.btn-tipo-mov.ativo-conta { background: #2563eb; color: #ffffff; border-color: #2563eb; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+.btn-tipo-mov.ativo-cartao { background: #f59e0b; color: #ffffff; border-color: #f59e0b; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+
+.grid-meses-modal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-height: 300px; overflow-y: auto; margin-top: 10px; }
+.btn-mes-grid { padding: 10px; border-radius: var(--radius); border: 1px solid var(--borda); background: var(--bg-body); color: var(--texto-principal); font-size: 0.85rem; cursor: pointer; text-align: center; }
+.btn-mes-grid.ativo { background: var(--header-bg); color: var(--header-txt); border-color: transparent; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="container">
+<div class="app-header">
+    <div class="app-title">Meu Saldo</div>
+    <div class="header-botoes">
+        <button class="icon-btn" onclick="alternarVisibilidade()" title="Ocultar/Exibir Valores">🔓</button>
+        <button class="icon-btn" onclick="alternarTema()" title="Mudar Tema">🎨</button>
+        <button class="icon-btn" onclick="navegarPara('config')" title="Configurações">⚙️</button>
+    </div>
+</div>
+
+<div class="seletor-mes-topo">
+    <button class="btn-mes-nav" onclick="mudarMes(-1)">◀</button>
+    <div class="mes-titulo-atual" id="label-mes-topo" onclick="abrirModalSeletorMes()">📅 Mês Atual</div>
+    <button class="btn-mes-nav" onclick="mudarMes(1)">▶</button>
+</div>
+
+<div class="app-view ativa" id="view-inicio">
+    <div class="cards-container">
+        <div class="card"><h3>entradas</h3><p class="cor-entrada">R$ <span id="card-entradas">0.00</span></p></div>
+        <div class="card"><h3>saídas</h3><p class="cor-saida">R$ <span id="card-saidas">0.00</span></p></div>
+        <div class="card"><h3>cartão</h3><p class="cor-cartao">R$ <span id="card-cartao">0.00</span></p></div>
+        <div class="card"><h3>reserva</h3><p class="cor-reserva">R$ <span id="card-reserva">0.00</span></p></div>
+        <div class="card saldo-total">
+            <h3>Saldo Atual</h3>
+            <p id="card-saldo">R$ 0.00</p>
+            <div class="info-subtil-container">
+                <div><strong>Média/Dia:</strong> <span id="previsao-valor">R$ 0.00</span></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="chat-input-area">
+        <button class="btn-anexar" onclick="document.getElementById('input-arquivo-chat').click()" title="Anexar arquivo/extrato">📎</button>
+        <input type="file" id="input-arquivo-chat" accept=".txt,.csv,.pdf" style="display: none;" onchange="processarArquivoUnico(event)">
+        <input type="text" id="campo-texto" class="chat-input" placeholder="Ex: mercado 150 ou salario 3500">
+        <button class="btn-enviar" onclick="processarComando()">➔</button>
+    </div>
+</div>
+
+<div class="app-view" id="view-historico">
+    <select id="filtro-tipo" class="filtro-select" onchange="atualizarAplicativo()">
+        <option value="todos">Todos os Tipos</option><option value="entrada">Entradas</option>
+        <option value="saida">Saídas</option><option value="cartao">Cartão</option><option value="reserva">Reserva</option><option value="arquivo">📄 Anexos PDF</option>
+    </select>
+    <div class="secao-conteudo" id="lista-transacoes-container"></div>
+</div>
+
+<div class="app-view" id="view-graficos">
+    <div class="secao-conteudo">
+        <h4>Comparativo do Mês</h4>
+        <div class="colunas-container">
+            <div><span id="v-val-contas">R$ 0.00</span><div class="coluna-vertical-barra" id="v-bar-contas" style="background: var(--saida);"></div><span>Saídas</span></div>
+            <div><span id="v-val-cartoes">R$ 0.00</span><div class="coluna-vertical-barra" id="v-bar-cartoes" style="background: var(--cartao);"></div><span>Cartões</span></div>
+            <div><span id="v-val-reserva">R$ 0.00</span><div class="coluna-vertical-barra" id="v-bar-reserva" style="background: var(--reserva-cor);"></div><span>Reserva</span></div>
+        </div>
+    </div>
+    <div class="secao-conteudo">
+        <h4>Proporção</h4>
+        <div class="donut-chart" id="grafico-pizza-elemento"><div class="donut-hole"><span id="pizza-perc">0%</span></div></div>
+    </div>
+</div>
+
+<div class="app-view" id="view-config">
+    <div class="secao-conteudo">
+        <h4>Gerenciamento de Dados</h4>
+        <button class="config-btn-bloco" onclick="exportarBackup()">📥 Exportar</button>
+        <button class="config-btn-bloco" onclick="document.getElementById('input-file-backup').click()">📤 Importar</button>
+        <input type="file" id="input-file-backup" accept=".json" style="display: none;" onchange="importarBackup(event)">
+        <button class="config-btn-bloco" style="color:var(--saida);" onclick="resetarAplicativoTotal()">🗑️ Limpar Tudo</button>
+    </div>
+</div>
+
+<div class="menu-rodape-wrapper">
+    <div class="menu-rodape">
+        <button class="tab-item ativo" onclick="navegarPara('inicio')"><span>💬</span><span>Conversa</span></button>
+        <button class="tab-item" onclick="navegarPara('historico')"><span>📝</span><span>Histórico</span></button>
+        <button class="tab-item" onclick="navegarPara('graficos')"><span>📊</span><span>Status</span></button>
+    </div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modal-seletor-mes">
+    <div class="modal-container">
+        <h3>Selecione o Mês / Ano</h3>
+        <div class="grid-meses-modal" id="grid-meses-container"></div>
+        <div class="modal-botoes" style="margin-top: 16px;">
+            <button class="btn-acao-modal btn-cancelar" onclick="fecharModalSeletorMes()">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PERGUNTAR CONTA/CARTAO -->
+<div class="modal-overlay" id="modal-origem">
+    <div class="modal-container">
+        <h3 id="modal-titulo-pergunta">Onde foi essa movimentação?</h3>
+        <p id="info-transacao-temp" style="font-size: 0.85rem; color: var(--texto-secundario); margin: 8px 0 16px 0;"></p>
+        
+        <div class="form-grupo">
+            <label>Tipo de Movimentação:</label>
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <button type="button" class="btn-tipo-mov" id="tipo-mov-conta" onclick="selecionarTipoMovimentacao('conta')">Conta (Débito/Dinheiro/Pix)</button>
+                <button type="button" class="btn-tipo-mov" id="tipo-mov-cartao" onclick="selecionarTipoMovimentacao('cartao')">Cartão de Crédito</button>
+            </div>
+
+            <label id="label-origem-escolha">Selecione ou digite a conta:</label>
+            <div class="grid-origens-modal">
+                <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Nubank')">Nubank</button>
+                <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Itaú')">Itaú</button>
+                <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Inter')">Inter</button>
+                <button class="btn-origem-pill" onclick="selecionarOrigemRapida('MP')">MP</button>
+                <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Bradesco')">Bradesco</button>
+                <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Pic Pay')">Pic Pay</button>
+                <button class="btn-origem-pill" onclick="selecionarOrigemRapida('Dinheiro')">Dinheiro</button>
+            </div>
+            <input type="text" id="input-origem-prompt" placeholder="Outro (ex: Pix, Carteira...)" style="margin-top: 12px;">
+        </div>
+
+        <div class="modal-botoes">
+            <button class="btn-acao-modal btn-cancelar" onclick="cancelarTransacaoPendente()">Cancelar</button>
+            <button class="btn-acao-modal btn-salvar" onclick="confirmarOrigemTransacao()">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDITAR / VISUALIZAR ANEXO -->
+<div class="modal-overlay" id="modal-editar">
+    <div class="modal-container">
+        <h3 id="titulo-modal-acao">Editar Transação</h3>
+        <input type="hidden" id="edit-id">
+        
+        <div id="campos-transacao-normal">
+            <div class="form-grupo" style="margin-top: 12px;">
+                <label>Descrição</label>
+                <input type="text" id="edit-desc">
+            </div>
+            <div class="form-grupo">
+                <label>Valor (R$)</label>
+                <input type="number" step="0.01" id="edit-valor">
+            </div>
+            <div class="form-grupo">
+                <label>Tipo</label>
+                <select id="edit-tipo">
+                    <option value="entrada">Entrada</option>
+                    <option value="saida">Saída</option>
+                    <option value="cartao">Cartão</option>
+                    <option value="reserva">Reserva</option>
+                </select>
+            </div>
+            <div class="form-grupo">
+                <label>Conta / Cartão / Origem</label>
+                <input type="text" id="edit-origem" placeholder="Ex: Nubank, Itaú, Mercado Pago...">
+            </div>
+        </div>
+
+        <div id="campos-arquivo-anexo" style="display: none;">
+            <div class="form-grupo" style="margin-top: 12px;">
+                <label>Nome do Arquivo (Editável)</label>
+                <input type="text" id="edit-nome-arquivo">
+            </div>
+            <div class="form-grupo">
+                <label>Visualizador do PDF</label>
+                <div style="border: 1px solid var(--borda); border-radius: var(--radius); overflow: hidden; background: #000;">
+                    <iframe id="pdf-visualizador-iframe" style="width: 100%; height: 260px; border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-botoes">
+            <button class="btn-acao-modal btn-excluir" onclick="excluirTransacaoModal()">Excluir</button>
+            <button class="btn-acao-modal btn-cancelar" onclick="fecharModalEditar()">Cancelar</button>
+            <button class="btn-acao-modal btn-salvar" onclick="salvarEdicaoModal()">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let transacoes = [], saldosOcultos = false;
+let anoAtualGlobal = new Date().getFullYear();
+let mesAtualGlobal = new Date().getMonth();
+let temasDisponiveis = ['padrao', 'escuro', 'white', 'vintage']; 
+let temaAtualIndex = 0;
+const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const nomesMesesCompletos = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+let transacaoPendente = null;
+let tipoMovimentoSelecionado = 'conta';
+
+function navegarPara(idAba) {
+    document.querySelectorAll('.app-view').forEach(v => v.classList.remove('ativa'));
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('ativo'));
+    document.getElementById(`view-${idAba}`).classList.add('ativa');
+    const botaoTab = document.querySelector(`button[onclick="navegarPara('${idAba}')"]`);
+    if (botaoTab) botaoTab.classList.add('ativo');
+    atualizarAplicativo();
+}
+
+function atualizarLabelTopo() {
+    document.getElementById('label-mes-topo').innerHTML = `📅 ${nomesMesesCompletos[mesAtualGlobal]} de ${anoAtualGlobal}`;
+}
+
+function mudarMes(direcao) {
+    mesAtualGlobal += direcao;
+    if (mesAtualGlobal > 11) { mesAtualGlobal = 0; anoAtualGlobal++; }
+    else if (mesAtualGlobal < 0) { mesAtualGlobal = 11; anoAtualGlobal--; }
+    atualizarAplicativo();
+}
+
+function abrirModalSeletorMes() {
+    const container = document.getElementById('grid-meses-container');
+    let html = '';
+    let anosEnvolvidos = new Set([new Date().getFullYear(), anoAtualGlobal]);
+    transacoes.forEach(t => anosEnvolvidos.add(t.ano));
+    const anosArray = Array.from(anosEnvolvidos).sort();
+
+    anosArray.forEach(ano => {
+        for (let m = 0; m < 12; m++) {
+            let ativoCls = (m === mesAtualGlobal && ano === anoAtualGlobal) ? 'ativo' : '';
+            html += `<button class="btn-mes-grid ${ativoCls}" onclick="selecionarMesAno(${m}, ${ano})">${nomesMeses[m]}/${ano}</button>`;
+        }
+    });
+
+    container.innerHTML = html;
+    document.getElementById('modal-seletor-mes').style.display = 'flex';
+}
+
+function fecharModalSeletorMes() { document.getElementById('modal-seletor-mes').style.display = 'none'; }
+function selecionarMesAno(m, ano) { mesAtualGlobal = m; anoAtualGlobal = ano; fecharModalSeletorMes(); atualizarAplicativo(); }
+
+document.getElementById('campo-texto').addEventListener('keypress', function(e) { if (e.key === 'Enter') processarComando(); });
+document.getElementById('input-origem-prompt').addEventListener('keypress', function(e) { if (e.key === 'Enter') confirmarOrigemTransacao(); });
+
+function processarComando() {
+    const input = document.getElementById('campo-texto'); 
+    const txt = input.value.trim(); 
+    if(!txt) return;
+    adicionarTransacaoPorTexto(txt);
+    input.value = '';
+}
+
+function extrairValorCorreto(txt) {
+    const matches = txt.match(/\b\d{1,3}(?:\.\d{3})*(?:,\d{2})?\b|\b\d+(?:[.,]\d{1,2})?\b/g);
+    if (!matches || matches.length === 0) return null;
+    let valStr = matches[matches.length - 1];
+    if (valStr.includes('.') && valStr.includes(',')) {
+        valStr = valStr.replace(/\./g, '').replace(',', '.');
+    } else if (valStr.includes(',')) {
+        valStr = valStr.replace(',', '.');
+    }
+    const val = parseFloat(valStr);
+    return isNaN(val) ? null : val;
+}
+
+function adicionarTransacaoPorTexto(txt) {
+    const valor = extrairValorCorreto(txt);
+    if (valor === null || valor === 0) return;
+    
+    const txtLower = txt.toLowerCase();
+    let tipo = 'saida';
+    if (/\b(reserva|guardar)\b/.test(txtLower)) tipo = 'reserva';
+    else if (/\b(cartao|cartão|credito)\b/.test(txtLower)) tipo = 'cartao';
+    else if (/\b(recebi|ganhei|salario|salário|pix|deposito|depósito|renda)\b/.test(txtLower)) tipo = 'entrada';
+
+    const ultimoToken = txt.match(/[\d.,]+$/);
+    let desc = ultimoToken ? txt.replace(ultimoToken[0], '').trim() : "Lançamento";
+    if (!desc) desc = "Lançamento";
+
+    transacaoPendente = { 
+        id: Date.now() + Math.random(), 
+        descricao: desc, 
+        valor: valor, 
+        tipo, 
+        mes: mesAtualGlobal, 
+        ano: anoAtualGlobal, 
+        dia: new Date().getDate() 
+    };
+
+    tipoMovimentoSelecionado = (tipo === 'cartao') ? 'cartao' : 'conta';
+    atualizarVisualTipoMov();
+
+    document.getElementById('info-transacao-temp').innerText = `Registro: ${desc} (R$ ${valor.toFixed(2)})`;
+    document.getElementById('input-origem-prompt').value = '';
+    document.getElementById('modal-origem').style.display = 'flex';
+}
+
+function selecionarTipoMovimentacao(tipo) {
+    tipoMovimentoSelecionado = tipo;
+    atualizarVisualTipoMov();
+}
+
+function atualizarVisualTipoMov() {
+    const btnConta = document.getElementById('tipo-mov-conta');
+    const btnCartao = document.getElementById('tipo-mov-cartao');
+    const labelOrigem = document.getElementById('label-origem-escolha');
+    const tituloPergunta = document.getElementById('modal-titulo-pergunta');
+
+    btnConta.className = 'btn-tipo-mov';
+    btnCartao.className = 'btn-tipo-mov';
+
+    if (tipoMovimentoSelecionado === 'cartao') {
+        btnCartao.classList.add('ativo-cartao');
+        labelOrigem.innerText = 'Selecione ou digite o cartão:';
+        tituloPergunta.innerText = 'Em qual cartão foi essa compra?';
+    } else {
+        btnConta.classList.add('ativo-conta');
+        labelOrigem.innerText = 'Selecione ou digite a conta / banco:';
+        tituloPergunta.innerText = 'Em qual conta foi essa movimentação?';
+    }
+}
+
+function selecionarOrigemRapida(nomeOrigem) {
+    document.getElementById('input-origem-prompt').value = nomeOrigem;
+    confirmarOrigemTransacao();
+}
+
+function confirmarOrigemTransacao() {
+    if (!transacaoPendente) return;
+    const origemVal = document.getElementById('input-origem-prompt').value.trim();
+    
+    if (tipoMovimentoSelecionado === 'cartao') {
+        transacaoPendente.tipo = 'cartao';
+        transacaoPendente.cartao = origemVal;
+        transacaoPendente.conta = '';
+    } else {
+        transacaoPendente.cartao = '';
+        transacaoPendente.conta = origemVal;
+    }
+
+    transacoes.unshift(transacaoPendente);
+    transacaoPendente = null;
+    document.getElementById('modal-origem').style.display = 'none';
+    salvarTudo();
+}
+
+function cancelarTransacaoPendente() {
+    if (transacaoPendente) {
+        transacoes.unshift(transacaoPendente);
+        transacaoPendente = null;
+    }
+    document.getElementById('modal-origem').style.display = 'none';
+    salvarTudo();
+}
+
+function processarArquivoUnico(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const fileDataUrl = event.target.result;
+        
+        transacoes.unshift({
+            id: Date.now() + Math.random(),
+            tipo: 'arquivo',
+            descricao: file.name,
+            valor: 0,
+            conteudoArquivo: fileDataUrl,
+            mes: mesAtualGlobal,
+            ano: anoAtualGlobal,
+            dia: new Date().getDate()
+        });
+
+        salvarTudo();
+        alert('PDF anexado com sucesso!');
+        e.target.value = '';
+    };
+    reader.readAsDataURL(file);
+}
+
+function salvarTudo() { 
+    localStorage.setItem('saldo_transacoes', JSON.stringify(transacoes)); 
+    localStorage.setItem('saldo_tema_idx', temaAtualIndex);
+    atualizarAplicativo(); 
+}
+
+function obterTransacoesFiltradas() {
+    return transacoes.filter(t => t.mes === mesAtualGlobal && t.ano === anoAtualGlobal);
+}
+
+function atualizarAplicativo() {
+    atualizarLabelTopo();
+    const transacoesFiltradas = obterTransacoesFiltradas();
+
+    let ent = 0, sai = 0, car = 0, res = 0;
+    transacoesFiltradas.forEach(t => {
+        if(t.tipo === 'entrada') ent += t.valor;
+        else if(t.tipo === 'saida') sai += t.valor;
+        else if(t.tipo === 'cartao') car += t.valor;
+        else if(t.tipo === 'reserva') res += t.valor;
+    });
+    const saldo = ent - sai - car - res; const gastos = sai + car;
+    document.getElementById('card-entradas').innerText = ent.toFixed(2);
+    document.getElementById('card-saidas').innerText = sai.toFixed(2);
+    document.getElementById('card-cartao').innerText = car.toFixed(2);
+    document.getElementById('card-reserva').innerText = res.toFixed(2);
+    document.getElementById('card-saldo').innerText = `R$ ${saldo.toFixed(2)}`;
+    document.getElementById('previsao-valor').innerText = `R$ ${(gastos / 30).toFixed(2)}`;
+    renderizarHistorico(transacoesFiltradas); 
+    renderizarGraficos(ent, gastos, sai, car, res);
+}
+
+function renderizarHistorico(listaTransacoes) {
+    const tipoFiltro = document.getElementById('filtro-tipo').value;
+    const l = document.getElementById('lista-transacoes-container'); 
+    l.innerHTML = '';
+    
+    const filtradas = listaTransacoes.filter(t => tipoFiltro === 'todos' || t.tipo === tipoFiltro);
+
+    if (filtradas.length === 0) {
+        l.innerHTML = `<div style="text-align:center; color: var(--texto-secundario); padding: 20px;">Nenhum registro neste período.</div>`;
+        return;
+    }
+
+    filtradas.forEach(t => {
+        if (t.tipo === 'arquivo') {
+            l.innerHTML += `<div class="item-transacao" onclick="abrirModalEditar(${t.id})">
+                <div class="linha-1"><span style="font-weight:600;" class="cor-arquivo">📄 ${t.descricao}</span><span style="font-size:1.1rem; cursor:pointer;" title="Visualizar PDF">👁️</span></div>
+                <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} - Documento PDF</div>
+            </div>`;
+        } else {
+            let cls = t.tipo === 'entrada' ? 'cor-entrada' : t.tipo === 'cartao' ? 'cor-cartao' : t.tipo === 'reserva' ? 'cor-reserva' : 'cor-saida';
+            let origem = t.cartao || t.conta || '';
+            l.innerHTML += `<div class="item-transacao" onclick="abrirModalEditar(${t.id})">
+                <div class="linha-1"><span>${t.descricao}</span><span class="${cls}">${t.tipo === 'entrada' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</span></div>
+                <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} ${origem ? '- ' + origem : ''}</div>
+            </div>`;
+        }
+    });
+}
+
+function abrirModalEditar(id) {
+    const t = transacoes.find(i => i.id == id);
+    if(!t) return;
+    document.getElementById('edit-id').value = t.id;
+
+    if (t.tipo === 'arquivo') {
+        document.getElementById('titulo-modal-acao').innerText = "Visualizar Anexo";
+        document.getElementById('campos-transacao-normal').style.display = 'none';
+        document.getElementById('campos-arquivo-anexo').style.display = 'block';
+        document.getElementById('edit-nome-arquivo').value = t.descricao;
+        document.getElementById('pdf-visualizador-iframe').src = t.conteudoArquivo || '';
+    } else {
+        document.getElementById('titulo-modal-acao').innerText = "Editar Transação";
+        document.getElementById('campos-transacao-normal').style.display = 'block';
+        document.getElementById('campos-arquivo-anexo').style.display = 'none';
+        document.getElementById('edit-desc').value = t.descricao;
+        document.getElementById('edit-valor').value = t.valor;
+        document.getElementById('edit-tipo').value = t.tipo;
+        document.getElementById('edit-origem').value = t.cartao || t.conta || '';
+    }
+    document.getElementById('modal-editar').style.display = 'flex';
+}
+
+function fecharModalEditar() { document.getElementById('modal-editar').style.display = 'none'; }
+
+function salvarEdicaoModal() {
+    const id = document.getElementById('edit-id').value;
+    const t = transacoes.find(i => i.id == id);
+    if(t) {
+        if (t.tipo === 'arquivo') {
+            t.descricao = document.getElementById('edit-nome-arquivo').value || "Documento.pdf";
+        } else {
+            t.descricao = document.getElementById('edit-desc').value || "Lançamento";
+            t.valor = parseFloat(document.getElementById('edit-valor').value) || 0;
+            t.tipo = document.getElementById('edit-tipo').value;
+            const origemVal = document.getElementById('edit-origem').value;
+            if(t.tipo === 'cartao') { t.cartao = origemVal; t.conta = ""; }
+            else { t.conta = origemVal; t.cartao = ""; }
+        }
+    }
+    fecharModalEditar();
+    salvarTudo();
+}
+
+function excluirTransacaoModal() {
+    if(confirm("Deseja realmente excluir este item?")) {
+        const id = document.getElementById('edit-id').value;
+        transacoes = transacoes.filter(i => i.id != id);
+        fecharModalEditar();
+        salvarTudo();
+    }
+}
+
+function renderizarGraficos(receitas, totalGastos, saídas, cartões, valorReserva) {
+    const maxEixoV = Math.max(saídas, cartões, valorReserva, 100);
+    document.getElementById('v-val-contas').innerText = `R$ ${saídas.toFixed(2)}`;
+    document.getElementById('v-val-cartoes').innerText = `R$ ${cartões.toFixed(2)}`;
+    document.getElementById('v-val-reserva').innerText = `R$ ${valorReserva.toFixed(2)}`;
+    document.getElementById('v-bar-contas').style.height = `${Math.max((saídas / maxEixoV) * 100, 5)}%`;
+    document.getElementById('v-bar-cartoes').style.height = `${Math.max((cartões / maxEixoV) * 100, 5)}%`;
+    document.getElementById('v-bar-reserva').style.height = `${Math.max((valorReserva / maxEixoV) * 100, 5)}%`;
+
+    const totalFluxo = receitas + totalGastos; const percGasto = totalFluxo > 0 ? Math.round((totalGastos / totalFluxo) * 100) : 0;
+    document.getElementById('pizza-perc').innerText = `${percGasto}%`;
+    document.getElementById('grafico-pizza-elemento').style.background = `conic-gradient(var(--saida) 0% ${percGasto}%, var(--entrada) ${percGasto}% 100%)`;
+}
+
+function alternarVisibilidade() { saldosOcultos = !saldosOcultos; }
+
+function alternarTema() { 
+    temaAtualIndex = (temaAtualIndex + 1) % temasDisponiveis.length; 
+    aplicarTemaAtual();
+    salvarTudo(); 
+}
+
+function aplicarTemaAtual() {
+    document.body.className = temaAtualIndex === 0 ? '' : `theme-${temasDisponiveis[temaAtualIndex]}`;
+}
+
+function resetarAplicativoTotal() { if (confirm("Limpar tudo?")) { transacoes = []; salvarTudo(); } }
+function exportarBackup() { const dl = document.createElement('a'); dl.href = "data:text/json," + encodeURIComponent(JSON.stringify(transacoes)); dl.download = `backup.json`; dl.click(); }
+function importarBackup(e) { const r = new FileReader(); r.onload = ev => { transacoes = JSON.parse(ev.target.result); salvarTudo(); }; r.readAsText(e.target.files[0]); }
+
+window.onload = () => { 
+    const s = localStorage.getItem('saldo_transacoes'); 
+    if (s) transacoes = JSON.parse(s); 
+
+    const temaSalvo = localStorage.getItem('saldo_tema_idx');
+    if (temaSalvo !== null) {
+        temaAtualIndex = parseInt(temaSalvo);
+        aplicarTemaAtual();
+    }
+
+    atualizarAplicativo(); 
+};
+</script>
+</body>
+</html>
