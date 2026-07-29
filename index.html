@@ -96,7 +96,7 @@
     <div class="chat-input-area">
         <button class="btn-anexar" onclick="document.getElementById('input-arquivo-chat').click()" title="Anexar arquivo/extrato">📎</button>
         <input type="file" id="input-arquivo-chat" accept=".txt,.csv" style="display: none;" onchange="processarArquivoUnico(event)">
-        <input type="text" id="campo-texto" class="chat-input" placeholder="Ex: salário 3500 ou gasolina 50 nubank">
+        <input type="text" id="campo-texto" class="chat-input" placeholder="Ex: mercado 150 ou salario 3500">
         <button class="btn-enviar" onclick="processarComando()">➔</button>
     </div>
 </div>
@@ -150,6 +150,24 @@
         <div class="grid-meses-modal" id="grid-meses-container"></div>
         <div class="modal-botoes" style="margin-top: 16px;">
             <button class="btn-acao-modal btn-cancelar" onclick="fecharModalSeletorMes()">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PERGUNTAR CONTA/ORIGEM (INTERATIVO) -->
+<div class="modal-overlay" id="modal-origem">
+    <div class="modal-container">
+        <h3>Qual a Conta ou Cartão?</h3>
+        <p id="info-transacao-temp" style="font-size: 0.85rem; color: var(--texto-secundario); margin: 8px 0 16px 0;"></p>
+        
+        <div class="form-grupo">
+            <label>Selecione ou digite o banco / origem:</label>
+            <input type="text" id="input-origem-prompt" placeholder="Ex: Nubank, Itaú, Pix, Carteira...">
+        </div>
+
+        <div class="modal-botoes">
+            <button class="btn-acao-modal btn-cancelar" onclick="cancelarTransacaoPendente()">Cancelar</button>
+            <button class="btn-acao-modal btn-salvar" onclick="confirmarOrigemTransacao()">Confirmar</button>
         </div>
     </div>
 </div>
@@ -211,6 +229,9 @@ let temasDisponiveis = ['padrao', 'escuro', 'white', 'vintage']; let temaAtualIn
 const nomesMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 const nomesMesesCompletos = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
+// Variável temporária para guardar a transação aguardando a pergunta da conta
+let transacaoPendente = null;
+
 function navegarPara(idAba) {
     document.querySelectorAll('.app-view').forEach(v => v.classList.remove('ativa'));
     document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('ativo'));
@@ -252,6 +273,7 @@ function fecharModalSeletorMes() { document.getElementById('modal-seletor-mes').
 function selecionarMesAno(m, ano) { mesAtualGlobal = m; anoAtualGlobal = ano; fecharModalSeletorMes(); atualizarAplicativo(); }
 
 document.getElementById('campo-texto').addEventListener('keypress', function(e) { if (e.key === 'Enter') processarComando(); });
+document.getElementById('input-origem-prompt').addEventListener('keypress', function(e) { if (e.key === 'Enter') confirmarOrigemTransacao(); });
 
 function processarComando() {
     const input = document.getElementById('campo-texto'); 
@@ -284,31 +306,50 @@ function adicionarTransacaoPorTexto(txt) {
     else if (/\b(cartao|cartão|credito)\b/.test(txtLower)) tipo = 'cartao';
     else if (/\b(recebi|ganhei|salario|salário|pix|deposito|depósito|renda)\b/.test(txtLower)) tipo = 'entrada';
 
-    // Identificação de Conta e Cartão
-    let conta = "", cartao = "";
-    if (txtLower.includes('nubank')) { if (tipo === 'cartao') cartao = "Nubank"; else conta = "Nubank"; }
-    else if (txtLower.includes('itau') || txtLower.includes('itaú')) { if (tipo === 'cartao') cartao = "Itaú"; else conta = "Itaú"; }
-    else if (txtLower.includes('inter')) { if (tipo === 'cartao') cartao = "Inter"; else conta = "Inter"; }
-    else if (txtLower.includes('mp') || txtLower.includes('mercado pago')) { if (tipo === 'cartao') cartao = "Mercado Pago"; else conta = "Mercado Pago"; }
-    else if (txtLower.includes('bradesco')) { if (tipo === 'cartao') cartao = "Bradesco"; else conta = "Bradesco"; }
-    else if (txtLower.includes('santander')) { if (tipo === 'cartao') cartao = "Santander"; else conta = "Santander"; }
-
     const ultimoToken = txt.match(/[\d.,]+$/);
     let desc = ultimoToken ? txt.replace(ultimoToken[0], '').trim() : "Lançamento";
     if (!desc) desc = "Lançamento";
 
-    transacoes.unshift({ 
+    // Guarda temporariamente e abre a pergunta interativa da conta/cartão
+    transacaoPendente = { 
         id: Date.now() + Math.random(), 
         descricao: desc, 
         valor: valor, 
         tipo, 
-        conta, 
-        cartao, 
         mes: mesAtualGlobal, 
         ano: anoAtualGlobal, 
         dia: new Date().getDate() 
-    });
+    };
 
+    document.getElementById('info-transacao-temp').innerText = `Registro: ${desc} (R$ ${valor.toFixed(2)})`;
+    document.getElementById('input-origem-prompt').value = '';
+    document.getElementById('modal-origem').style.display = 'flex';
+    document.getElementById('input-origem-prompt').focus();
+}
+
+function confirmarOrigemTransacao() {
+    if (!transacaoPendente) return;
+    const origemVal = document.getElementById('input-origem-prompt').value.trim();
+    
+    if (transacaoPendente.tipo === 'cartao') {
+        transacaoPendente.cartao = origemVal;
+    } else {
+        transacaoPendente.conta = origemVal;
+    }
+
+    transacoes.unshift(transacaoPendente);
+    transacaoPendente = null;
+    document.getElementById('modal-origem').style.display = 'none';
+    salvarTudo();
+}
+
+function cancelarTransacaoPendente() {
+    // Se cancelar a pergunta da conta, salva sem conta mesmo
+    if (transacaoPendente) {
+        transacoes.unshift(transacaoPendente);
+        transacaoPendente = null;
+    }
+    document.getElementById('modal-origem').style.display = 'none';
     salvarTudo();
 }
 
