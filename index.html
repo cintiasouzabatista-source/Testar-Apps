@@ -280,7 +280,7 @@
 </div>
 
 <script>
-let transacoes = [], beneficios = [], saldosOcultos = false, idPendente = null, tipoPendente = null;
+let transacoes = [], beneficios = [], saldosOcultos = false, idPendente = null, tipoPendente = null, aguardandoParcelas = false;
 let anoAtualGlobal = new Date().getFullYear();
 let mesAtualGlobal = new Date().getMonth();
 let temasDisponiveis = ['padrao', 'escuro', 'white', 'vintage']; let temaAtualIndex = 0;
@@ -383,10 +383,16 @@ function processarComando() {
     if(txt.includes('inter')) { if(tipo==='cartao') cartao = "Inter"; else conta = "Inter"; }
     if(txt.includes('mp')) { if(tipo==='cartao') cartao = "Mercado Pago"; else conta = "Mercado Pago"; }
 
-    let desc = input.value.replace(num[0], '').replace(/no|na|do|da/gi, '').trim() || "Lançamento";
+    let desc = input.value.replace(num[0], '').replace(/\b\d{1,2}\s*x\b/gi, '').replace(/no|na|do|da/gi, '').trim() || "Lançamento";
     const novoId = Date.now();
     transacoes.unshift({ id: novoId, descricao: desc, valor: valor, tipo, conta, cartao, mes: mesAtualGlobal, ano: anoAtualGlobal, dia: new Date().getDate() });
-    if((tipo === 'saida' || tipo === 'cartao' || tipo === 'reserva') && !cartao && !conta){ idPendente = novoId; tipoPendente = tipo; mostrarPerguntaConta(novoId, tipo); }
+    // Cartão sempre passa pelo fluxo de cartão -> parcelas. Se o cartão já foi informado no texto, pulamos apenas a pergunta do cartão.
+    if(tipo === 'cartao') {
+        idPendente = novoId; tipoPendente = tipo;
+        if(cartao) mostrarPerguntaParcelas(novoId);
+        else mostrarPerguntaConta(novoId, tipo);
+    }
+    else if((tipo === 'saida' || tipo === 'reserva') && !cartao && !conta){ idPendente = novoId; tipoPendente = tipo; mostrarPerguntaConta(novoId, tipo); }
     else if(tipo === 'entrada' && !conta){ idPendente = novoId; tipoPendente = tipo; mostrarPerguntaConta(novoId, tipo); }
     else salvarTudo();
     input.value = '';
@@ -477,10 +483,72 @@ function mostrarPerguntaConta(id, tipo) {
 function responderConta(id, valor) {
     const t = transacoes.find(i => i.id == id);
     if(t) {
-        if(tipoPendente === 'cartao') t.cartao = valor;
+        if(tipoPendente === 'cartao') {
+            t.cartao = valor;
+            document.getElementById('modal-pergunta').style.display = 'none';
+            mostrarPerguntaParcelas(id);
+            return;
+        }
         else t.conta = valor;
     }
     document.getElementById('modal-pergunta').style.display = 'none'; 
+    salvarTudo();
+}
+
+function mostrarPerguntaParcelas(id) {
+    idPendente = id; aguardandoParcelas = true;
+    const modal = document.getElementById('modal-pergunta');
+    document.getElementById('texto-pergunta').innerText = 'Em quantas vezes foi essa compra?';
+    let html = '';
+    for(let i=1;i<=24;i++) html += `<button class="btn-resposta" onclick="responderParcelas('${id}',${i})">${i}x</button>`;
+    document.getElementById('botoes-pergunta').innerHTML = html;
+    modal.style.display = 'flex';
+}
+
+function responderParcelas(id, quantidade) {
+    const t = transacoes.find(i => i.id == id);
+    if(!t) return;
+    document.getElementById('modal-pergunta').style.display = 'none';
+    aguardandoParcelas = false;
+
+    if(quantidade <= 1) {
+        t.parcela = 1; t.totalParcelas = 1; t.compraParceladaId = null;
+        salvarTudo();
+        return;
+    }
+
+    const totalCentavos = Math.round(Number(t.valor) * 100);
+    const baseCentavos = Math.floor(totalCentavos / quantidade);
+    const resto = totalCentavos - (baseCentavos * quantidade);
+    const compraId = `parc-${Date.now()}`;
+    const dataBase = new Date(Number(t.ano), Number(t.mes), Number(t.dia || 1));
+    const parcelas = [];
+
+    // Remove o lançamento original e substitui pelas parcelas vinculadas.
+    transacoes = transacoes.filter(i => i.id != id);
+    for(let i=1;i<=quantidade;i++) {
+        const d = new Date(dataBase.getFullYear(), dataBase.getMonth() + (i-1), dataBase.getDate());
+        // Se o dia não existir no mês (ex.: 31), usa o último dia daquele mês.
+        if(d.getMonth() !== ((dataBase.getMonth() + (i-1)) % 12 + 12) % 12) {
+            d.setDate(0);
+        }
+        const centavos = baseCentavos + (i <= resto ? 1 : 0);
+        parcelas.push({
+            id: `${compraId}-${i}`,
+            compraParceladaId: compraId,
+            parcela: i,
+            totalParcelas: quantidade,
+            descricao: `${t.descricao} (${i}/${quantidade})`,
+            valor: centavos / 100,
+            tipo: 'cartao',
+            conta: '',
+            cartao: t.cartao || '',
+            mes: d.getMonth(),
+            ano: d.getFullYear(),
+            dia: d.getDate()
+        });
+    }
+    transacoes = parcelas.concat(transacoes);
     salvarTudo();
 }
 
