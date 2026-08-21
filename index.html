@@ -115,11 +115,28 @@
 </div>
 
 <div class="app-view" id="view-historico">
-    <select id="filtro-tipo" class="filtro-select" onchange="atualizarAplicativo()">
-        <option value="todos">Todos os Tipos</option><option value="entrada">Entradas</option>
-        <option value="saida">Saídas</option><option value="cartao">Cartão</option><option value="reserva">Reserva</option>
-    </select>
-    <div class="secao-conteudo" id="lista-transacoes-container"></div>
+    <div class="secao-conteudo">
+        <div class="linha-1" style="cursor:pointer;" onclick="alternarHistorico('despesas')">
+            <h4 style="margin:0;">Histórico de despesas</h4><span id="seta-historico-despesas">▸</span>
+        </div>
+        <div id="painel-historico-despesas" style="display:none;margin-top:12px;">
+            <label class="linha-2">Período</label>
+            <select id="filtro-periodo-despesas" class="filtro-select" onchange="atualizarAplicativo()">
+                <option value="">Selecione um período</option>
+                <option value="hoje">Hoje</option><option value="7dias">Últimos 7 dias</option>
+                <option value="mes">Este mês</option><option value="mesAnterior">Mês anterior</option><option value="personalizado">Personalizado</option>
+            </select>
+            <div id="datas-personalizadas-despesas" style="display:none;gap:8px;grid-template-columns:1fr 1fr;margin-bottom:10px;">
+                <input type="date" id="data-inicio-despesas" onchange="atualizarAplicativo()">
+                <input type="date" id="data-fim-despesas" onchange="atualizarAplicativo()">
+            </div>
+            <select id="filtro-tipo" class="filtro-select" onchange="atualizarAplicativo()">
+                <option value="todos">Todos os Tipos</option><option value="entrada">Entradas</option>
+                <option value="saida">Saídas</option><option value="cartao">Cartão</option><option value="reserva">Reserva</option>
+            </select>
+            <div id="lista-transacoes-container"></div>
+        </div>
+    </div>
 </div>
 
 <div class="app-view" id="view-beneficios">
@@ -138,11 +155,25 @@
         <button class="btn-beneficio" onclick="abrirModalNovoBeneficio('saida')">➖ Utilizar</button>
     </div>
     <div class="secao-conteudo">
-        <h4>Histórico de Benefícios</h4>
-        <select id="filtro-beneficio" class="filtro-select" onchange="atualizarBeneficios()">
-            <option value="todos">Todos</option><option value="VR">VR</option><option value="VA">VA</option><option value="Combustível">Combustível</option><option value="Outros">Outros</option>
-        </select>
-        <div id="lista-beneficios"></div>
+        <div class="linha-1" style="cursor:pointer;" onclick="alternarHistorico('beneficios')">
+            <h4 style="margin:0;">Histórico de Benefícios</h4><span id="seta-historico-beneficios">▸</span>
+        </div>
+        <div id="painel-historico-beneficios" style="display:none;margin-top:12px;">
+            <label class="linha-2">Período</label>
+            <select id="filtro-periodo-beneficios" class="filtro-select" onchange="atualizarBeneficios()">
+                <option value="">Selecione um período</option>
+                <option value="hoje">Hoje</option><option value="7dias">Últimos 7 dias</option>
+                <option value="mes">Este mês</option><option value="mesAnterior">Mês anterior</option><option value="personalizado">Personalizado</option>
+            </select>
+            <div id="datas-personalizadas-beneficios" style="display:none;gap:8px;grid-template-columns:1fr 1fr;margin-bottom:10px;">
+                <input type="date" id="data-inicio-beneficios" onchange="atualizarBeneficios()">
+                <input type="date" id="data-fim-beneficios" onchange="atualizarBeneficios()">
+            </div>
+            <select id="filtro-beneficio" class="filtro-select" onchange="atualizarBeneficios()">
+                <option value="todos">Todos</option><option value="VR">VR</option><option value="VA">VA</option><option value="Combustível">Combustível</option><option value="Outros">Outros</option>
+            </select>
+            <div id="lista-beneficios"></div>
+        </div>
     </div>
 </div>
 
@@ -362,7 +393,20 @@ function processarComando() {
 }
 
 function salvarBeneficios() { localStorage.setItem('saldo_beneficios', JSON.stringify(beneficios)); atualizarBeneficios(); }
-function obterBeneficiosFiltrados() { return beneficios.filter(b => b.mes === mesAtualGlobal && b.ano === anoAtualGlobal); }
+function dataLancamento(x) { return new Date(Number(x.ano), Number(x.mes), Number(x.dia || 1)); }
+function periodoSelecionado(id) {
+    const v = document.getElementById(id).value; if (!v) return null;
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    if (v === 'hoje') return [hoje, hoje];
+    if (v === '7dias') { const ini=new Date(hoje); ini.setDate(ini.getDate()-6); return [ini, hoje]; }
+    if (v === 'mes') return [new Date(hoje.getFullYear(),hoje.getMonth(),1), new Date(hoje.getFullYear(),hoje.getMonth()+1,0)];
+    if (v === 'mesAnterior') return [new Date(hoje.getFullYear(),hoje.getMonth()-1,1), new Date(hoje.getFullYear(),hoje.getMonth(),0)];
+    const ini=document.getElementById(id.includes('beneficios')?'data-inicio-beneficios':'data-inicio-despesas').value;
+    const fim=document.getElementById(id.includes('beneficios')?'data-fim-beneficios':'data-fim-despesas').value;
+    return ini && fim ? [new Date(ini+'T00:00:00'), new Date(fim+'T23:59:59')] : null;
+}
+function obterBeneficiosFiltrados() { const p=periodoSelecionado('filtro-periodo-beneficios'); return p ? beneficios.filter(b=>{const d=dataLancamento(b); return d>=p[0]&&d<=p[1];}) : []; }
+function alternarHistorico(tipo) { const painel=document.getElementById(`painel-historico-${tipo}`); const seta=document.getElementById(`seta-historico-${tipo}`); const aberto=painel.style.display!=='none'; painel.style.display=aberto?'none':'block'; seta.innerText=aberto?'▸':'▾'; }
 function selecionarBeneficio(tipo) {
     const filtro = document.getElementById('filtro-beneficio');
     const detalhe = document.getElementById('detalhe-beneficio');
@@ -378,15 +422,19 @@ function selecionarBeneficio(tipo) {
 }
 function calcularTotaisBeneficio(tipo) {
     const totais=[0,0];
-    obterBeneficiosFiltrados().filter(b=>b.tipo===tipo).forEach(b=>{ totais[b.operacao==='entrada'?0:1]+=Number(b.valor)||0; });
+    const p=periodoSelecionado('filtro-periodo-beneficios');
+    const base=p ? obterBeneficiosFiltrados() : beneficios.filter(b => b.mes === mesAtualGlobal && b.ano === anoAtualGlobal);
+    base.filter(b=>b.tipo===tipo).forEach(b=>{ totais[b.operacao==='entrada'?0:1]+=Number(b.valor)||0; });
     return totais;
 }
 function formatarMoeda(v) { return Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function atualizarBeneficios() {
+    const sel=document.getElementById('filtro-periodo-beneficios'); const datas=document.getElementById('datas-personalizadas-beneficios'); datas.style.display=sel.value==='personalizado'?'grid':'none';
     const lista = obterBeneficiosFiltrados();
+    const resumo = beneficios.filter(b => b.mes === mesAtualGlobal && b.ano === anoAtualGlobal);
     const tipos = ['VR','VA','Combustível','Outros'];
     const totais = { 'VR': [0,0], 'VA': [0,0], 'Combustível': [0,0], 'Outros': [0,0] };
-    lista.forEach(b => { const i=b.operacao==='entrada'?0:1; if(totais[b.tipo]) totais[b.tipo][i]+=Number(b.valor)||0; });
+    resumo.forEach(b => { const i=b.operacao==='entrada'?0:1; if(totais[b.tipo]) totais[b.tipo][i]+=Number(b.valor)||0; });
     tipos.forEach(tipo => {
         const [rec,uso]=totais[tipo];
         document.getElementById(`saldo-${tipo}`).innerText=`R$ ${formatarMoeda(rec-uso)}`;
@@ -470,7 +518,10 @@ function renderizarHistorico(listaTransacoes) {
     const l = document.getElementById('lista-transacoes-container'); 
     l.innerHTML = '';
     
-    const filtradas = listaTransacoes.filter(t => tipoFiltro === 'todos' || t.tipo === tipoFiltro);
+    const p=periodoSelecionado('filtro-periodo-despesas');
+    document.getElementById('datas-personalizadas-despesas').style.display=document.getElementById('filtro-periodo-despesas').value==='personalizado'?'grid':'none';
+    const porPeriodo=p ? listaTransacoes.filter(t=>{const d=dataLancamento(t); return d>=p[0]&&d<=p[1];}) : [];
+    const filtradas = porPeriodo.filter(t => tipoFiltro === 'todos' || t.tipo === tipoFiltro);
 
     if (filtradas.length === 0) {
         l.innerHTML = `<div style="text-align:center; color: var(--texto-secundario); padding: 20px;">Nenhuma transação neste período.</div>`;
