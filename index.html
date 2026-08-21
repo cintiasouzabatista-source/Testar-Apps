@@ -451,13 +451,9 @@ function atualizarBeneficios() {
     const filtradas=lista.filter(b=>filtro==='todos'||b.tipo===filtro);
     const l=document.getElementById('lista-beneficios'); l.innerHTML='';
     if(!filtradas.length){ l.innerHTML='<div style="text-align:center;color:var(--texto-secundario);padding:20px;">Nenhum lançamento de benefício neste período.</div>'; return; }
-    filtradas.forEach(b=>{ l.innerHTML += `<div class="item-transacao">
+    filtradas.forEach(b=>{ l.innerHTML += `<div class="item-transacao" style="cursor:pointer;" onclick="abrirModalEditarBeneficio(${b.id})">
         <div class="linha-1"><span>${b.descricao} <span class="badge-beneficio">${b.tipo}</span></span><span class="${b.operacao==='entrada'?'cor-entrada':'cor-saida'}">${b.operacao==='entrada'?'+':'-'} R$ ${b.valor.toFixed(2)}</span></div>
         <div class="linha-2">${b.dia} ${nomesMeses[b.mes]}/${b.ano}</div>
-        <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end;">
-            <button type="button" class="btn-acao-modal btn-cancelar" style="padding:6px 10px;font-size:12px;" onclick="abrirModalEditarBeneficio(${b.id});event.stopPropagation();">✏️ Editar</button>
-            <button type="button" class="btn-acao-modal btn-excluir" style="padding:6px 10px;font-size:12px;" onclick="excluirBeneficio(${b.id});event.stopPropagation();">🗑️ Excluir</button>
-        </div>
     </div>`; });
 }
 function abrirModalNovoBeneficio(op){ document.getElementById('beneficio-id').value=''; document.getElementById('btn-excluir-beneficio-modal').style.display='none'; document.getElementById('beneficio-operacao').value=op; document.getElementById('titulo-modal-beneficio').innerText=op==='entrada'?'Receber Benefício':'Utilizar Benefício'; document.getElementById('beneficio-valor').value=''; document.getElementById('beneficio-desc').value=''; document.getElementById('modal-beneficio').style.display='flex'; }
@@ -608,13 +604,9 @@ function renderizarHistorico(listaTransacoes) {
         let cls = t.tipo === 'entrada' ? 'cor-entrada' : t.tipo === 'cartao' ? 'cor-cartao' : t.tipo === 'reserva' ? 'cor-reserva' : 'cor-saida';
         let origem = t.cartao || t.conta || '';
         const parcelaInfo = t.totalParcelas > 1 ? ` · ${t.parcela}/${t.totalParcelas}` : '';
-        l.innerHTML += `<div class="item-transacao">
+        l.innerHTML += `<div class="item-transacao" style="cursor:pointer;" onclick="abrirModalEditar(${t.id})">
             <div class="linha-1"><span>${t.descricao}</span><span class="${cls}">${t.tipo === 'entrada' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</span></div>
             <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano}${parcelaInfo} - ${origem}</div>
-            <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end;">
-                <button type="button" class="btn-acao-modal btn-cancelar" style="padding:6px 10px;font-size:12px;" onclick="abrirModalEditar(${t.id});event.stopPropagation();">✏️ Editar</button>
-                <button type="button" class="btn-acao-modal btn-excluir" style="padding:6px 10px;font-size:12px;" onclick="excluirTransacaoRapido(${t.id});event.stopPropagation();">🗑️ Excluir</button>
-            </div>
         </div>`;
     });
 }
