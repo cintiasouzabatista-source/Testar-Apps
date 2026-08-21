@@ -241,7 +241,7 @@
         <div class="form-grupo" style="margin-top:12px;"><label>Benefício</label><select id="beneficio-tipo"><option value="VR">VR</option><option value="VA">VA</option><option value="Combustível">Combustível</option><option value="Outros">Outros</option></select></div>
         <div class="form-grupo"><label>Valor (R$)</label><input type="number" step="0.01" id="beneficio-valor"></div>
         <div class="form-grupo"><label>Descrição</label><input type="text" id="beneficio-desc" placeholder="Ex: crédito mensal, abastecimento..."></div>
-        <div class="modal-botoes"><button class="btn-acao-modal btn-cancelar" onclick="fecharModalBeneficio()">Cancelar</button><button class="btn-acao-modal btn-salvar" onclick="salvarBeneficioModal()">Salvar</button></div>
+        <div class="modal-botoes"><button class="btn-acao-modal btn-excluir" id="btn-excluir-beneficio-modal" style="display:none;" onclick="excluirBeneficioModal()">Excluir</button><button class="btn-acao-modal btn-cancelar" onclick="fecharModalBeneficio()">Cancelar</button><button class="btn-acao-modal btn-salvar" onclick="salvarBeneficioModal()">Salvar</button></div>
     </div>
 </div>
 
@@ -451,13 +451,21 @@ function atualizarBeneficios() {
     const filtradas=lista.filter(b=>filtro==='todos'||b.tipo===filtro);
     const l=document.getElementById('lista-beneficios'); l.innerHTML='';
     if(!filtradas.length){ l.innerHTML='<div style="text-align:center;color:var(--texto-secundario);padding:20px;">Nenhum lançamento de benefício neste período.</div>'; return; }
-    filtradas.forEach(b=>{ l.innerHTML += `<div class="item-transacao" onclick="abrirModalEditarBeneficio(${b.id})"><div class="linha-1"><span>${b.descricao} <span class="badge-beneficio">${b.tipo}</span></span><span class="${b.operacao==='entrada'?'cor-entrada':'cor-saida'}">${b.operacao==='entrada'?'+':'-'} R$ ${b.valor.toFixed(2)}</span></div><div class="linha-2">${b.dia} ${nomesMeses[b.mes]}/${b.ano}</div></div>`; });
+    filtradas.forEach(b=>{ l.innerHTML += `<div class="item-transacao">
+        <div class="linha-1"><span>${b.descricao} <span class="badge-beneficio">${b.tipo}</span></span><span class="${b.operacao==='entrada'?'cor-entrada':'cor-saida'}">${b.operacao==='entrada'?'+':'-'} R$ ${b.valor.toFixed(2)}</span></div>
+        <div class="linha-2">${b.dia} ${nomesMeses[b.mes]}/${b.ano}</div>
+        <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end;">
+            <button type="button" class="btn-acao-modal btn-cancelar" style="padding:6px 10px;font-size:12px;" onclick="abrirModalEditarBeneficio(${b.id});event.stopPropagation();">✏️ Editar</button>
+            <button type="button" class="btn-acao-modal btn-excluir" style="padding:6px 10px;font-size:12px;" onclick="excluirBeneficio(${b.id});event.stopPropagation();">🗑️ Excluir</button>
+        </div>
+    </div>`; });
 }
-function abrirModalNovoBeneficio(op){ document.getElementById('beneficio-id').value=''; document.getElementById('beneficio-operacao').value=op; document.getElementById('titulo-modal-beneficio').innerText=op==='entrada'?'Receber Benefício':'Utilizar Benefício'; document.getElementById('beneficio-valor').value=''; document.getElementById('beneficio-desc').value=''; document.getElementById('modal-beneficio').style.display='flex'; }
-function abrirModalEditarBeneficio(id){ const b=beneficios.find(x=>x.id==id); if(!b)return; document.getElementById('beneficio-id').value=b.id; document.getElementById('beneficio-operacao').value=b.operacao; document.getElementById('titulo-modal-beneficio').innerText='Editar Benefício'; document.getElementById('beneficio-tipo').value=b.tipo; document.getElementById('beneficio-valor').value=b.valor; document.getElementById('beneficio-desc').value=b.descricao; document.getElementById('modal-beneficio').style.display='flex'; }
+function abrirModalNovoBeneficio(op){ document.getElementById('beneficio-id').value=''; document.getElementById('btn-excluir-beneficio-modal').style.display='none'; document.getElementById('beneficio-operacao').value=op; document.getElementById('titulo-modal-beneficio').innerText=op==='entrada'?'Receber Benefício':'Utilizar Benefício'; document.getElementById('beneficio-valor').value=''; document.getElementById('beneficio-desc').value=''; document.getElementById('modal-beneficio').style.display='flex'; }
+function abrirModalEditarBeneficio(id){ const b=beneficios.find(x=>x.id==id); if(!b)return; document.getElementById('btn-excluir-beneficio-modal').style.display='block'; document.getElementById('beneficio-id').value=b.id; document.getElementById('beneficio-operacao').value=b.operacao; document.getElementById('titulo-modal-beneficio').innerText='Editar Benefício'; document.getElementById('beneficio-tipo').value=b.tipo; document.getElementById('beneficio-valor').value=b.valor; document.getElementById('beneficio-desc').value=b.descricao; document.getElementById('modal-beneficio').style.display='flex'; }
 function fecharModalBeneficio(){document.getElementById('modal-beneficio').style.display='none';}
 function salvarBeneficioModal(){ const id=document.getElementById('beneficio-id').value; const op=document.getElementById('beneficio-operacao').value; const tipo=document.getElementById('beneficio-tipo').value; const valor=parseFloat(document.getElementById('beneficio-valor').value)||0; if(valor<=0)return alert('Informe um valor válido.'); const desc=document.getElementById('beneficio-desc').value|| (op==='entrada'?'Crédito de benefício':'Uso de benefício'); if(id){const b=beneficios.find(x=>x.id==id); if(b){b.tipo=tipo;b.operacao=op;b.valor=valor;b.descricao=desc;}} else beneficios.unshift({id:Date.now(),tipo,operacao:op,valor,descricao:desc,mes:mesAtualGlobal,ano:anoAtualGlobal,dia:new Date().getDate()}); fecharModalBeneficio(); salvarBeneficios();}
 function excluirBeneficio(id){ if(confirm('Excluir este benefício?')){beneficios=beneficios.filter(b=>b.id!=id);salvarBeneficios();} }
+function excluirBeneficioModal(){ const id=document.getElementById('beneficio-id').value; if(id) { excluirBeneficio(id); fecharModalBeneficio(); } }
 
 function mostrarPerguntaConta(id, tipo) {
     const modal = document.getElementById('modal-pergunta');
@@ -599,9 +607,14 @@ function renderizarHistorico(listaTransacoes) {
     filtradas.forEach(t => {
         let cls = t.tipo === 'entrada' ? 'cor-entrada' : t.tipo === 'cartao' ? 'cor-cartao' : t.tipo === 'reserva' ? 'cor-reserva' : 'cor-saida';
         let origem = t.cartao || t.conta || '';
-        l.innerHTML += `<div class="item-transacao" onclick="abrirModalEditar(${t.id})">
+        const parcelaInfo = t.totalParcelas > 1 ? ` · ${t.parcela}/${t.totalParcelas}` : '';
+        l.innerHTML += `<div class="item-transacao">
             <div class="linha-1"><span>${t.descricao}</span><span class="${cls}">${t.tipo === 'entrada' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</span></div>
-            <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano} - ${origem}</div>
+            <div class="linha-2">${t.dia} ${nomesMeses[t.mes]}/${t.ano}${parcelaInfo} - ${origem}</div>
+            <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end;">
+                <button type="button" class="btn-acao-modal btn-cancelar" style="padding:6px 10px;font-size:12px;" onclick="abrirModalEditar(${t.id});event.stopPropagation();">✏️ Editar</button>
+                <button type="button" class="btn-acao-modal btn-excluir" style="padding:6px 10px;font-size:12px;" onclick="excluirTransacaoRapido(${t.id});event.stopPropagation();">🗑️ Excluir</button>
+            </div>
         </div>`;
     });
 }
@@ -639,6 +652,19 @@ function salvarEdicaoModal() {
     }
     fecharModalEditar();
     salvarTudo();
+}
+
+function excluirTransacaoRapido(id) {
+    const t = transacoes.find(i => i.id == id);
+    if (!t) return;
+    let mensagem = 'Deseja realmente excluir esta transação?';
+    if (t.compraParceladaId && t.totalParcelas > 1) {
+        mensagem = `Excluir somente a parcela ${t.parcela}/${t.totalParcelas}?\n\nPara excluir a compra inteira, abra a edição da parcela e confirme a exclusão em seguida.`;
+    }
+    if (confirm(mensagem)) {
+        transacoes = transacoes.filter(i => i.id != id);
+        salvarTudo();
+    }
 }
 
 function excluirTransacaoModal() {
