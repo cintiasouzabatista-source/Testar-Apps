@@ -278,6 +278,7 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
             <button onclick="atualizarVeiculo()" class="btn-icon" style="background:var(--primary);color:#fff">Salvar</button>
         </div>
         <button onclick="arquivarVeiculoAtual()" class="btn-icon" style="width:100%;margin-top:8px;">Arquivar veículo</button>
+        <button onclick="excluirVeiculoDefinitivamente(veiculoAtivoId)" class="btn-icon btn-danger" style="width:100%;margin-top:8px;"><i class="fas fa-trash-alt"></i> Excluir definitivamente</button>
     </div>
 </div>
 
@@ -981,6 +982,7 @@ function selecionarVeiculoGerenciamento(id){
             <button onclick="abrirEdicaoVeiculo('${String(v.id).replace(/'/g,"\\'")}')" class="btn-icon"><i class="fas fa-edit"></i> Editar</button>
             <button onclick="arquivarVeiculo('${String(v.id).replace(/'/g,"\\'")}')" class="btn-icon"><i class="fas fa-archive"></i> Arquivar</button>
         </div>
+        <button onclick="excluirVeiculoDefinitivamente('${String(v.id).replace(/'/g,"\\'")}')" class="btn-icon btn-danger" style="width:100%;margin-top:8px;"><i class="fas fa-trash-alt"></i> Excluir definitivamente</button>
     </div>`;
 }
 function abrirModalNovoVeiculo(){ abrirFormNovoVeiculo(); }
@@ -1041,7 +1043,36 @@ function arquivarVeiculo(id){
     salvarTudo(); atualizarPainel(); renderListaVeiculos(); document.getElementById('painelVeiculoDetalhes').style.display='none';
 }
 function arquivarVeiculoAtual(){ arquivarVeiculo(veiculoAtivoId); fecharModalEditarVeiculo(); }
-function excluirVeiculo(){ arquivarVeiculoAtual(); }
+function excluirVeiculoDefinitivamente(id){
+    const v=veiculos.find(x=>String(x.id)===String(id));
+    if(!v) return;
+    const nome=v.nome||'este veículo';
+    const confirmou=confirm(
+        `⚠️ EXCLUSÃO DEFINITIVA\n\n`+
+        `Excluir ${nome} e TODO o seu histórico?\n\n`+
+        `Serão apagados permanentemente os abastecimentos, manutenções e documentos deste veículo.\n\n`+
+        `Essa ação não pode ser desfeita pelo aplicativo.\n\n`+
+        `Clique em OK somente se tiver certeza.`
+    );
+    if(!confirmou) return;
+
+    const indice=veiculos.findIndex(x=>String(x.id)===String(id));
+    if(indice<0) return;
+    veiculos.splice(indice,1);
+
+    if(String(veiculoAtivoId)===String(id)){
+        const prox=veiculos.find(x=>!x.arquivado);
+        veiculoAtivoId=prox?.id||null;
+    }
+
+    salvarTudo();
+    fecharModalEditarVeiculo();
+    fecharModalVeiculo();
+    atualizarPainel();
+
+    alert(`${nome} foi excluído definitivamente.\n\nO histórico deste veículo também foi removido.`);
+}
+function excluirVeiculo(){ excluirVeiculoDefinitivamente(veiculoAtivoId); }
 
 function exportarBackup() {
     const dados = { veiculos, veiculoAtivoId, tema };
@@ -1167,9 +1198,37 @@ function importarBackup(event) {
 }
 
 function resetarApp() {
-    if(confirm('Tem certeza absoluta que deseja apagar todos os dados e reiniciar o aplicativo?')) {
-        localStorage.removeItem(CHAVE_STORAGE); localStorage.removeItem(CHAVE_ATIVO); location.reload();
+    const confirmou = confirm(
+        '⚠️ RESETAR APLICATIVO\n\n' +
+        'Isso apagará TODOS os veículos, abastecimentos, manutenções, documentos e configurações salvos neste navegador.\n\n' +
+        'Antes de continuar, certifique-se de ter exportado um backup.\n\n' +
+        'Esta ação não pode ser desfeita pelo aplicativo.\n\n' +
+        'Deseja realmente limpar tudo?'
+    );
+    if(!confirmou) return;
+
+    // Remove a versão atual e TODAS as versões antigas.
+    // Isso é necessário porque a rotina de migração recupera dados de chaves antigas.
+    const chavesParaRemover = [];
+    for(let i = 0; i < localStorage.length; i++) {
+        const chave = localStorage.key(i);
+        if(!chave) continue;
+        if(
+            chave.startsWith('veiculos_frota') ||
+            chave.startsWith('veiculoAtivoId_frota_') ||
+            chave === 'tema_frota'
+        ) {
+            chavesParaRemover.push(chave);
+        }
     }
+    chavesParaRemover.forEach(chave => localStorage.removeItem(chave));
+
+    // Garante que nenhuma cópia interna de migração/importação seja reutilizada.
+    localStorage.removeItem('veiculos_frota_backup_migracao');
+    localStorage.removeItem('veiculos_frota_backup_antes_importacao');
+
+    alert('Aplicativo resetado com sucesso. Todos os dados locais foram removidos.');
+    location.reload();
 }
 
 function abrirModalKm(){ const v = getVeiculoAtivo(); if(!v) return alert('Cadastre um veículo para atualizar o odômetro.'); document.getElementById('kmInput').value = v.config.kmBase; document.getElementById('modalKm').style.display='flex'; }
