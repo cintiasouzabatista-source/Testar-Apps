@@ -286,6 +286,7 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
             <button onclick="atualizarVeiculo()" class="btn-icon" style="background:var(--primary);color:#fff">Salvar</button>
         </div>
         <button onclick="arquivarVeiculoAtual()" class="btn-icon" style="width:100%;margin-top:8px;">Arquivar veículo</button>
+        <button onclick="excluirVeiculoAtual()" class="btn-icon btn-danger" style="width:100%;margin-top:8px;">🗑️ Excluir definitivamente</button>
     </div>
 </div>
 
@@ -1239,6 +1240,7 @@ function selecionarVeiculoGerenciamento(id){
         <div class="grid-2">
             <button onclick="abrirEdicaoVeiculo('${String(v.id).replace(/'/g,"\\'")}')" class="btn-icon"><i class="fas fa-edit"></i> Editar</button>
             <button onclick="arquivarVeiculo('${String(v.id).replace(/'/g,"\\'")}')" class="btn-icon"><i class="fas fa-archive"></i> Arquivar</button>
+            <button onclick="excluirVeiculo('${String(v.id).replace(/'/g,"\\'")}')" class="btn-icon btn-danger"><i class="fas fa-trash"></i> Excluir</button>
         </div>
     </div>`;
 }
@@ -1300,7 +1302,48 @@ function arquivarVeiculo(id){
     salvarTudo(); atualizarPainel(); renderListaVeiculos(); document.getElementById('painelVeiculoDetalhes').style.display='none';
 }
 function arquivarVeiculoAtual(){ arquivarVeiculo(veiculoAtivoId); fecharModalEditarVeiculo(); }
-function excluirVeiculo(){ arquivarVeiculoAtual(); }
+function excluirVeiculo(id){
+    const v = veiculos.find(x => String(x.id) === String(id));
+    if(!v) return;
+
+    const nome = v.nome || 'este veículo';
+    const totalAbast = (v.abastecimentos || []).length;
+    const totalManut = (v.manut || []).length;
+    const totalDocs = (v.documentos || []).length;
+
+    const ok = confirm(
+        `EXCLUIR DEFINITIVAMENTE?\n\n` +
+        `${nome}\n\n` +
+        `Isso apagará o veículo e todo o histórico associado:\n` +
+        `• ${totalAbast} abastecimento(s)\n` +
+        `• ${totalManut} manutenção(ões)\n` +
+        `• ${totalDocs} documento(s)\n\n` +
+        `Esta ação não pode ser desfeita.\n\n` +
+        `Para preservar o histórico, use "Arquivar".`
+    );
+    if(!ok) return;
+
+    veiculos = veiculos.filter(x => String(x.id) !== String(id));
+
+    if(String(veiculoAtivoId) === String(id)){
+        const prox = veiculos.find(x => !x.arquivado);
+        veiculoAtivoId = prox?.id || null;
+    }
+
+    salvarTudo();
+    fecharModalEditarVeiculo();
+    atualizarPainel();
+    renderListaVeiculos();
+
+    const detalhes = document.getElementById('painelVeiculoDetalhes');
+    if(detalhes) detalhes.style.display = 'none';
+
+    alert(`"${nome}" foi excluído definitivamente.`);
+}
+
+function excluirVeiculoAtual(){
+    if(veiculoAtivoId) excluirVeiculo(veiculoAtivoId);
+}
 
 function exportarBackup() {
     const dados = { veiculos, veiculoAtivoId, tema };
