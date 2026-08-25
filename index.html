@@ -322,8 +322,8 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
 <div id="modalConfig" class="modal">
     <div class="modal-content">
         <h3 style="margin-bottom: 12px;"><i class="fas fa-cog"></i> Configurações & Ajustes</h3>
-        <button class="btn-icon" style="width:100%; margin-bottom:8px;" onclick="exportarBackup()"><i class="fas fa-download"></i> Baixar Backup (JSON)</button>
-        <label class="btn-icon" style="margin-bottom:12px; cursor:pointer;"><i class="fas fa-upload"></i> Restaurar Backup <input type="file" id="fileBackup" style="display:none" onchange="importarBackup(event)"></label>
+        <button class="btn-icon" style="width:100%; margin-bottom:8px;" onclick="exportarBackup()"><i class="fas fa-download"></i> Exportar Backup (JSON)</button>
+        <label class="btn-icon" style="margin-bottom:12px; cursor:pointer;"><i class="fas fa-upload"></i> Importar Backup <input type="file" id="fileBackup" style="display:none" onchange="importarBackup(event)"></label>
         <hr style="border-color:var(--border); margin:12px 0;">
         <button class="btn-icon btn-danger" style="width:100%;" onclick="resetarApp()"><i class="fas fa-trash-alt"></i> Resetar / Limpar Tudo</button>
         <div class="modal-actions" style="margin-top:14px;"><button onclick="fecharModalConfig()" class="btn-icon" style="width:100%;">Fechar</button></div>
@@ -1051,17 +1051,117 @@ function exportarBackup() {
 }
 
 function importarBackup(event) {
-    const file = event.target.files[0]; if(!file) return;
+    const file = event.target.files[0];
+    if(!file) return;
+
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
             const dados = JSON.parse(e.target.result);
-            if(dados.veiculos) {
-                veiculos = dados.veiculos; veiculoAtivoId = dados.veiculoAtivoId || veiculos[0]?.id;
-                if(dados.tema) { tema = dados.tema; localStorage.setItem('tema_frota', tema); aplicarTema(); }
-                salvarTudo(); alert('Backup restaurado com sucesso!'); fecharModalConfig(); atualizarPainel();
-            } else { alert('Arquivo de backup inválido.'); }
-        } catch(err) { alert('Erro ao ler o arquivo JSON.'); }
+            if(!Array.isArray(dados.veiculos)) {
+                alert('Arquivo de backup inválido.');
+                return;
+            }
+
+            // Proteção: guarda o estado atual antes de qualquer importação.
+            localStorage.setItem(
+                'veiculos_frota_backup_antes_importacao',
+                JSON.stringify({ veiculos, veiculoAtivoId, tema, data: new Date().toISOString() })
+            );
+
+            // IMPORTAR nunca substitui a frota atual. Apenas acrescenta dados
+            // que não existem e preserva todo o histórico já salvo.
+            const porId = new Map(veiculos.map(v => [String(v.id), v]));
+            let novosVeiculos = 0;
+            let registrosAdicionados = 0;
+
+            const clonar = obj => JSON.parse(JSON.stringify(obj));
+
+            dados.veiculos.forEach(importado => {
+                if(!importado || importado.id == null) return;
+                const id = String(importado.id);
+                const atual = porId.get(id);
+
+                if(!atual) {
+                    const novo = clonar(importado);
+                    novo.abast = Array.isArray(novo.abast) ? novo.abast : [];
+                    novo.manut = Array.isArray(novo.manut) ? novo.manut : [];
+                    novo.documentos = Array.isArray(novo.documentos) ? novo.documentos : [];
+                    novo.config = novo.config || {};
+                    veiculos.push(novo);
+                    porId.set(id, novo);
+                    novosVeiculos++;
+                    registrosAdicionados += novo.abast.length + novo.manut.length + novo.documentos.length;
+                    return;
+                }
+
+                atual.config = atual.config || {};
+                importado.config = importado.config || {};
+
+                // KM atual: nunca retrocede. Se o backup tiver um KM maior, avança.
+                const kmAtual = Number(atual.config.kmBase);
+                const kmImportado = Number(importado.config.kmBase);
+                if(Number.isFinite(kmImportado) && (!Number.isFinite(kmAtual) || kmImportado > kmAtual)) {
+                    atual.config.kmBase = kmImportado;
+                }
+
+                // KM de aquisição é histórico: se já existe, permanece.
+                if(typeof atual.config.kmInicial !== 'number' && typeof importado.config.kmInicial === 'number') {
+                    atual.config.kmInicial = importado.config.kmInicial;
+                }
+
+                // Completa apenas dados cadastrais ausentes, sem sobrescrever os atuais.
+                ['nome','modelo','ano','tipo','dataAquisicao','tanqueL','reservaL'].forEach(campo => {
+                    if((atual[campo] === undefined || atual[campo] === '') && importado[campo] !== undefined) {
+                        atual[campo] = clonar(importado[campo]);
+                    }
+                });
+
+                // Une históricos por ID, sem apagar nem duplicar registros.
+                ['abast','manut','documentos'].forEach(campo => {
+                    const listaAtual = Array.isArray(atual[campo]) ? atual[campo] : [];
+                    const listaImportada = Array.isArray(importado[campo]) ? importado[campo] : [];
+                    const ids = new Set(listaAtual.map(x => String(x.id)));
+                    listaImportada.forEach(item => {
+                        if(item && item.id != null && !ids.has(String(item.id))) {
+                            listaAtual.push(clonar(item));
+                            ids.add(String(item.id));
+                            registrosAdicionados++;
+                        }
+                    });
+                    atual[campo] = listaAtual;
+                });
+            });
+
+            // Só muda o veículo ativo se não houver um ativo válido atualmente.
+            const ativoExiste = veiculos.some(v => String(v.id) === String(veiculoAtivoId));
+            if(!ativoExiste && dados.veiculoAtivoId && veiculos.some(v => String(v.id) === String(dados.veiculoAtivoId))) {
+                veiculoAtivoId = dados.veiculoAtivoId;
+            }
+
+            if(dados.tema) {
+                tema = dados.tema;
+                localStorage.setItem('tema_frota', tema);
+                aplicarTema();
+            }
+
+            salvarTudo();
+            renderListaVeiculos();
+            atualizarPainel();
+            fecharModalConfig();
+            event.target.value = '';
+
+            alert(
+                'Importação concluída sem apagar dados.\n\n' +
+                'Novos veículos: ' + novosVeiculos + '\n' +
+                'Novos registros adicionados: ' + registrosAdicionados + '\n\n' +
+                'O histórico existente foi preservado.'
+            );
+        } catch(err) {
+            console.error(err);
+            alert('Erro ao ler o arquivo JSON. Nenhum dado foi alterado.');
+            event.target.value = '';
+        }
     };
     reader.readAsText(file);
 }
