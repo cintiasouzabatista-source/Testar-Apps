@@ -278,7 +278,6 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
             <button onclick="atualizarVeiculo()" class="btn-icon" style="background:var(--primary);color:#fff">Salvar</button>
         </div>
         <button onclick="arquivarVeiculoAtual()" class="btn-icon" style="width:100%;margin-top:8px;">Arquivar veículo</button>
-        <button onclick="excluirVeiculoDefinitivamente(veiculoAtivoId)" class="btn-icon btn-danger" style="width:100%;margin-top:8px;"><i class="fas fa-trash-alt"></i> Excluir definitivamente</button>
     </div>
 </div>
 
@@ -323,8 +322,8 @@ label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; 
 <div id="modalConfig" class="modal">
     <div class="modal-content">
         <h3 style="margin-bottom: 12px;"><i class="fas fa-cog"></i> Configurações & Ajustes</h3>
-        <button class="btn-icon" style="width:100%; margin-bottom:8px;" onclick="exportarBackup()"><i class="fas fa-download"></i> Exportar Backup (JSON)</button>
-        <label class="btn-icon" style="margin-bottom:12px; cursor:pointer;"><i class="fas fa-upload"></i> Importar Backup <input type="file" id="fileBackup" style="display:none" onchange="importarBackup(event)"></label>
+        <button class="btn-icon" style="width:100%; margin-bottom:8px;" onclick="exportarBackup()"><i class="fas fa-download"></i> Baixar Backup (JSON)</button>
+        <label class="btn-icon" style="margin-bottom:12px; cursor:pointer;"><i class="fas fa-upload"></i> Restaurar Backup <input type="file" id="fileBackup" style="display:none" onchange="importarBackup(event)"></label>
         <hr style="border-color:var(--border); margin:12px 0;">
         <button class="btn-icon btn-danger" style="width:100%;" onclick="resetarApp()"><i class="fas fa-trash-alt"></i> Resetar / Limpar Tudo</button>
         <div class="modal-actions" style="margin-top:14px;"><button onclick="fecharModalConfig()" class="btn-icon" style="width:100%;">Fechar</button></div>
@@ -568,14 +567,52 @@ function calcularCiclosConsumo(v) {
     return { abast, ciclos };
 }
 
-function obterConsumoMedio(v) {
+function obterConsumoInfo(v) {
     const { ciclos } = calcularCiclosConsumo(v);
-    if (!ciclos.length) return 0;
 
-    // Média ponderada: todos os km e litros dos ciclos válidos contam.
-    const km = ciclos.reduce((s, c) => s + c.kmRodados, 0);
-    const litros = ciclos.reduce((s, c) => s + c.litros, 0);
-    return litros > 0 ? km / litros : 0;
+    // Regra nova: ciclos completos de tanque cheio são a medição oficial.
+    if (ciclos.length) {
+        const km = ciclos.reduce((s, c) => s + c.kmRodados, 0);
+        const litros = ciclos.reduce((s, c) => s + c.litros, 0);
+        return {
+            media: litros > 0 ? km / litros : 0,
+            tipo: 'real',
+            ciclos: ciclos.length
+        };
+    }
+
+    // Compatibilidade com históricos antigos:
+    // muitos abastecimentos antigos não possuem a flag tanqueCheio.
+    // Calculamos uma estimativa somente em memória, sem alterar nenhum registro.
+    const abast = obterAbastecimentosOrdenados(v);
+    if (abast.length >= 2) {
+        const primeiro = abast[0];
+        const ultimo = abast[abast.length - 1];
+        const kmRodados = Number(ultimo.km) - Number(primeiro.km);
+
+        // O primeiro abastecimento estabelece a referência do tanque.
+        // Os abastecimentos seguintes representam o combustível consumido
+        // entre os pontos conhecidos.
+        const litros = abast.slice(1).reduce((s, a) => s + Number(a.litros || 0), 0);
+
+        if (kmRodados > 0 && litros > 0) {
+            return {
+                media: kmRodados / litros,
+                tipo: 'historico',
+                ciclos: 0
+            };
+        }
+    }
+
+    return {
+        media: 0,
+        tipo: 'insuficiente',
+        ciclos: 0
+    };
+}
+
+function obterConsumoMedio(v) {
+    return obterConsumoInfo(v).media;
 }
 
 function atualizarPainel() {
@@ -594,15 +631,23 @@ function atualizarPainel() {
 
     const { abast: abastOrdenados, ciclos } = calcularCiclosConsumo(v);
     const ultimoAbast = abastOrdenados.length ? abastOrdenados[abastOrdenados.length - 1] : null;
-    const media = obterConsumoMedio(v);
+    const consumoInfo = obterConsumoInfo(v);
+    const media = consumoInfo.media;
 
     if(ultimoAbast){
         document.getElementById('ultimoAbastData').textContent = formatarDataCurta(ultimoAbast.data);
-        document.getElementById('ultimoAbastValor').textContent = `R$ ${Number(ultimoAbast.total || 0).toFixed(2)} - ${Number(ultimoAbast.litros || 0).toFixed(3)}L (${ultimoAbast.combustivel || 'Gasolina'})`;
+        document.getElementById('ultimoAbastValor').textContent =
+            `R$ ${Number(ultimoAbast.total || 0).toFixed(2)} - ${Number(ultimoAbast.litros || 0).toFixed(3)}L (${ultimoAbast.combustivel || 'Gasolina'})`;
 
-        document.getElementById('consumoMedia').textContent = media > 0
-            ? `Consumo: ${media.toFixed(2)} km/L`
-            : `Consumo: aguardando 2 abastecimentos com tanque cheio`;
+        if(media > 0){
+            const rotulo = consumoInfo.tipo === 'real'
+                ? `Consumo: ${media.toFixed(2)} km/L`
+                : `Consumo: ${media.toFixed(2)} km/L (estimativa histórica)`;
+            document.getElementById('consumoMedia').textContent = rotulo;
+        } else {
+            document.getElementById('consumoMedia').textContent =
+                `Consumo: aguardando histórico de abastecimentos`;
+        }
 
         const cardProxAbast = document.getElementById('cardProxAbast');
         cardProxAbast.classList.remove('alerta-amarelo', 'alerta-vermelho');
@@ -611,8 +656,12 @@ function atualizarPainel() {
             const tanqueTotal = Math.max(0, Number(v.tanqueL) || 0);
             const reserva = Math.min(tanqueTotal, Math.max(0, Number(v.reservaL) || 0));
             const volumeAteReserva = Math.max(0, tanqueTotal - reserva);
+
+            // 1) Se houver ciclo oficial de tanque cheio, usa a regra nova.
             const indiceUltimoCheio = (() => {
-                for(let i = abastOrdenados.length - 1; i >= 0; i--) if(abastOrdenados[i].tanqueCheio) return i;
+                for(let i = abastOrdenados.length - 1; i >= 0; i--) {
+                    if(abastOrdenados[i].tanqueCheio) return i;
+                }
                 return -1;
             })();
 
@@ -620,39 +669,62 @@ function atualizarPainel() {
                 const ultimoCheio = abastOrdenados[indiceUltimoCheio];
                 const trechoDesdeCheio = abastOrdenados.slice(indiceUltimoCheio + 1);
                 const combustivelBase = ultimoCheio.combustivel || 'Gasolina';
-                const misturaCombustivel = trechoDesdeCheio.some(a => (a.combustivel || 'Gasolina') !== combustivelBase);
-                const litrosExtras = misturaCombustivel ? 0 : trechoDesdeCheio.reduce((s,a) => s + Number(a.litros || 0), 0);
+                const misturaCombustivel = trechoDesdeCheio.some(
+                    a => (a.combustivel || 'Gasolina') !== combustivelBase
+                );
+                const litrosExtras = misturaCombustivel
+                    ? 0
+                    : trechoDesdeCheio.reduce((s,a) => s + Number(a.litros || 0), 0);
                 const kmDesdeUltimoCheio = Math.max(0, kmAtual - Number(ultimoCheio.km));
 
-                // Após um tanque cheio, os abastecimentos parciais seguintes são somados
-                // ao volume disponível. Isso permite continuar estimando autonomia sem
-                // tratar o abastecimento parcial como um novo tanque.
                 const litrosDisponiveisAteReserva = volumeAteReserva + litrosExtras;
                 const kmAteReserva = litrosDisponiveisAteReserva * media;
                 const kmRestantes = kmAteReserva - kmDesdeUltimoCheio;
                 const proxAbastKm = Number(ultimoCheio.km) + kmAteReserva;
 
                 if(kmRestantes > 0 && !misturaCombustivel){
-                    document.getElementById('proxAbastKm').textContent = proxAbastKm.toLocaleString('pt-BR', {maximumFractionDigits:0}) + ' km';
-                    document.getElementById('proxAbastTexto').textContent = `Estimativa: ~${Math.round(kmRestantes)} km até a reserva`;
+                    document.getElementById('proxAbastKm').textContent =
+                        proxAbastKm.toLocaleString('pt-BR', {maximumFractionDigits:0}) + ' km';
+                    document.getElementById('proxAbastTexto').textContent =
+                        `Estimativa: ~${Math.round(kmRestantes)} km até a reserva`;
                 } else if(misturaCombustivel){
                     document.getElementById('proxAbastKm').textContent = '-- km';
-                    document.getElementById('proxAbastTexto').textContent = 'Mistura de combustíveis: aguardando novo tanque cheio';
+                    document.getElementById('proxAbastTexto').textContent =
+                        'Mistura de combustíveis: aguardando novo tanque cheio';
                 } else {
                     cardProxAbast.classList.add('alerta-vermelho');
                     const autonomiaTotal = (tanqueTotal + litrosExtras) * media;
                     const kmRestantesTanque = autonomiaTotal - kmDesdeUltimoCheio;
                     if(kmRestantesTanque > 0){
                         document.getElementById('proxAbastKm').textContent = 'RESERVA!';
-                        document.getElementById('proxAbastTexto').textContent = `Estimativa: ~${Math.round(kmRestantesTanque)} km restantes no tanque`;
+                        document.getElementById('proxAbastTexto').textContent =
+                            `Estimativa: ~${Math.round(kmRestantesTanque)} km restantes no tanque`;
                     } else {
                         document.getElementById('proxAbastKm').textContent = 'ABASTEÇA';
-                        document.getElementById('proxAbastTexto').textContent = 'Estimativa de autonomia esgotada';
+                        document.getElementById('proxAbastTexto').textContent =
+                            'Estimativa de autonomia esgotada';
                     }
                 }
             } else {
-                document.getElementById('proxAbastKm').textContent = '-- km';
-                document.getElementById('proxAbastTexto').textContent = 'Marque um abastecimento como tanque cheio';
+                // 2) Compatibilidade com histórico antigo:
+                // sem tanqueCheio, usamos o último abastecimento como referência.
+                // Isso recupera a estimativa que o app já apresentava antes da V2.
+                const litrosUltimo = Number(ultimoAbast.litros || 0);
+                const kmDesdeUltimo = Math.max(0, kmAtual - Number(ultimoAbast.km || kmAtual));
+
+                if(litrosUltimo > 0 && media > 0){
+                    const autonomiaComUltimoAbast = Math.max(0, (litrosUltimo * media) - kmDesdeUltimo);
+                    const proxAbastKm = kmAtual + autonomiaComUltimoAbast;
+
+                    document.getElementById('proxAbastKm').textContent =
+                        Math.round(proxAbastKm).toLocaleString('pt-BR') + ' km';
+                    document.getElementById('proxAbastTexto').textContent =
+                        `Estimativa histórica: ~${Math.round(autonomiaComUltimoAbast)} km restantes`;
+                } else {
+                    document.getElementById('proxAbastKm').textContent = '-- km';
+                    document.getElementById('proxAbastTexto').textContent =
+                        'Precisa de mais histórico';
+                }
             }
         } else {
             document.getElementById('proxAbastKm').textContent = '-- km';
@@ -786,7 +858,7 @@ function renderizarGraficos() {
             <p><i class="fas fa-info-circle"></i> <span>O último ciclo registrou <b>${ultimoConsumo.toFixed(2)} km/L</b>, estando ${tendenciaTexto}</span></p>
         `;
     } else {
-        analiseHtml = `<p style="color:var(--muted); text-align:center;"><i class="fas fa-info-circle" style="margin-top:0;"></i> Marque "Tanque cheio" em dois abastecimentos para gerar uma medição confiável de consumo.</p>`;
+        analiseHtml = `<p style="color:var(--muted); text-align:center;"><i class="fas fa-info-circle" style="margin-top:0;"></i> O consumo oficial usa ciclos de tanque cheio. Históricos antigos sem essa marcação são exibidos como estimativa.</p>`;
     }
     document.getElementById('containerAnaliseConsumo').innerHTML = analiseHtml;
 }
@@ -982,7 +1054,6 @@ function selecionarVeiculoGerenciamento(id){
             <button onclick="abrirEdicaoVeiculo('${String(v.id).replace(/'/g,"\\'")}')" class="btn-icon"><i class="fas fa-edit"></i> Editar</button>
             <button onclick="arquivarVeiculo('${String(v.id).replace(/'/g,"\\'")}')" class="btn-icon"><i class="fas fa-archive"></i> Arquivar</button>
         </div>
-        <button onclick="excluirVeiculoDefinitivamente('${String(v.id).replace(/'/g,"\\'")}')" class="btn-icon btn-danger" style="width:100%;margin-top:8px;"><i class="fas fa-trash-alt"></i> Excluir definitivamente</button>
     </div>`;
 }
 function abrirModalNovoVeiculo(){ abrirFormNovoVeiculo(); }
@@ -1043,36 +1114,7 @@ function arquivarVeiculo(id){
     salvarTudo(); atualizarPainel(); renderListaVeiculos(); document.getElementById('painelVeiculoDetalhes').style.display='none';
 }
 function arquivarVeiculoAtual(){ arquivarVeiculo(veiculoAtivoId); fecharModalEditarVeiculo(); }
-function excluirVeiculoDefinitivamente(id){
-    const v=veiculos.find(x=>String(x.id)===String(id));
-    if(!v) return;
-    const nome=v.nome||'este veículo';
-    const confirmou=confirm(
-        `⚠️ EXCLUSÃO DEFINITIVA\n\n`+
-        `Excluir ${nome} e TODO o seu histórico?\n\n`+
-        `Serão apagados permanentemente os abastecimentos, manutenções e documentos deste veículo.\n\n`+
-        `Essa ação não pode ser desfeita pelo aplicativo.\n\n`+
-        `Clique em OK somente se tiver certeza.`
-    );
-    if(!confirmou) return;
-
-    const indice=veiculos.findIndex(x=>String(x.id)===String(id));
-    if(indice<0) return;
-    veiculos.splice(indice,1);
-
-    if(String(veiculoAtivoId)===String(id)){
-        const prox=veiculos.find(x=>!x.arquivado);
-        veiculoAtivoId=prox?.id||null;
-    }
-
-    salvarTudo();
-    fecharModalEditarVeiculo();
-    fecharModalVeiculo();
-    atualizarPainel();
-
-    alert(`${nome} foi excluído definitivamente.\n\nO histórico deste veículo também foi removido.`);
-}
-function excluirVeiculo(){ excluirVeiculoDefinitivamente(veiculoAtivoId); }
+function excluirVeiculo(){ arquivarVeiculoAtual(); }
 
 function exportarBackup() {
     const dados = { veiculos, veiculoAtivoId, tema };
@@ -1082,153 +1124,25 @@ function exportarBackup() {
 }
 
 function importarBackup(event) {
-    const file = event.target.files[0];
-    if(!file) return;
-
+    const file = event.target.files[0]; if(!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
             const dados = JSON.parse(e.target.result);
-            if(!Array.isArray(dados.veiculos)) {
-                alert('Arquivo de backup inválido.');
-                return;
-            }
-
-            // Proteção: guarda o estado atual antes de qualquer importação.
-            localStorage.setItem(
-                'veiculos_frota_backup_antes_importacao',
-                JSON.stringify({ veiculos, veiculoAtivoId, tema, data: new Date().toISOString() })
-            );
-
-            // IMPORTAR nunca substitui a frota atual. Apenas acrescenta dados
-            // que não existem e preserva todo o histórico já salvo.
-            const porId = new Map(veiculos.map(v => [String(v.id), v]));
-            let novosVeiculos = 0;
-            let registrosAdicionados = 0;
-
-            const clonar = obj => JSON.parse(JSON.stringify(obj));
-
-            dados.veiculos.forEach(importado => {
-                if(!importado || importado.id == null) return;
-                const id = String(importado.id);
-                const atual = porId.get(id);
-
-                if(!atual) {
-                    const novo = clonar(importado);
-                    novo.abast = Array.isArray(novo.abast) ? novo.abast : [];
-                    novo.manut = Array.isArray(novo.manut) ? novo.manut : [];
-                    novo.documentos = Array.isArray(novo.documentos) ? novo.documentos : [];
-                    novo.config = novo.config || {};
-                    veiculos.push(novo);
-                    porId.set(id, novo);
-                    novosVeiculos++;
-                    registrosAdicionados += novo.abast.length + novo.manut.length + novo.documentos.length;
-                    return;
-                }
-
-                atual.config = atual.config || {};
-                importado.config = importado.config || {};
-
-                // KM atual: nunca retrocede. Se o backup tiver um KM maior, avança.
-                const kmAtual = Number(atual.config.kmBase);
-                const kmImportado = Number(importado.config.kmBase);
-                if(Number.isFinite(kmImportado) && (!Number.isFinite(kmAtual) || kmImportado > kmAtual)) {
-                    atual.config.kmBase = kmImportado;
-                }
-
-                // KM de aquisição é histórico: se já existe, permanece.
-                if(typeof atual.config.kmInicial !== 'number' && typeof importado.config.kmInicial === 'number') {
-                    atual.config.kmInicial = importado.config.kmInicial;
-                }
-
-                // Completa apenas dados cadastrais ausentes, sem sobrescrever os atuais.
-                ['nome','modelo','ano','tipo','dataAquisicao','tanqueL','reservaL'].forEach(campo => {
-                    if((atual[campo] === undefined || atual[campo] === '') && importado[campo] !== undefined) {
-                        atual[campo] = clonar(importado[campo]);
-                    }
-                });
-
-                // Une históricos por ID, sem apagar nem duplicar registros.
-                ['abast','manut','documentos'].forEach(campo => {
-                    const listaAtual = Array.isArray(atual[campo]) ? atual[campo] : [];
-                    const listaImportada = Array.isArray(importado[campo]) ? importado[campo] : [];
-                    const ids = new Set(listaAtual.map(x => String(x.id)));
-                    listaImportada.forEach(item => {
-                        if(item && item.id != null && !ids.has(String(item.id))) {
-                            listaAtual.push(clonar(item));
-                            ids.add(String(item.id));
-                            registrosAdicionados++;
-                        }
-                    });
-                    atual[campo] = listaAtual;
-                });
-            });
-
-            // Só muda o veículo ativo se não houver um ativo válido atualmente.
-            const ativoExiste = veiculos.some(v => String(v.id) === String(veiculoAtivoId));
-            if(!ativoExiste && dados.veiculoAtivoId && veiculos.some(v => String(v.id) === String(dados.veiculoAtivoId))) {
-                veiculoAtivoId = dados.veiculoAtivoId;
-            }
-
-            if(dados.tema) {
-                tema = dados.tema;
-                localStorage.setItem('tema_frota', tema);
-                aplicarTema();
-            }
-
-            salvarTudo();
-            renderListaVeiculos();
-            atualizarPainel();
-            fecharModalConfig();
-            event.target.value = '';
-
-            alert(
-                'Importação concluída sem apagar dados.\n\n' +
-                'Novos veículos: ' + novosVeiculos + '\n' +
-                'Novos registros adicionados: ' + registrosAdicionados + '\n\n' +
-                'O histórico existente foi preservado.'
-            );
-        } catch(err) {
-            console.error(err);
-            alert('Erro ao ler o arquivo JSON. Nenhum dado foi alterado.');
-            event.target.value = '';
-        }
+            if(dados.veiculos) {
+                veiculos = dados.veiculos; veiculoAtivoId = dados.veiculoAtivoId || veiculos[0]?.id;
+                if(dados.tema) { tema = dados.tema; localStorage.setItem('tema_frota', tema); aplicarTema(); }
+                salvarTudo(); alert('Backup restaurado com sucesso!'); fecharModalConfig(); atualizarPainel();
+            } else { alert('Arquivo de backup inválido.'); }
+        } catch(err) { alert('Erro ao ler o arquivo JSON.'); }
     };
     reader.readAsText(file);
 }
 
 function resetarApp() {
-    const confirmou = confirm(
-        '⚠️ RESETAR APLICATIVO\n\n' +
-        'Isso apagará TODOS os veículos, abastecimentos, manutenções, documentos e configurações salvos neste navegador.\n\n' +
-        'Antes de continuar, certifique-se de ter exportado um backup.\n\n' +
-        'Esta ação não pode ser desfeita pelo aplicativo.\n\n' +
-        'Deseja realmente limpar tudo?'
-    );
-    if(!confirmou) return;
-
-    // Remove a versão atual e TODAS as versões antigas.
-    // Isso é necessário porque a rotina de migração recupera dados de chaves antigas.
-    const chavesParaRemover = [];
-    for(let i = 0; i < localStorage.length; i++) {
-        const chave = localStorage.key(i);
-        if(!chave) continue;
-        if(
-            chave.startsWith('veiculos_frota') ||
-            chave.startsWith('veiculoAtivoId_frota_') ||
-            chave === 'tema_frota'
-        ) {
-            chavesParaRemover.push(chave);
-        }
+    if(confirm('Tem certeza absoluta que deseja apagar todos os dados e reiniciar o aplicativo?')) {
+        localStorage.removeItem(CHAVE_STORAGE); localStorage.removeItem(CHAVE_ATIVO); location.reload();
     }
-    chavesParaRemover.forEach(chave => localStorage.removeItem(chave));
-
-    // Garante que nenhuma cópia interna de migração/importação seja reutilizada.
-    localStorage.removeItem('veiculos_frota_backup_migracao');
-    localStorage.removeItem('veiculos_frota_backup_antes_importacao');
-
-    alert('Aplicativo resetado com sucesso. Todos os dados locais foram removidos.');
-    location.reload();
 }
 
 function abrirModalKm(){ const v = getVeiculoAtivo(); if(!v) return alert('Cadastre um veículo para atualizar o odômetro.'); document.getElementById('kmInput').value = v.config.kmBase; document.getElementById('modalKm').style.display='flex'; }
