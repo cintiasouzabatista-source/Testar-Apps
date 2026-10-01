@@ -80,7 +80,25 @@
             parentData: { name: '', birthdate: '', message: '' },
             childData: { name: '', birthdate: '', message: '' },
             currentQuestionIndex: 0,
-            answers: []
+            answers: [],
+            shareLink: ''
+        };
+
+        // Ao carregar a página, verifica se há dados na URL (caso seja o filho abrindo o link do pai)
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const pName = urlParams.get('pName');
+            
+            if (pName) {
+                // Significa que o pai preencheu e mandou o link para o filho
+                state.parentData = {
+                    name: decodeURIComponent(pName),
+                    birthdate: urlParams.get('pDate') || '',
+                    message: decodeURIComponent(urlParams.get('pMsg') || '')
+                };
+                state.step = 'childWelcome';
+            }
+            render();
         };
 
         function getSign(dateStr) {
@@ -113,40 +131,39 @@
                         </div>
                         <h1 class="text-2xl sm:text-3xl font-bold text-sky-900 mb-3">Conexão Pais & Filhos</h1>
                         <p class="text-slate-600 text-base sm:text-lg mb-8 leading-relaxed">
-                            Descubra a sintonia entre vocês através de perguntas diretas, mensagens especiais e a energia dos signos!
+                            Responda o quiz, deixe sua mensagem e envie o link para o seu filho(a) completar a experiência!
                         </p>
-                        <button onclick="setStep('roleSelect')" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-4 px-6 rounded-2xl text-lg shadow-lg transition transform active:scale-95">
-                            Começar Jogo 🚀
+                        <button onclick="startParentFlow()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-4 px-6 rounded-2xl text-lg shadow-lg transition transform active:scale-95">
+                            Começar como Pai / Mãe 🚀
                         </button>
                     </div>
                 `;
-            } else if (state.step === 'roleSelect') {
+            } else if (state.step === 'childWelcome') {
                 app.innerHTML = `
                     <div class="p-8 text-center">
-                        <h2 class="text-2xl font-bold text-sky-900 mb-2">Quem está jogando agora?</h2>
-                        <p class="text-slate-600 mb-8">Selecione o seu perfil:</p>
-                        
-                        <div class="space-y-4">
-                            <button onclick="startIdentification('parent')" class="w-full bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-200 text-indigo-900 font-bold py-5 px-6 rounded-2xl text-xl flex items-center justify-center gap-3 transition">
-                                👨‍👩‍👧 Sou o Pai / Mãe
-                            </button>
-                            <button onclick="startIdentification('child')" class="w-full bg-emerald-50 hover:bg-emerald-100 border-2 border-emerald-200 text-emerald-900 font-bold py-5 px-6 rounded-2xl text-xl flex items-center justify-center gap-3 transition">
-                                🧒 Sou o Filho / Filha
-                            </button>
+                        <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl shadow-inner">
+                            💌
                         </div>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">Você recebeu um convite!</h1>
+                        <p class="text-slate-600 text-base mb-6 leading-relaxed">
+                            <b>${state.parentData.name}</b> já respondeu a parte dele(a) e te mandou este link. Agora é a sua vez de responder e ver o resultado!
+                        </p>
+                        <button onclick="startChildFlow()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-4 px-6 rounded-2xl text-lg shadow-lg transition">
+                            Responder Agora 🧒
+                        </button>
                     </div>
                 `;
             } else if (state.step === 'identification') {
                 const isParent = state.role === 'parent';
                 app.innerHTML = `
                     <div class="p-6 sm:p-8">
-                        <h2 class="text-2xl font-bold text-sky-900 mb-2">${isParent ? 'Dados do Pai / Mãe' : 'Dados do Filho / Filha'}</h2>
-                        <p class="text-slate-600 mb-6 text-sm">Insira seu nome e data de nascimento para calcularmos seu signo:</p>
+                        <h2 class="text-2xl font-bold text-sky-900 mb-2">${isParent ? 'Seus Dados (Pai / Mãe)' : 'Seus Dados (Filho / Filha)'}</h2>
+                        <p class="text-slate-600 mb-6 text-sm">Insira seu nome e data de nascimento:</p>
                         
                         <div class="space-y-4 mb-6">
                             <div>
                                 <label class="block text-slate-700 font-semibold mb-2 text-sm">Seu Nome:</label>
-                                <input type="text" id="userName" value="${isParent ? state.parentData.name : state.childData.name}" class="w-full p-4 rounded-2xl border-2 border-slate-200 focus:border-sky-500 focus:outline-none text-slate-700 text-base" placeholder="Ex: Ana / Lucas">
+                                <input type="text" id="userName" value="${isParent ? state.parentData.name : state.childData.name}" class="w-full p-4 rounded-2xl border-2 border-slate-200 focus:border-sky-500 focus:outline-none text-slate-700 text-base" placeholder="Ex: Cíntia / Sophya">
                             </div>
                             <div>
                                 <label class="block text-slate-700 font-semibold mb-2 text-sm">Sua Data de Nascimento:</label>
@@ -201,7 +218,27 @@
                         <textarea id="customMessage" rows="5" class="w-full p-4 rounded-2xl border-2 border-slate-200 focus:border-sky-500 focus:outline-none text-slate-700 text-base mb-6 resize-none" placeholder="Digite aqui o que você gostaria de dizer com o coração aberto..."></textarea>
 
                         <button onclick="saveMessage()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-4 px-6 rounded-2xl text-lg shadow-lg transition">
-                            Ver Mural de Conexão 💖
+                            Gerar Link para Enviar 🔗
+                        </button>
+                    </div>
+                `;
+            } else if (state.step === 'shareScreen') {
+                app.innerHTML = `
+                    <div class="p-6 sm:p-8 text-center">
+                        <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
+                            🔗
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-900 mb-2">Sua parte está pronta!</h2>
+                        <p class="text-slate-600 text-sm mb-6">
+                            Agora copie o link abaixo e mande para seu filho(a) no WhatsApp. Quando ele(a) abrir, vai responder a parte dele(a) e o mural completo vai aparecer!
+                        </p>
+
+                        <div class="bg-slate-50 border-2 border-slate-200 p-3 rounded-2xl text-xs text-slate-600 break-all mb-4 select-all">
+                            ${state.shareLink}
+                        </div>
+
+                        <button onclick="copyLink()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-4 px-6 rounded-2xl text-lg shadow-lg transition mb-3">
+                            📋 Copiar Link
                         </button>
                     </div>
                 `;
@@ -233,12 +270,12 @@
                         <div class="space-y-4 mb-6">
                             <div class="bg-indigo-50 border-2 border-indigo-100 p-5 rounded-2xl">
                                 <h4 class="font-bold text-indigo-900 mb-2 text-sm flex items-center gap-2">💌 Mensagem de ${state.parentData.name || 'Pai/Mãe'}:</h4>
-                                <p class="text-slate-700 italic text-sm sm:text-base leading-relaxed">"${state.parentData.message || 'Ainda não preencheu a mensagem.'}"</p>
+                                <p class="text-slate-700 italic text-sm sm:text-base leading-relaxed">"${state.parentData.message || 'Nenhuma mensagem.'}"</p>
                             </div>
 
                             <div class="bg-emerald-50 border-2 border-emerald-100 p-5 rounded-2xl">
                                 <h4 class="font-bold text-emerald-900 mb-2 text-sm flex items-center gap-2">💌 Mensagem de ${state.childData.name || 'Filho(a)'}:</h4>
-                                <p class="text-slate-700 italic text-sm sm:text-base leading-relaxed">"${state.childData.message || 'Ainda não preencheu a mensagem.'}"</p>
+                                <p class="text-slate-700 italic text-sm sm:text-base leading-relaxed">"${state.childData.message || 'Nenhuma mensagem.'}"</p>
                             </div>
                         </div>
 
@@ -250,15 +287,16 @@
             }
         }
 
-        function setStep(newStep) {
-            state.step = newStep;
+        function startParentFlow() {
+            state.role = 'parent';
+            state.step = 'identification';
             render();
-            window.scrollTo(0, 0);
         }
 
-        function startIdentification(role) {
-            state.role = role;
-            setStep('identification');
+        function startChildFlow() {
+            state.role = 'child';
+            state.step = 'identification';
+            render();
         }
 
         function saveIdentification() {
@@ -280,7 +318,8 @@
 
             state.currentQuestionIndex = 0;
             state.answers = [];
-            setStep('quiz');
+            state.step = 'quiz';
+            render();
         }
 
         function selectAnswer(optionIndex) {
@@ -293,7 +332,8 @@
                 state.currentQuestionIndex++;
                 render();
             } else {
-                setStep('messageInput');
+                state.step = 'messageInput';
+                render();
             }
         }
 
@@ -303,25 +343,30 @@
             
             if (state.role === 'parent') {
                 state.parentData.message = val;
+                
+                // Gera o link contendo os dados do pai
+                const baseUrl = window.location.origin + window.location.pathname;
+                state.shareLink = `${baseUrl}?pName=${encodeURIComponent(state.parentData.name)}&pDate=${state.parentData.birthdate}&pMsg=${encodeURIComponent(state.parentData.message)}`;
+                
+                state.step = 'shareScreen';
             } else {
                 state.childData.message = val;
+                state.step = 'finalSummary';
             }
-            setStep('finalSummary');
-        }
-
-        function resetApp() {
-            state = {
-                step: 'welcome',
-                role: '',
-                parentData: { name: '', birthdate: '', message: '' },
-                childData: { name: '', birthdate: '', message: '' },
-                currentQuestionIndex: 0,
-                answers: []
-            };
             render();
         }
 
-        render();
+        function copyLink() {
+            navigator.clipboard.writeText(state.shareLink).then(() => {
+                alert('Link copiado com sucesso! Agora é só colar no WhatsApp para o seu filho(a).');
+            }).catch(err => {
+                alert('Não foi possível copiar automaticamente. Selecione o link acima e copie manualmente.');
+            });
+        }
+
+        function resetApp() {
+            window.location.href = window.location.pathname; // Limpa a URL e reinicia
+        }
     </script>
 </body>
 </html>
