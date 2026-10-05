@@ -3,39 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#007bff">
+<meta name="theme-color" content="#2563eb">
 <title>Controle Financeiro</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 :root {
-    --primary-color:#007bff;
-    --success-color:#28a745;
-    --danger-color:#dc3545;
-    --warning-color:#ffc107;
-
-    --bg-color:#f4f6f9;
-    --card-bg:#ffffff;
-    --text-color:#333333;
-    --text-secondary:#666666;
-    --muted-color:#888888;
-    --border-color:#e0e0e0;
-    --input-bg:#ffffff;
-    --soft-bg:#f8f9fa;
-    --shadow:0 2px 5px rgba(0,0,0,.08);
+    --primary:#2563eb;
+    --primary-dark:#1d4ed8;
+    --success:#16a34a;
+    --danger:#dc2626;
+    --warning:#d97706;
+    --bg:#f3f4f6;
+    --card:#ffffff;
+    --text:#111827;
+    --muted:#6b7280;
+    --border:#e5e7eb;
+    --shadow:0 4px 14px rgba(0,0,0,.08);
 }
 
-body.dark-mode {
-    --bg-color:#121212;
-    --card-bg:#1e1e1e;
-    --text-color:#f1f1f1;
-    --text-secondary:#b8b8b8;
-    --muted-color:#999999;
-    --border-color:#383838;
-    --input-bg:#292929;
-    --soft-bg:#252525;
-    --shadow:0 2px 8px rgba(0,0,0,.35);
+body.dark {
+    --bg:#111827;
+    --card:#1f2937;
+    --text:#f9fafb;
+    --muted:#9ca3af;
+    --border:#374151;
+    --shadow:0 4px 14px rgba(0,0,0,.3);
 }
 
 * {
@@ -43,21 +37,28 @@ body.dark-mode {
 }
 
 body {
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-    background:var(--bg-color);
-    color:var(--text-color);
     margin:0;
-    padding:20px;
-    display:flex;
-    justify-content:center;
-    transition:.25s;
+    font-family:Arial,Helvetica,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    transition:.2s;
+}
+
+button,
+input,
+select {
+    font:inherit;
+}
+
+button {
+    cursor:pointer;
 }
 
 .container {
     width:100%;
     max-width:480px;
-    position:relative;
-    padding-bottom:90px;
+    margin:auto;
+    padding:12px 14px 90px;
 }
 
 /* =========================
@@ -65,593 +66,667 @@ body {
 ========================= */
 
 .topo-titulo {
-    display:flex;
+    display:grid;
+    grid-template-columns:42px 1fr 42px;
     align-items:center;
-    justify-content:space-between;
-    margin-bottom:15px;
+    margin-bottom:12px;
 }
 
 .topo-titulo h1 {
-    flex:1;
     text-align:center;
-    color:var(--primary-color);
-    font-size:1.4rem;
+    font-size:21px;
     margin:0;
 }
 
-.btn-tema {
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    border:1px solid var(--border-color);
-    background:var(--card-bg);
-    color:var(--text-color);
-    cursor:pointer;
-    font-size:1.2rem;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+.btn-topo {
+    width:40px;
+    height:40px;
+    border:1px solid var(--border);
+    background:var(--card);
+    color:var(--text);
+    border-radius:12px;
     box-shadow:var(--shadow);
+    font-size:18px;
+}
+
+.menu-config {
+    display:none;
+    position:absolute;
+    top:62px;
+    left:14px;
+    right:14px;
+    max-width:452px;
+    margin:auto;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,.18);
+    padding:8px;
+    z-index:500;
+}
+
+.menu-config.aberto {
+    display:block;
+}
+
+.menu-config button {
+    width:100%;
+    border:0;
+    background:transparent;
+    color:var(--text);
+    text-align:left;
+    padding:13px 12px;
+    border-radius:10px;
+}
+
+.menu-config button:hover {
+    background:var(--bg);
 }
 
 /* =========================
-   CABEÇALHO MÊS
+   NAVEGAÇÃO MÊS
 ========================= */
 
 .topo-header {
     display:flex;
-    justify-content:space-between;
     align-items:center;
-    background:var(--card-bg);
-    border-radius:12px;
-    padding:10px 15px;
-    box-shadow:var(--shadow);
-    margin-bottom:15px;
+    justify-content:space-between;
+    margin-bottom:14px;
 }
 
 .topo-header button {
-    background:var(--soft-bg);
-    border:1px solid var(--border-color);
-    color:var(--text-color);
-    border-radius:50%;
-    width:32px;
-    height:32px;
-    cursor:pointer;
+    width:38px;
+    height:36px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:var(--card);
+    color:var(--text);
+}
+
+#mesAtual {
+    font-weight:bold;
+    text-transform:capitalize;
 }
 
 /* =========================
    CARDS
 ========================= */
 
-.card-liquido {
-    background:var(--card-bg);
-    border-radius:12px;
-    padding:15px;
+.card {
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
     box-shadow:var(--shadow);
-    margin-bottom:15px;
-    text-align:center;
 }
 
-.card-liquido h2 {
-    font-size:.75rem;
-    color:var(--text-secondary);
-    margin:0 0 5px;
-    text-transform:uppercase;
+.card-principal {
+    padding:18px;
+    margin-bottom:12px;
 }
 
-.card-liquido .valor {
-    font-size:1.6rem;
+.card-principal .titulo {
+    color:var(--muted);
+    font-size:13px;
+    margin-bottom:6px;
+}
+
+.card-principal .valor {
+    font-size:30px;
     font-weight:bold;
 }
 
 .grid-cards {
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:12px;
-    margin-bottom:20px;
-}
-
-.mini-card {
-    border-radius:12px;
-    padding:15px;
-    color:white;
-    box-shadow:var(--shadow);
-}
-
-.mini-card.receitas {
-    background:#28a745;
-}
-
-.mini-card.saldo {
-    background:#007bff;
-}
-
-.mini-card.despesas {
-    background:#dc3545;
-}
-
-.mini-card.pendentes {
-    background:#ffc107;
-    color:#333;
-}
-
-.mini-card h3 {
-    font-size:.8rem;
-    margin:0 0 5px;
-}
-
-.valor-card {
-    font-size:1.2rem;
-    font-weight:bold;
-}
-
-/* =========================
-   PAINEL
-========================= */
-
-.painel-colapsavel {
-    background:var(--card-bg);
-    border-radius:12px;
-    box-shadow:var(--shadow);
-    margin-bottom:15px;
-    overflow:hidden;
-}
-
-.painel-header {
-    padding:15px 20px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    cursor:pointer;
-    font-weight:600;
-}
-
-.painel-conteudo {
-    padding:0 20px 20px;
-    display:none;
-}
-
-.painel-conteudo.ativo {
-    display:block;
-}
-
-/* =========================
-   TIPOS
-========================= */
-
-.lancamento-tipo {
-    display:grid;
-    grid-template-columns:1fr 1fr 1fr;
-    gap:8px;
-    margin-bottom:15px;
-}
-
-.tipo-opcao {
-    border:1px solid var(--border-color);
-    background:var(--input-bg);
-    color:var(--text-color);
-    border-radius:8px;
-    padding:10px 5px;
-    cursor:pointer;
-}
-
-.tipo-opcao.selecionado {
-    background:var(--primary-color);
-    color:#fff;
-    border-color:var(--primary-color);
-}
-
-/* =========================
-   FORMULÁRIOS
-========================= */
-
-.linha-rapida {
-    display:grid;
-    grid-template-columns:1fr 110px;
     gap:10px;
+    margin-bottom:14px;
 }
 
-.form-group {
-    margin-bottom:15px;
+.card-mini {
+    padding:14px;
+    min-height:105px;
 }
 
-.form-group label {
-    display:block;
-    font-size:.85rem;
-    color:var(--text-secondary);
-    margin-bottom:5px;
+.card-mini .titulo {
+    color:var(--muted);
+    font-size:12px;
+    margin-bottom:7px;
 }
 
-.form-control {
-    width:100%;
-    padding:10px;
-    border:1px solid var(--border-color);
-    border-radius:8px;
-    font-size:1rem;
-    background:var(--input-bg);
-    color:var(--text-color);
-    outline:none;
-}
-
-.baloes-selecao {
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-}
-
-.balao-opcao {
-    border:1px solid var(--border-color);
-    background:var(--input-bg);
-    color:var(--text-color);
-    border-radius:20px;
-    padding:8px 13px;
-    cursor:pointer;
-}
-
-.balao-opcao.selecionado {
-    background:var(--primary-color);
-    color:#fff;
-    border-color:var(--primary-color);
-}
-
-/* =========================
-   OPÇÕES EXTRAS
-========================= */
-
-.opcoes-extras {
-    margin-top:5px;
-    border-top:1px solid var(--border-color);
-    padding-top:12px;
-}
-
-.extras-toggle {
-    display:flex;
-    justify-content:space-between;
-    cursor:pointer;
-    color:var(--text-secondary);
-    padding:5px 0 10px;
-}
-
-.extras-conteudo {
-    display:none;
-}
-
-.extras-conteudo.ativo {
-    display:block;
-}
-
-.checkbox-group {
-    display:flex;
-    align-items:center;
-    gap:8px;
-    margin-bottom:12px;
-    color:var(--text-secondary);
-}
-
-.campos-especiais {
-    display:none;
-    background:var(--soft-bg);
-    border-radius:8px;
-    padding:12px;
-    margin-bottom:15px;
-}
-
-.campos-especiais.ativo {
-    display:block;
-}
-
-.info-parcelamento {
-    font-size:.78rem;
-    color:var(--text-secondary);
-}
-
-/* =========================
-   BOTÕES
-========================= */
-
-.btn-cadastrar {
-    background:var(--primary-color);
-    color:#fff;
-    border:none;
-    width:100%;
-    padding:12px;
-    border-radius:8px;
-    font-size:1rem;
+.card-mini .valor {
+    font-size:19px;
     font-weight:bold;
-    cursor:pointer;
 }
 
-/* =========================
-   SEÇÕES
-========================= */
-
-.secao-inferior {
-    background:var(--card-bg);
-    border-radius:12px;
-    padding:15px 20px;
-    box-shadow:var(--shadow);
-    margin-bottom:15px;
-    display:flex;
-    justify-content:space-between;
-    cursor:pointer;
+.card-mini .detalhe {
+    margin-top:7px;
+    font-size:11px;
+    color:var(--muted);
+    line-height:1.4;
 }
 
-/* =========================
-   MODAIS
-========================= */
-
-.modal-overlay {
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.6);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    z-index:2000;
-    opacity:0;
-    visibility:hidden;
-    transition:.25s;
+.valor-verde {
+    color:var(--success);
 }
 
-.modal-overlay.ativo {
-    opacity:1;
-    visibility:visible;
+.valor-vermelho {
+    color:var(--danger);
 }
 
-.modal-card {
-    background:var(--card-bg);
-    color:var(--text-color);
-    width:90%;
-    max-width:430px;
-    border-radius:12px;
-    padding:20px;
-    max-height:88vh;
-    overflow-y:auto;
-    box-shadow:0 8px 30px rgba(0,0,0,.35);
+.valor-azul {
+    color:var(--primary);
 }
 
-.modal-header {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    border-bottom:1px solid var(--border-color);
-    padding-bottom:10px;
-    margin-bottom:15px;
-}
-
-.modal-header h3 {
-    margin:0;
-}
-
-.btn-fechar-modal {
-    border:none;
-    background:none;
-    color:var(--text-secondary);
-    font-size:1.5rem;
-    cursor:pointer;
+.valor-laranja {
+    color:var(--warning);
 }
 
 /* =========================
    HISTÓRICO
 ========================= */
 
-.lista-movimentos {
-    list-style:none;
-    padding:0;
-    margin:0;
+.secao {
+    margin-top:14px;
 }
 
-.item-movimento {
-    padding:12px 0;
-    border-bottom:1px solid var(--border-color);
-}
-
-.item-linha {
+.secao-titulo {
     display:flex;
     justify-content:space-between;
     align-items:center;
-    gap:10px;
+    margin-bottom:8px;
 }
 
-.item-info p {
-    margin:0 0 4px;
-    font-size:.92rem;
-    font-weight:600;
+.secao-titulo h2 {
+    font-size:17px;
+    margin:0;
 }
 
-.item-info span {
-    font-size:.75rem;
-    color:var(--muted-color);
+.btn-pequeno {
+    border:1px solid var(--border);
+    background:var(--card);
+    color:var(--text);
+    border-radius:9px;
+    padding:7px 10px;
+    font-size:12px;
 }
 
-.item-acoes-grupo {
+.swipe-instrucao {
+    text-align:center;
+    color:var(--muted);
+    font-size:11px;
+    margin:5px 0 9px;
+}
+
+.lista-movimentos {
     display:flex;
-    gap:6px;
+    flex-direction:column;
+    gap:9px;
 }
 
-.btn-acao {
-    border:none;
-    cursor:pointer;
-    padding:5px 8px;
-    border-radius:5px;
+.item-movimento {
+    position:relative;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:12px;
+    box-shadow:var(--shadow);
+    touch-action:pan-y;
+    user-select:none;
 }
 
-.btn-editar {
-    color:#007bff;
-    background:#e7f1ff;
+.item-topo {
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
 }
 
-.btn-excluir {
-    color:#dc3545;
-    background:#f8d7da;
+.item-descricao {
+    font-weight:bold;
+    font-size:14px;
 }
 
-/* =========================
-   ANÁLISE
-========================= */
+.item-valor {
+    font-weight:bold;
+    white-space:nowrap;
+}
 
-.analise {
-    background:var(--soft-bg);
-    border-radius:10px;
-    padding:15px;
-    font-size:.88rem;
+.item-info {
+    margin-top:5px;
+    color:var(--muted);
+    font-size:11px;
     line-height:1.5;
 }
 
-.analise-item {
-    padding:8px 0;
-    border-bottom:1px solid var(--border-color);
+.item-acoes {
+    display:flex;
+    gap:6px;
+    margin-top:9px;
 }
 
-.analise-item:last-child {
-    border-bottom:none;
+.item-acoes button {
+    flex:1;
+    border:1px solid var(--border);
+    background:var(--bg);
+    color:var(--text);
+    border-radius:8px;
+    padding:7px;
+    font-size:11px;
+}
+
+.item-acoes .btn-excluir {
+    color:var(--danger);
+}
+
+.status-badge {
+    display:inline-block;
+    padding:3px 7px;
+    border-radius:20px;
+    font-size:10px;
+    font-weight:bold;
+}
+
+.status-ok {
+    background:rgba(22,163,74,.12);
+    color:var(--success);
+}
+
+.status-pendente {
+    background:rgba(217,119,6,.12);
+    color:var(--warning);
+}
+
+.sem-movimentos {
+    text-align:center;
+    color:var(--muted);
+    padding:25px 10px;
+    background:var(--card);
+    border:1px dashed var(--border);
+    border-radius:14px;
+    font-size:13px;
 }
 
 /* =========================
-   MENU +
+   FAB
 ========================= */
 
 .fab-container {
     position:fixed;
-    bottom:25px;
-    right:25px;
-    z-index:1000;
+    right:20px;
+    bottom:20px;
+    z-index:400;
 }
 
 .fab-button {
-    width:60px;
-    height:60px;
-    background:#2c3e50;
-    color:#fff;
-    border:none;
+    width:58px;
+    height:58px;
+    border:0;
     border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:28px;
-    box-shadow:0 4px 10px rgba(0,0,0,.3);
-    cursor:pointer;
-    transition:.3s;
+    background:var(--primary);
+    color:white;
+    font-size:31px;
+    line-height:1;
+    box-shadow:0 8px 20px rgba(37,99,235,.35);
 }
 
-.fab-container.ativo .fab-button {
-    transform:rotate(45deg);
-    background:#dc3545;
-}
-
-.fab-options {
-    position:absolute;
-    bottom:75px;
-    right:0;
-    list-style:none;
-    padding:0;
-    margin:0;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-    opacity:0;
-    visibility:hidden;
-    transform:translateY(15px);
-    transition:.25s;
-}
-
-.fab-container.ativo .fab-options {
-    opacity:1;
-    visibility:visible;
-    transform:translateY(0);
-}
-
-.fab-item {
-    background:var(--card-bg);
-    color:var(--text-color);
-    padding:11px 16px;
-    border-radius:25px;
-    box-shadow:0 3px 8px rgba(0,0,0,.2);
-    font-size:.88rem;
-    font-weight:600;
-    cursor:pointer;
-    white-space:nowrap;
-}
-
-.fab-item:hover {
-    background:var(--soft-bg);
+.fab-button:active {
+    transform:scale(.96);
 }
 
 /* =========================
-   ALERTA RESET
+   MODAL
 ========================= */
 
-.alerta-reset {
-    background:rgba(220,53,69,.10);
-    border:1px solid rgba(220,53,69,.35);
-    color:var(--danger-color);
+.modal-overlay {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    z-index:1000;
     padding:12px;
-    border-radius:8px;
-    font-size:.9rem;
-    line-height:1.4;
-    margin-bottom:15px;
+    align-items:center;
+    justify-content:center;
+}
+
+.modal-overlay.aberto {
+    display:flex;
+}
+
+.modal {
+    width:100%;
+    max-width:450px;
+    max-height:92vh;
+    overflow:auto;
+    background:var(--card);
+    border-radius:20px;
+    box-shadow:0 20px 50px rgba(0,0,0,.3);
+}
+
+.modal-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 17px 12px;
+    border-bottom:1px solid var(--border);
+}
+
+.modal-header h2 {
+    margin:0;
+    font-size:18px;
+}
+
+.btn-fechar {
+    width:34px;
+    height:34px;
+    border:0;
+    background:var(--bg);
+    color:var(--text);
+    border-radius:50%;
+    font-size:20px;
+}
+
+.modal-body {
+    padding:15px;
+}
+
+.form-group {
+    margin-bottom:11px;
+}
+
+.form-group label {
+    display:block;
+    font-size:11px;
+    font-weight:bold;
+    color:var(--muted);
+    margin-bottom:5px;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="month"],
+select {
+    width:100%;
+    border:1px solid var(--border);
+    background:var(--bg);
+    color:var(--text);
+    border-radius:10px;
+    padding:11px;
+    outline:none;
+}
+
+input:focus,
+select:focus {
+    border-color:var(--primary);
+}
+
+/* =========================
+   TIPO
+========================= */
+
+.tipo-opcoes {
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:6px;
+    margin-bottom:13px;
+}
+
+.tipo-opcoes button {
+    border:1px solid var(--border);
+    background:var(--bg);
+    color:var(--text);
+    border-radius:10px;
+    padding:9px 5px;
+    font-size:12px;
+}
+
+.tipo-opcoes button.ativo {
+    background:var(--primary);
+    border-color:var(--primary);
+    color:white;
+}
+
+/* =========================
+   DESCRIÇÃO / VALOR
+========================= */
+
+.linha-descricao-valor {
+    display:grid;
+    grid-template-columns:1fr 125px;
+    gap:8px;
+}
+
+@media(max-width:360px) {
+    .linha-descricao-valor {
+        grid-template-columns:1fr;
+    }
+}
+
+/* =========================
+   CHIPS
+========================= */
+
+.chips {
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-bottom:2px;
+}
+
+.chip {
+    flex:0 0 auto;
+    border:1px solid var(--border);
+    background:var(--bg);
+    color:var(--text);
+    border-radius:20px;
+    padding:8px 11px;
+    font-size:11px;
+}
+
+.chip.ativo {
+    background:var(--primary);
+    color:white;
+    border-color:var(--primary);
+}
+
+/* =========================
+   STATUS
+========================= */
+
+.status-opcoes {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+}
+
+.status-opcoes button {
+    border:1px solid var(--border);
+    background:var(--bg);
+    color:var(--text);
+    border-radius:10px;
+    padding:10px 6px;
+    font-size:12px;
+}
+
+.status-opcoes button.ativo {
+    border-color:var(--success);
+    background:rgba(22,163,74,.12);
+    color:var(--success);
+    font-weight:bold;
+}
+
+.status-opcoes button.pendente.ativo {
+    border-color:var(--warning);
+    background:rgba(217,119,6,.12);
+    color:var(--warning);
+}
+
+/* =========================
+   MAIS OPÇÕES
+========================= */
+
+.mais-opcoes {
+    margin-top:5px;
+    border-top:1px solid var(--border);
+    padding-top:8px;
+}
+
+.btn-mais-opcoes {
+    width:100%;
+    border:0;
+    background:transparent;
+    color:var(--muted);
+    text-align:left;
+    padding:7px 0;
+    font-size:12px;
+}
+
+.conteudo-extras {
+    display:none;
+    padding-top:5px;
+}
+
+.conteudo-extras.aberto {
+    display:block;
+}
+
+.opcao-linha {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:9px 0;
+    font-size:12px;
+    border-bottom:1px solid var(--border);
+}
+
+.opcao-linha:last-child {
+    border-bottom:0;
+}
+
+.opcao-linha input[type="checkbox"] {
+    width:18px;
+    height:18px;
+}
+
+/* =========================
+   SALVAR
+========================= */
+
+.btn-salvar {
+    width:100%;
+    border:0;
+    background:var(--primary);
+    color:white;
+    border-radius:12px;
+    padding:13px;
+    font-weight:bold;
+    margin-top:12px;
+}
+
+.btn-salvar:hover {
+    background:var(--primary-dark);
+}
+
+/* =========================
+   MODAL HISTÓRICO / GRÁFICOS
+========================= */
+
+.modal-grande .modal {
+    max-width:470px;
+}
+
+.grafico-container {
+    position:relative;
+    width:100%;
+    margin-bottom:22px;
+}
+
+.grafico-container h3 {
+    font-size:14px;
+    margin:0 0 10px;
+}
+
+.analise {
+    background:var(--bg);
+    border-radius:14px;
+    padding:13px;
+    line-height:1.6;
+    font-size:13px;
+}
+
+.analise strong {
+    color:var(--primary);
+}
+
+.filtro-periodo {
+    display:none;
+    margin-bottom:10px;
+}
+
+.filtro-periodo.aberto {
+    display:block;
+}
+
+/* =========================
+   RESET
+========================= */
+
+.modal-reset .modal {
+    max-width:400px;
+}
+
+.alerta {
+    background:rgba(220,38,38,.1);
+    color:var(--danger);
+    border-radius:12px;
+    padding:12px;
+    font-size:13px;
+    line-height:1.5;
 }
 
 .btn-perigo {
-    background:var(--danger-color);
-    color:#fff;
-    border:none;
     width:100%;
+    border:0;
+    background:var(--danger);
+    color:white;
+    border-radius:11px;
     padding:12px;
-    border-radius:8px;
-    font-weight:bold;
-    cursor:pointer;
+    margin-top:10px;
 }
 
 .btn-secundario {
-    background:var(--soft-bg);
-    color:var(--text-color);
-    border:1px solid var(--border-color);
     width:100%;
+    border:1px solid var(--border);
+    background:var(--bg);
+    color:var(--text);
+    border-radius:11px;
     padding:12px;
-    border-radius:8px;
-    font-weight:bold;
-    cursor:pointer;
     margin-top:8px;
 }
 
 /* =========================
-   MOBILE
+   TOAST
 ========================= */
 
-@media(max-width:400px) {
-
-    body {
-        padding:12px;
-    }
-
-    .linha-rapida {
-        grid-template-columns:1fr;
-    }
-
-    .lancamento-tipo {
-        grid-template-columns:1fr;
-    }
-
-    .fab-container {
-        right:18px;
-        bottom:18px;
-    }
+.toast {
+    position:fixed;
+    left:50%;
+    bottom:88px;
+    transform:translateX(-50%) translateY(20px);
+    background:#111827;
+    color:white;
+    padding:10px 15px;
+    border-radius:20px;
+    font-size:12px;
+    opacity:0;
+    pointer-events:none;
+    transition:.25s;
+    z-index:2000;
+    white-space:nowrap;
 }
 
-@media print {
-
-    body {
-        background:#fff;
-        color:#333;
-    }
-
-    .fab-container,
-    .painel-colapsavel,
-    .secao-inferior,
-    .btn-tema {
-        display:none!important;
-    }
+.toast.mostrar {
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
 }
 </style>
 </head>
@@ -660,456 +735,304 @@ body {
 
 <div class="container">
 
-    <!-- =========================
-         TOPO
-    ========================== -->
-
     <div class="topo-titulo">
+        <button class="btn-topo" id="btnConfig" onclick="toggleConfigMenu()">⚙️</button>
 
         <h1>Controle Financeiro</h1>
 
-        <button
-            id="btnTema"
-            class="btn-tema"
-            onclick="alternarTema()"
-            title="Alternar modo claro/escuro">
-            🌙
-        </button>
-
+        <button class="btn-topo" id="btnTema" onclick="alternarTema()">🌙</button>
     </div>
 
-    <!-- =========================
-         MÊS
-    ========================== -->
+    <div id="menuConfig" class="menu-config">
+        <button onclick="abrirModalGraficos(); fecharConfigMenu()">📊 Gráficos e Análise Financeira</button>
+        <button onclick="gerarRelatorioPDF(); fecharConfigMenu()">📄 Exportar Relatório</button>
+        <button onclick="fazerBackup(); fecharConfigMenu()">💾 Fazer Backup</button>
+        <button onclick="abrirRestaurarBackup(); fecharConfigMenu()">♻️ Restaurar Backup</button>
+        <button onclick="abrirModalReset(); fecharConfigMenu()">🗑️ Resetar Tudo</button>
+    </div>
 
     <div class="topo-header">
-
-        <button onclick="mudarMes(-1)">
-            &lt;
-        </button>
-
-        <span id="labelMesAno"></span>
-
-        <button onclick="mudarMes(1)">
-            &gt;
-        </button>
-
+        <button onclick="mudarMes(-1)">‹</button>
+        <div id="mesAtual"></div>
+        <button onclick="mudarMes(1)">›</button>
     </div>
 
-    <!-- =========================
-         LÍQUIDO
-    ========================== -->
-
-    <div class="card-liquido">
-
-        <h2>
-            Líquido (Considerando Pendências)
-        </h2>
-
-        <div
-            id="cardLiquidoValor"
-            class="valor">
-            R$ 0,00
-        </div>
-
+    <!-- SALDO PRINCIPAL -->
+    <div class="card card-principal">
+        <div class="titulo">Saldo Disponível</div>
+        <div id="cardLiquidoValor" class="valor">R$ 0,00</div>
     </div>
 
-    <!-- =========================
-         4 CARDS
-    ========================== -->
-
+    <!-- 4 CARDS -->
     <div class="grid-cards">
 
-        <div class="mini-card receitas">
-            <h3>Receitas</h3>
-            <div id="cardReceitas" class="valor-card">
-                R$ 0,00
-            </div>
+        <div class="card card-mini">
+            <div class="titulo">Receitas Previstas</div>
+            <div id="cardReceitas" class="valor valor-verde">R$ 0,00</div>
+            <div id="cardReceitasDetalhe" class="detalhe">Recebidas: R$ 0,00</div>
         </div>
 
-        <div class="mini-card saldo">
-            <h3>Saldo (Caixa)</h3>
-            <div id="cardSaldo" class="valor-card">
-                R$ 0,00
-            </div>
+        <div class="card card-mini">
+            <div class="titulo">Saldo (Caixa)</div>
+            <div id="cardSaldo" class="valor valor-azul">R$ 0,00</div>
+            <div class="detalhe">Recebido − pago</div>
         </div>
 
-        <div class="mini-card despesas">
-            <h3>Despesas Pagas</h3>
-            <div id="cardDespesasPagas" class="valor-card">
-                R$ 0,00
-            </div>
+        <div class="card card-mini">
+            <div class="titulo">Despesas Pagas</div>
+            <div id="cardDespesasPagas" class="valor valor-vermelho">R$ 0,00</div>
+            <div id="cardDespesasDetalhe" class="detalhe">Previstas: R$ 0,00</div>
         </div>
 
-        <div class="mini-card pendentes">
-            <h3>Pendentes</h3>
-            <div id="cardPendentes" class="valor-card">
-                R$ 0,00
+        <div class="card card-mini">
+            <div class="titulo">Pendentes</div>
+            <div id="cardPendentes" class="valor valor-laranja">R$ 0,00</div>
+            <div id="cardPendentesDetalhe" class="detalhe">
+                A receber: R$ 0,00<br>
+                A pagar: R$ 0,00
             </div>
         </div>
 
     </div>
 
-    <!-- =========================
-         NOVO LANÇAMENTO
-    ========================== -->
-
-    <div class="painel-colapsavel">
-
-        <div
-            class="painel-header"
-            onclick="togglePainelNovo()">
-
-            <span>➕ Novo Lançamento</span>
-
-            <span id="setaPainel">▼</span>
-
+    <!-- HISTÓRICO -->
+    <div class="secao">
+        <div class="secao-titulo">
+            <h2>Histórico</h2>
+            <button class="btn-pequeno" onclick="abrirModalHistorico()">Ver tudo</button>
         </div>
 
-        <div
-            id="conteudoPainelNovo"
-            class="painel-conteudo">
+        <div id="listaResumo" class="lista-movimentos"></div>
+    </div>
 
-            <form
-                id="formLancamento"
-                onsubmit="salvarMovimento(event)">
+</div>
 
-                <input
-                    type="hidden"
-                    id="editIndex">
+<!-- FAB -->
+<div class="fab-container">
+    <button class="fab-button" onclick="abrirModalLancamento()">+</button>
+</div>
+
+<!-- INPUT RESTAURAÇÃO -->
+<input
+    type="file"
+    id="inputRestaurarBackup"
+    accept=".json,application/json"
+    style="display:none"
+    onchange="restaurarBackup(event)"
+>
+
+<!-- =========================
+     MODAL LANÇAMENTO
+========================= -->
+
+<div id="modalLancamento" class="modal-overlay" onclick="fecharModalFora(event,'modalLancamento')">
+
+    <div class="modal">
+
+        <div class="modal-header">
+            <h2 id="tituloModalLancamento">Novo Lançamento</h2>
+            <button class="btn-fechar" onclick="fecharModalLancamento()">×</button>
+        </div>
+
+        <div class="modal-body">
+
+            <form id="formLancamento" onsubmit="salvarMovimento(event)">
+
+                <input type="hidden" id="editIndex" value="">
+                <input type="hidden" id="inputTipo" value="Despesa">
+                <input type="hidden" id="inputConta" value="Conta principal">
+                <input type="hidden" id="inputForma" value="PIX">
+                <input type="hidden" id="inputStatus" value="pago">
 
                 <!-- TIPO -->
+                <div class="form-group">
+                    <label>Tipo</label>
 
-                <div class="lancamento-tipo">
+                    <div class="tipo-opcoes">
+                        <button type="button" id="tipoDespesa" onclick="selecionarTipo('Despesa')">
+                            🔴 Despesa
+                        </button>
 
-                    <button
-                        type="button"
-                        class="tipo-opcao selecionado"
-                        id="tipoDespesa"
-                        onclick="selecionarTipo('Despesa')">
-                        💸 Despesa
-                    </button>
+                        <button type="button" id="tipoReceita" onclick="selecionarTipo('Receita')">
+                            🟢 Receita
+                        </button>
 
-                    <button
-                        type="button"
-                        class="tipo-opcao"
-                        id="tipoReceita"
-                        onclick="selecionarTipo('Receita')">
-                        💰 Receita
-                    </button>
-
-                    <button
-                        type="button"
-                        class="tipo-opcao"
-                        id="tipoSaldo"
-                        onclick="selecionarTipo('Saldo')">
-                        💳 Ajuste Saldo
-                    </button>
-
-                    <select
-                        id="inputTipo"
-                        style="display:none">
-
-                        <option value="Despesa">
-                            Despesa
-                        </option>
-
-                        <option value="Receita">
-                            Receita
-                        </option>
-
-                        <option value="Saldo">
-                            Saldo
-                        </option>
-
-                    </select>
-
+                        <button type="button" id="tipoSaldo" onclick="selecionarTipo('Saldo')">
+                            🔵 Saldo
+                        </button>
+                    </div>
                 </div>
 
-                <!-- DESCRIÇÃO / VALOR -->
-
-                <div class="linha-rapida">
+                <!-- DESCRIÇÃO + VALOR -->
+                <div class="linha-descricao-valor">
 
                     <div class="form-group">
-
                         <label>Descrição</label>
-
                         <input
                             type="text"
                             id="inputDescricao"
-                            class="form-control"
-                            placeholder="Ex: Mercado"
-                            required>
-
+                            placeholder="Ex.: Mercado"
+                            required
+                        >
                     </div>
 
                     <div class="form-group">
-
-                        <label>Valor (R$)</label>
-
+                        <label>Valor</label>
                         <input
                             type="number"
-                            step="0.01"
                             id="inputValor"
-                            class="form-control"
+                            step="0.01"
+                            min="0"
                             placeholder="0,00"
-                            required>
-
+                            required
+                        >
                     </div>
 
                 </div>
 
                 <!-- CONTA -->
-
                 <div class="form-group">
-
                     <label>Conta</label>
 
-                    <div
-                        class="baloes-selecao"
-                        id="baloesConta">
-
-                        <button
-                            type="button"
-                            class="balao-opcao"
-                            data-value="Nubank"
-                            onclick="selecionarBalao('conta','Nubank',this)">
-                            Nubank
+                    <div class="chips" id="baloesConta">
+                        <button type="button" class="chip ativo" onclick="selecionarConta('Conta principal',this)">
+                            💳 Principal
                         </button>
 
-                        <button
-                            type="button"
-                            class="balao-opcao"
-                            data-value="Itaú"
-                            onclick="selecionarBalao('conta','Itaú',this)">
-                            Itaú
+                        <button type="button" class="chip" onclick="selecionarConta('Nubank',this)">
+                            🟣 Nubank
                         </button>
 
-                        <button
-                            type="button"
-                            class="balao-opcao"
-                            data-value="Caixa"
-                            onclick="selecionarBalao('conta','Caixa',this)">
-                            Caixa
+                        <button type="button" class="chip" onclick="selecionarConta('Caixa',this)">
+                            💵 Caixa
                         </button>
 
-                        <button
-                            type="button"
-                            class="balao-opcao"
-                            data-value="Mercado Pago"
-                            onclick="selecionarBalao('conta','Mercado Pago',this)">
-                            MP
-                        </button>
-
-                        <button
-                            type="button"
-                            class="balao-opcao"
-                            data-value="Santander"
-                            onclick="selecionarBalao('conta','Santander',this)">
-                            Santander
-                        </button>
-
-                        <button
-                            type="button"
-                            class="balao-opcao"
-                            data-value="Outra"
-                            onclick="selecionarBalao('conta','Outra',this)">
+                        <button type="button" class="chip" onclick="selecionarConta('Outra',this)">
                             + Outra
                         </button>
-
                     </div>
-
-                    <input
-                        type="hidden"
-                        id="inputConta"
-                        value="Conta principal">
-
                 </div>
 
                 <!-- FORMA -->
-
                 <div class="form-group">
+                    <label>Forma de pagamento</label>
 
-                    <label>Tipo</label>
-
-                    <div
-                        class="baloes-selecao"
-                        id="baloesForma">
-
-                        <button
-                            type="button"
-                            class="balao-opcao selecionado"
-                            data-value="PIX"
-                            onclick="selecionarBalao('forma','PIX',this)">
+                    <div class="chips" id="baloesForma">
+                        <button type="button" class="chip ativo" onclick="selecionarForma('PIX',this)">
                             PIX
                         </button>
 
-                        <button
-                            type="button"
-                            class="balao-opcao"
-                            data-value="Débito"
-                            onclick="selecionarBalao('forma','Débito',this)">
+                        <button type="button" class="chip" onclick="selecionarForma('Débito',this)">
                             Débito
                         </button>
 
-                        <button
-                            type="button"
-                            class="balao-opcao"
-                            data-value="Crédito"
-                            onclick="selecionarBalao('forma','Crédito',this)">
+                        <button type="button" class="chip" onclick="selecionarForma('Crédito',this)">
                             Crédito
                         </button>
 
-                        <button
-                            type="button"
-                            class="balao-opcao"
-                            data-value="Dinheiro"
-                            onclick="selecionarBalao('forma','Dinheiro',this)">
+                        <button type="button" class="chip" onclick="selecionarForma('Dinheiro',this)">
                             Dinheiro
                         </button>
 
+                        <button type="button" class="chip" onclick="selecionarForma('Outra',this)">
+                            Outra
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STATUS -->
+                <div id="grupoStatus" class="form-group">
+
+                    <label id="labelStatus">Status</label>
+
+                    <div class="status-opcoes">
+
                         <button
                             type="button"
-                            class="balao-opcao"
-                            data-value="Transferência"
-                            onclick="selecionarBalao('forma','Transferência',this)">
-                            Transf.
+                            id="statusQuitado"
+                            class="ativo"
+                            onclick="selecionarStatus('quitado')"
+                        >
+                            ✓ <span id="textoStatusQuitado">Pago</span>
                         </button>
 
                         <button
                             type="button"
-                            class="balao-opcao"
-                            data-value="Boleto"
-                            onclick="selecionarBalao('forma','Boleto',this)">
-                            Boleto
+                            id="statusPendente"
+                            class="pendente"
+                            onclick="selecionarStatus('pendente')"
+                        >
+                            🕐 <span id="textoStatusPendente">Pendente</span>
                         </button>
 
                     </div>
-
-                    <input
-                        type="hidden"
-                        id="inputForma"
-                        value="PIX">
 
                 </div>
 
                 <!-- MAIS OPÇÕES -->
+                <div id="maisOpcoes" class="mais-opcoes">
 
-                <div class="opcoes-extras">
+                    <button
+                        type="button"
+                        class="btn-mais-opcoes"
+                        onclick="toggleExtrasLancamento()"
+                    >
+                        ⚙️ Mais opções <span id="setaExtras">⌄</span>
+                    </button>
 
-                    <div
-                        class="extras-toggle"
-                        onclick="toggleExtrasLancamento()">
+                    <div id="conteudoExtras" class="conteudo-extras">
 
-                        <span>⚙️ Mais opções</span>
-
-                        <span id="setaExtras">▼</span>
-
-                    </div>
-
-                    <div
-                        id="extrasLancamento"
-                        class="extras-conteudo">
-
-                        <label class="checkbox-group">
-
-                            <input
-                                type="checkbox"
-                                id="inputPago"
-                                checked>
-
-                            <span id="labelPago">
-                                Pago?
-                            </span>
-
-                        </label>
-
-                        <label class="checkbox-group">
-
+                        <div class="opcao-linha">
+                            <span>Parcelado</span>
                             <input
                                 type="checkbox"
                                 id="inputParcelado"
-                                onchange="toggleParcelamento()">
+                                onchange="toggleParcelamento()"
+                            >
+                        </div>
 
-                            <span>
-                                Compra parcelada
-                            </span>
-
-                        </label>
-
-                        <div
-                            id="camposParcelamento"
-                            class="campos-especiais">
-
-                            <div class="form-group">
-
-                                <label>
-                                    Quantidade de parcelas
-                                </label>
+                        <div id="camposParcelamento" style="display:none;">
+                            <div class="form-group" style="margin-top:8px;">
+                                <label>Número de parcelas</label>
 
                                 <input
                                     type="number"
                                     id="inputParcelas"
-                                    class="form-control"
                                     min="2"
                                     max="120"
-                                    value="2">
-
+                                    value="2"
+                                >
                             </div>
-
-                            <div class="info-parcelamento">
-                                O valor será dividido
-                                automaticamente entre as parcelas.
-                            </div>
-
                         </div>
 
-                        <label
-                            class="checkbox-group"
-                            id="grupoRecorrente">
-
+                        <div class="opcao-linha">
+                            <span>Recorrente</span>
                             <input
                                 type="checkbox"
                                 id="inputRecorrente"
-                                onchange="toggleRecorrencia">
+                                onchange="toggleRecorrencia()"
+                            >
+                        </div>
 
-                            <span>
-                                Conta recorrente
-                            </span>
-
-                        </label>
-
-                        <div
-                            id="camposRecorrencia"
-                            class="campos-especiais">
-
-                            <div class="form-group">
-
-                                <label>
-                                    Repetir por quantos meses?
-                                </label>
+                        <div id="camposRecorrencia" style="display:none;">
+                            <div class="form-group" style="margin-top:8px;">
+                                <label>Repetir por quantos meses?</label>
 
                                 <input
                                     type="number"
                                     id="inputMesesRecorrencia"
-                                    class="form-control"
                                     min="2"
                                     max="60"
-                                    value="12">
-
+                                    value="12"
+                                >
                             </div>
-
                         </div>
 
                     </div>
-
                 </div>
 
-                <button
-                    type="submit"
-                    id="btnSalvarForm"
-                    class="btn-cadastrar">
-                    Cadastrar
+                <button id="btnSalvarForm" class="btn-salvar" type="submit">
+                    Cadastrar Lançamento
                 </button>
 
             </form>
@@ -1118,330 +1041,231 @@ body {
 
     </div>
 
-    <!-- HISTÓRICO -->
-
-    <div
-        class="secao-inferior"
-        onclick="abrirModalHistorico()">
-
-        <span>📋 Histórico de Lançamentos</span>
-
-        <span>▶</span>
-
-    </div>
-
 </div>
 
-
-<!-- ======================================================
-     MENU +
-======================================================= -->
-
-<div
-    class="fab-container"
-    id="fabMenu">
-
-    <ul class="fab-options">
-
-        <li
-            class="fab-item"
-            onclick="fazerBackup()">
-            💾 Fazer Backup
-        </li>
-
-        <li
-            class="fab-item"
-            onclick="abrirRestaurarBackup()">
-            ♻️ Restaurar Backup
-        </li>
-
-        <li
-            class="fab-item"
-            onclick="abrirModalReset()">
-            🗑️ Resetar Tudo
-        </li>
-
-        <li
-            class="fab-item"
-            onclick="gerarRelatorioPDF()">
-            📄 Exportar Relatório
-        </li>
-
-        <li
-            class="fab-item"
-            onclick="abrirModalGraficos()">
-            📊 Gráficos e Análise
-        </li>
-
-    </ul>
-
-    <button
-        class="fab-button"
-        onclick="toggleFab()">
-        +
-    </button>
-
-</div>
-
-
-<!-- INPUT OCULTO PARA BACKUP -->
-
-<input
-    type="file"
-    id="inputRestaurarBackup"
-    accept=".json,application/json"
-    style="display:none"
-    onchange="restaurarBackup(event)">
-
-
-<!-- ======================================================
+<!-- =========================
      MODAL HISTÓRICO
-======================================================= -->
+========================= -->
 
-<div
-    id="modalHistorico"
-    class="modal-overlay"
-    onclick="fecharModalAoClicarFora(event,'modalHistorico')">
+<div id="modalHistorico" class="modal-overlay modal-grande" onclick="fecharModalFora(event,'modalHistorico')">
 
-    <div class="modal-card">
+    <div class="modal">
 
         <div class="modal-header">
-
-            <h3>Histórico do Mês</h3>
-
-            <button
-                class="btn-fechar-modal"
-                onclick="fecharModalHistorico()">
-                &times;
-            </button>
-
+            <h2>Histórico</h2>
+            <button class="btn-fechar" onclick="fecharModalHistorico()">×</button>
         </div>
 
-        <ul
-            id="listaHistoricoModal"
-            class="lista-movimentos">
-        </ul>
+        <div class="modal-body">
+
+            <div class="swipe-instrucao">
+                ← arraste para esquerda: Pendente &nbsp; | &nbsp; arraste para direita: Pago/Recebido →
+            </div>
+
+            <button class="btn-pequeno" onclick="toggleFiltroPeriodo()" style="margin-bottom:9px;">
+                📅 Filtrar período
+            </button>
+
+            <div id="filtroPeriodo" class="filtro-periodo">
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+
+                    <div>
+                        <label style="font-size:10px;color:var(--muted);">
+                            Mês inicial
+                        </label>
+
+                        <input type="month" id="filtroMesInicial">
+                    </div>
+
+                    <div>
+                        <label style="font-size:10px;color:var(--muted);">
+                            Mês final
+                        </label>
+
+                        <input type="month" id="filtroMesFinal">
+                    </div>
+
+                </div>
+
+                <button
+                    class="btn-pequeno"
+                    style="margin-top:8px;"
+                    onclick="carregarListaHistoricoModal()"
+                >
+                    Aplicar
+                </button>
+
+            </div>
+
+            <div id="listaHistoricoModal" class="lista-movimentos"></div>
+
+        </div>
 
     </div>
 
 </div>
 
-
-<!-- ======================================================
+<!-- =========================
      MODAL GRÁFICOS
-======================================================= -->
+========================= -->
 
-<div
-    id="modalGraficos"
-    class="modal-overlay"
-    onclick="fecharModalAoClicarFora(event,'modalGraficos')">
+<div id="modalGraficos" class="modal-overlay modal-grande" onclick="fecharModalFora(event,'modalGraficos')">
 
-    <div class="modal-card">
+    <div class="modal">
 
         <div class="modal-header">
-
-            <h3>Gráficos e Análise</h3>
-
-            <button
-                class="btn-fechar-modal"
-                onclick="fecharModalGraficos()">
-                &times;
-            </button>
-
+            <h2>Gráficos e Análise</h2>
+            <button class="btn-fechar" onclick="fecharModalGraficos()">×</button>
         </div>
 
-        <div style="height:220px;margin-bottom:25px">
+        <div class="modal-body">
 
-            <h4
-                style="
-                    text-align:center;
-                    font-size:.9rem;
-                    color:var(--text-secondary)">
-                Receitas x Despesas
-            </h4>
+            <div class="grafico-container">
+                <h3>Receitas recebidas x Despesas pagas</h3>
+                <canvas id="graficoReceitasDespesas"></canvas>
+            </div>
 
-            <canvas id="graficoReceitaDespesa"></canvas>
+            <div class="grafico-container">
+                <h3>Despesas por forma de pagamento</h3>
+                <canvas id="graficoFormas"></canvas>
+            </div>
 
-        </div>
+            <div class="analise" id="analiseFinanceira"></div>
 
-        <div style="height:220px;margin-bottom:25px">
-
-            <h4
-                style="
-                    text-align:center;
-                    font-size:.9rem;
-                    color:var(--text-secondary)">
-                Despesas x Contas
-            </h4>
-
-            <canvas id="graficoCategorias"></canvas>
-
-        </div>
-
-        <h4>💡 Análise Financeira</h4>
-
-        <div
-            id="analiseFinanceira"
-            class="analise">
         </div>
 
     </div>
 
 </div>
 
-
-<!-- ======================================================
+<!-- =========================
      MODAL RESET
-======================================================= -->
+========================= -->
 
-<div
-    id="modalReset"
-    class="modal-overlay"
-    onclick="fecharModalAoClicarFora(event,'modalReset')">
+<div id="modalReset" class="modal-overlay modal-reset" onclick="fecharModalFora(event,'modalReset')">
 
-    <div class="modal-card">
+    <div class="modal">
 
         <div class="modal-header">
+            <h2>Resetar dados</h2>
+            <button class="btn-fechar" onclick="fecharModalReset()">×</button>
+        </div>
 
-            <h3>🗑️ Resetar Tudo</h3>
+        <div class="modal-body">
 
-            <button
-                class="btn-fechar-modal"
-                onclick="fecharModalReset()">
-                &times;
+            <div class="alerta">
+                ⚠️ Esta ação apagará os lançamentos salvos no aplicativo.
+                Faça um backup antes, se quiser preservar seus dados.
+            </div>
+
+            <button class="btn-perigo" onclick="confirmarReset()">
+                Apagar todos os lançamentos
+            </button>
+
+            <button class="btn-secundario" onclick="fecharModalReset()">
+                Cancelar
             </button>
 
         </div>
-
-        <div class="alerta-reset">
-
-            <strong>Atenção!</strong><br><br>
-
-            Esta ação apagará todos os lançamentos
-            financeiros salvos neste navegador.
-
-            <br><br>
-
-            O modo claro/escuro não será alterado.
-
-            <br><br>
-
-            <strong>
-                Essa ação não pode ser desfeita.
-            </strong>
-
-        </div>
-
-        <button
-            class="btn-perigo"
-            onclick="confirmarResetTudo()">
-
-            🗑️ SIM, APAGAR TUDO
-
-        </button>
-
-        <button
-            class="btn-secundario"
-            onclick="fecharModalReset()">
-
-            Cancelar
-
-        </button>
 
     </div>
 
 </div>
 
+<div id="toast" class="toast"></div>
 
 <script>
-
-/* ======================================================
-   VARIÁVEIS
-======================================================= */
+/* =========================================================
+   DADOS
+========================================================= */
 
 const mesesNomes = [
-    "Janeiro",
-    "Fevereiro",
-    "Março",
-    "Abril",
-    "Maio",
-    "Junho",
-    "Julho",
-    "Agosto",
-    "Setembro",
-    "Outubro",
-    "Novembro",
-    "Dezembro"
+    'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+    'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'
 ];
 
 let dataAtual = new Date();
 
-let movimentos =
-    JSON.parse(
-        localStorage.getItem(
-            'movimentos_financeiros_v4'
-        )
-    ) || [];
+let movimentos = JSON.parse(
+    localStorage.getItem('movimentos_financeiros_v4')
+) || [];
 
-let chartRD = null;
-let chartCat = null;
+let graficoReceitasDespesas = null;
+let graficoFormas = null;
+
+let toqueInicioX = 0;
+let toqueInicioY = 0;
+let movimentoPorSwipe = false;
 
 
-/* ======================================================
-   TEMA
-======================================================= */
+/* =========================================================
+   NORMALIZAÇÃO DOS DADOS ANTIGOS
+========================================================= */
 
-function carregarTema() {
+function normalizarMovimentos() {
 
-    const tema =
-        localStorage.getItem(
-            'controle_financeiro_tema'
-        );
+    movimentos = movimentos.map(m => {
 
-    const escuro =
-        tema === 'escuro';
+        if (!m.tipo) {
+            m.tipo = 'Despesa';
+        }
 
-    document.body.classList.toggle(
-        'dark-mode',
-        escuro
-    );
+        if (!m.valor) {
+            m.valor = 0;
+        }
 
-    document.getElementById(
-        'btnTema'
-    ).innerText =
-        escuro ? '☀️' : '🌙';
+        if (!m.descricao) {
+            m.descricao = 'Sem descrição';
+        }
 
+        /*
+         * Compatibilidade com versões antigas:
+         * Receita:
+         * pago=true  -> recebido
+         * pago=false -> pendente
+         *
+         * Despesa:
+         * pago=true  -> pago
+         * pago=false -> pendente
+         */
+
+        if (!m.status) {
+
+            if (m.tipo === 'Receita') {
+                m.status = m.pago === false
+                    ? 'pendente'
+                    : 'recebido';
+            }
+
+            else if (m.tipo === 'Despesa') {
+                m.status = m.pago === false
+                    ? 'pendente'
+                    : 'pago';
+            }
+
+            else {
+                m.status = 'aplicado';
+            }
+        }
+
+        /*
+         * Mantém o campo antigo pago para compatibilidade.
+         */
+
+        m.pago = m.status !== 'pendente';
+
+        return m;
+
+    });
+
+    salvarDados();
 }
 
 
-function alternarTema() {
-
-    const escuro =
-        !document.body.classList.contains(
-            'dark-mode'
-        );
-
-    document.body.classList.toggle(
-        'dark-mode',
-        escuro
-    );
-
-    localStorage.setItem(
-        'controle_financeiro_tema',
-        escuro ? 'escuro' : 'claro'
-    );
-
-    document.getElementById(
-        'btnTema'
-    ).innerText =
-        escuro ? '☀️' : '🌙';
-
-}
-
-
-/* ======================================================
-   UTILITÁRIOS
-======================================================= */
+/* =========================================================
+   STORAGE
+========================================================= */
 
 function salvarDados() {
 
@@ -1449,334 +1273,1334 @@ function salvarDados() {
         'movimentos_financeiros_v4',
         JSON.stringify(movimentos)
     );
-
 }
 
 
+/* =========================================================
+   TEMA
+========================================================= */
+
+function carregarTema() {
+
+    const tema = localStorage.getItem('tema_financeiro');
+
+    if (tema === 'dark') {
+        document.body.classList.add('dark');
+        document.getElementById('btnTema').textContent = '☀️';
+    } else {
+        document.body.classList.remove('dark');
+        document.getElementById('btnTema').textContent = '🌙';
+    }
+}
+
+
+function alternarTema() {
+
+    document.body.classList.toggle('dark');
+
+    const dark = document.body.classList.contains('dark');
+
+    localStorage.setItem(
+        'tema_financeiro',
+        dark ? 'dark' : 'light'
+    );
+
+    document.getElementById('btnTema').textContent =
+        dark ? '☀️' : '🌙';
+
+    if (document.getElementById('modalGraficos').classList.contains('aberto')) {
+        renderizarGraficos();
+    }
+}
+
+
+/* =========================================================
+   UTILITÁRIOS
+========================================================= */
+
 function formatarMoeda(valor) {
 
-    valor =
-        Number(valor) || 0;
-
-    return 'R$ ' +
-        valor
-        .toFixed(2)
-        .replace('.', ',')
-        .replace(
-            /\B(?=(\d{3})+(?!\d))/g,
-            '.'
-        );
-
+    return Number(valor || 0).toLocaleString(
+        'pt-BR',
+        {
+            style:'currency',
+            currency:'BRL'
+        }
+    );
 }
 
 
 function obterMesAtualString() {
 
-    const ano =
-        dataAtual.getFullYear();
-
-    const mes =
-        String(
-            dataAtual.getMonth()+1
-        ).padStart(2,'0');
-
-    return `${ano}-${mes}`;
-
+    return (
+        dataAtual.getFullYear() +
+        '-' +
+        String(dataAtual.getMonth() + 1).padStart(2,'0')
+    );
 }
 
 
 function obterMovimentosMes() {
 
-    return movimentos.filter(
-        m =>
-            m.data ===
-            obterMesAtualString()
-    );
+    const mes = obterMesAtualString();
 
+    return movimentos.filter(m => {
+
+        if (!m.data) return true;
+
+        return m.data.startsWith(mes);
+
+    });
 }
 
 
-/* ======================================================
+function obterStatus(m) {
+
+    if (m.status) {
+        return m.status;
+    }
+
+    if (m.tipo === 'Receita') {
+        return m.pago === false ? 'pendente' : 'recebido';
+    }
+
+    if (m.tipo === 'Despesa') {
+        return m.pago === false ? 'pendente' : 'pago';
+    }
+
+    return 'aplicado';
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+let toastTimeout;
+
+function mostrarToast(mensagem) {
+
+    const toast = document.getElementById('toast');
+
+    toast.textContent = mensagem;
+    toast.classList.add('mostrar');
+
+    clearTimeout(toastTimeout);
+
+    toastTimeout = setTimeout(() => {
+        toast.classList.remove('mostrar');
+    },2200);
+}
+
+
+/* =========================================================
+   MENU CONFIGURAÇÕES
+========================================================= */
+
+function toggleConfigMenu() {
+
+    document
+        .getElementById('menuConfig')
+        .classList.toggle('aberto');
+}
+
+
+function fecharConfigMenu() {
+
+    document
+        .getElementById('menuConfig')
+        .classList.remove('aberto');
+}
+
+
+/* =========================================================
    TIPO
-======================================================= */
+========================================================= */
 
 function selecionarTipo(tipo) {
 
-    document.getElementById(
-        'inputTipo'
-    ).value = tipo;
+    document.getElementById('inputTipo').value = tipo;
 
-    document.querySelectorAll(
-        '.tipo-opcao'
-    ).forEach(
-        b =>
-            b.classList.remove(
-                'selecionado'
-            )
+    document.getElementById('tipoDespesa').classList.toggle(
+        'ativo',
+        tipo === 'Despesa'
     );
 
-    if(tipo === 'Despesa') {
-
-        document.getElementById(
-            'tipoDespesa'
-        ).classList.add(
-            'selecionado'
-        );
-
-        document.getElementById(
-            'labelPago'
-        ).innerText =
-            'Pago?';
-
-        document.getElementById(
-            'grupoRecorrente'
-        ).style.display =
-            'flex';
-
-    }
-
-    if(tipo === 'Receita') {
-
-        document.getElementById(
-            'tipoReceita'
-        ).classList.add(
-            'selecionado'
-        );
-
-        document.getElementById(
-            'labelPago'
-        ).innerText =
-            'Recebido?';
-
-        document.getElementById(
-            'grupoRecorrente'
-        ).style.display =
-            'flex';
-
-    }
-
-    if(tipo === 'Saldo') {
-
-        document.getElementById(
-            'tipoSaldo'
-        ).classList.add(
-            'selecionado'
-        );
-
-        document.getElementById(
-            'labelPago'
-        ).innerText =
-            'Aplicar ajuste agora?';
-
-        document.getElementById(
-            'grupoRecorrente'
-        ).style.display =
-            'none';
-
-        document.getElementById(
-            'inputParcelado'
-        ).checked = false;
-
-        document.getElementById(
-            'inputRecorrente'
-        ).checked = false;
-
-        document.getElementById(
-            'camposParcelamento'
-        ).classList.remove(
-            'ativo'
-        );
-
-        document.getElementById(
-            'camposRecorrencia'
-        ).classList.remove(
-            'ativo'
-        );
-
-    }
-
-}
-
-
-/* ======================================================
-   BALÕES
-======================================================= */
-
-function selecionarBalao(
-    tipo,
-    valor,
-    botao
-) {
-
-    const grupo =
-        tipo === 'conta'
-        ? 'baloesConta'
-        : 'baloesForma';
-
-    const input =
-        tipo === 'conta'
-        ? 'inputConta'
-        : 'inputForma';
-
-    document.querySelectorAll(
-        '#' + grupo +
-        ' .balao-opcao'
-    ).forEach(
-        b =>
-            b.classList.remove(
-                'selecionado'
-            )
+    document.getElementById('tipoReceita').classList.toggle(
+        'ativo',
+        tipo === 'Receita'
     );
 
-    botao.classList.add(
-        'selecionado'
+    document.getElementById('tipoSaldo').classList.toggle(
+        'ativo',
+        tipo === 'Saldo'
     );
 
-    document.getElementById(
-        input
-    ).value = valor;
+    const grupoStatus = document.getElementById('grupoStatus');
+    const maisOpcoes = document.getElementById('maisOpcoes');
 
-}
+    if (tipo === 'Saldo') {
 
+        grupoStatus.style.display = 'none';
+        maisOpcoes.style.display = 'none';
 
-function selecionarBalaoPorValor(
-    tipo,
-    valor
-) {
+        selecionarStatus('aplicado');
 
-    const grupo =
-        tipo === 'conta'
-        ? 'baloesConta'
-        : 'baloesForma';
+    } else {
 
-    const input =
-        tipo === 'conta'
-        ? 'inputConta'
-        : 'inputForma';
+        grupoStatus.style.display = 'block';
+        maisOpcoes.style.display = 'block';
 
-    let encontrou = false;
+        /*
+         * Quando o usuário está criando um novo lançamento,
+         * o padrão é quitado.
+         */
 
-    document.querySelectorAll(
-        '#' + grupo +
-        ' .balao-opcao'
-    ).forEach(
-        b => {
-
-            const selecionado =
-                b.dataset.value === valor;
-
-            b.classList.toggle(
-                'selecionado',
-                selecionado
-            );
-
-            if(selecionado)
-                encontrou = true;
-
+        if (!document.getElementById('editIndex').value) {
+            selecionarStatus('quitado');
         }
-    );
 
-    document.getElementById(
-        input
-    ).value =
-        valor || '';
-
+        atualizarTextosStatus();
+    }
 }
 
 
-/* ======================================================
-   PAINÉIS
-======================================================= */
+function atualizarTextosStatus() {
 
-function togglePainelNovo() {
+    const tipo = document.getElementById('inputTipo').value;
 
-    const conteudo =
-        document.getElementById(
-            'conteudoPainelNovo'
-        );
+    if (tipo === 'Receita') {
 
-    const seta =
-        document.getElementById(
-            'setaPainel'
-        );
+        document.getElementById('textoStatusQuitado').textContent =
+            'Recebido';
 
-    conteudo.classList.toggle(
-        'ativo'
-    );
+        document.getElementById('textoStatusPendente').textContent =
+            'A receber';
 
-    seta.innerText =
-        conteudo.classList.contains(
-            'ativo'
-        )
-        ? '▲'
-        : '▼';
+    } else {
 
+        document.getElementById('textoStatusQuitado').textContent =
+            'Pago';
+
+        document.getElementById('textoStatusPendente').textContent =
+            'Pendente';
+    }
 }
 
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function selecionarStatus(status) {
+
+    document.getElementById('inputStatus').value = status;
+
+    document.getElementById('statusQuitado').classList.toggle(
+        'ativo',
+        status !== 'pendente'
+    );
+
+    document.getElementById('statusPendente').classList.toggle(
+        'ativo',
+        status === 'pendente'
+    );
+}
+
+
+/* =========================================================
+   CONTA / FORMA
+========================================================= */
+
+function selecionarConta(conta, elemento) {
+
+    document.getElementById('inputConta').value = conta;
+
+    document
+        .querySelectorAll('#baloesConta .chip')
+        .forEach(btn => btn.classList.remove('ativo'));
+
+    if (elemento) {
+        elemento.classList.add('ativo');
+    }
+}
+
+
+function selecionarForma(forma, elemento) {
+
+    document.getElementById('inputForma').value = forma;
+
+    document
+        .querySelectorAll('#baloesForma .chip')
+        .forEach(btn => btn.classList.remove('ativo'));
+
+    if (elemento) {
+        elemento.classList.add('ativo');
+    }
+}
+
+
+/* =========================================================
+   MAIS OPÇÕES
+========================================================= */
 
 function toggleExtrasLancamento() {
 
-    const el =
-        document.getElementById(
-            'extrasLancamento'
-        );
+    const extras = document.getElementById('conteudoExtras');
+    const seta = document.getElementById('setaExtras');
 
-    const seta =
-        document.getElementById(
-            'setaExtras'
-        );
+    extras.classList.toggle('aberto');
 
-    el.classList.toggle(
-        'ativo'
-    );
-
-    seta.innerText =
-        el.classList.contains(
-            'ativo'
-        )
-        ? '▲'
-        : '▼';
-
+    seta.textContent = extras.classList.contains('aberto')
+        ? '⌃'
+        : '⌄';
 }
 
 
 function toggleParcelamento() {
 
-    const ativo =
-        document.getElementById(
-            'inputParcelado'
-        ).checked;
+    const marcado =
+        document.getElementById('inputParcelado').checked;
 
-    document.getElementById(
-        'camposParcelamento'
-    ).classList.toggle(
-        'ativo',
-        ativo
-    );
+    document.getElementById('camposParcelamento').style.display =
+        marcado ? 'block' : 'none';
 
+    if (marcado) {
+
+        document.getElementById('inputRecorrente').checked = false;
+
+        document.getElementById('camposRecorrencia').style.display =
+            'none';
+    }
 }
 
 
 function toggleRecorrencia() {
 
-    const ativo =
-        document.getElementById(
-            'inputRecorrente'
-        ).checked;
+    const marcado =
+        document.getElementById('inputRecorrente').checked;
 
-    document.getElementById(
-        'camposRecorrencia'
-    ).classList.toggle(
-        'ativo',
-        ativo
-    );
+    document.getElementById('camposRecorrencia').style.display =
+        marcado ? 'block' : 'none';
 
+    if (marcado) {
+
+        document.getElementById('inputParcelado').checked = false;
+
+        document.getElementById('camposParcelamento').style.display =
+            'none';
+    }
 }
 
 
-/* ======================================================
-   MÊS
-======================================================= */
+/* =========================================================
+   MODAL LANÇAMENTO
+========================================================= */
+
+function abrirModalLancamento() {
+
+    fecharConfigMenu();
+
+    limparFormulario();
+
+    document.getElementById('tituloModalLancamento').textContent =
+        'Novo Lançamento';
+
+    document.getElementById('btnSalvarForm').textContent =
+        'Cadastrar Lançamento';
+
+    selecionarTipo('Despesa');
+    selecionarStatus('quitado');
+
+    document
+        .getElementById('modalLancamento')
+        .classList.add('aberto');
+
+    setTimeout(() => {
+        document.getElementById('inputDescricao').focus();
+    },100);
+}
+
+
+function fecharModalLancamento() {
+
+    document
+        .getElementById('modalLancamento')
+        .classList.remove('aberto');
+
+    limparFormulario();
+}
+
+
+function limparFormulario() {
+
+    document.getElementById('formLancamento').reset();
+
+    document.getElementById('editIndex').value = '';
+    document.getElementById('inputTipo').value = 'Despesa';
+    document.getElementById('inputConta').value = 'Conta principal';
+    document.getElementById('inputForma').value = 'PIX';
+    document.getElementById('inputStatus').value = 'pago';
+
+    document.getElementById('inputParcelado').checked = false;
+    document.getElementById('inputRecorrente').checked = false;
+
+    document.getElementById('camposParcelamento').style.display = 'none';
+    document.getElementById('camposRecorrencia').style.display = 'none';
+
+    document.getElementById('conteudoExtras').classList.remove('aberto');
+    document.getElementById('setaExtras').textContent = '⌄';
+
+    document
+        .querySelectorAll('#baloesConta .chip')
+        .forEach((btn,index) => {
+            btn.classList.toggle('ativo',index === 0);
+        });
+
+    document
+        .querySelectorAll('#baloesForma .chip')
+        .forEach((btn,index) => {
+            btn.classList.toggle('ativo',index === 0);
+        });
+
+    selecionarTipo('Despesa');
+    selecionarStatus('quitado');
+
+    atualizarTextosStatus();
+}
+
+
+/* =========================================================
+   SALVAR MOVIMENTO
+========================================================= */
+
+function salvarMovimento(event) {
+
+    event.preventDefault();
+
+    const tipo =
+        document.getElementById('inputTipo').value;
+
+    const descricao =
+        document.getElementById('inputDescricao').value.trim();
+
+    const valor =
+        parseFloat(document.getElementById('inputValor').value);
+
+    const conta =
+        document.getElementById('inputConta').value;
+
+    const forma =
+        document.getElementById('inputForma').value;
+
+    const status =
+        tipo === 'Saldo'
+            ? 'aplicado'
+            : document.getElementById('inputStatus').value;
+
+    if (!descricao || !valor || valor <= 0) {
+
+        mostrarToast('Informe descrição e valor.');
+        return;
+    }
+
+    const editIndex =
+        document.getElementById('editIndex').value;
+
+    /* =========================
+       EDIÇÃO
+    ========================= */
+
+    if (editIndex !== '') {
+
+        const index = Number(editIndex);
+
+        if (movimentos[index]) {
+
+            movimentos[index].tipo = tipo;
+            movimentos[index].descricao = descricao;
+            movimentos[index].valor = valor;
+            movimentos[index].conta = conta;
+            movimentos[index].forma = forma;
+            movimentos[index].status = status;
+            movimentos[index].pago = status !== 'pendente';
+        }
+
+        salvarDados();
+        atualizarInterface();
+        carregarListaHistoricoModal();
+
+        fecharModalLancamento();
+
+        mostrarToast('Lançamento atualizado.');
+
+        return;
+    }
+
+
+    /* =========================
+       DATA BASE
+    ========================= */
+
+    const hoje = new Date();
+
+    const dataBase =
+        hoje.getFullYear() +
+        '-' +
+        String(hoje.getMonth()+1).padStart(2,'0') +
+        '-' +
+        String(hoje.getDate()).padStart(2,'0');
+
+
+    /* =========================
+       PARCELADO
+    ========================= */
+
+    const parcelado =
+        document.getElementById('inputParcelado').checked;
+
+    const recorrente =
+        document.getElementById('inputRecorrente').checked;
+
+
+    if (parcelado) {
+
+        let parcelas =
+            parseInt(
+                document.getElementById('inputParcelas').value
+            ) || 2;
+
+        parcelas = Math.max(2,Math.min(120,parcelas));
+
+        const valorParcela =
+            valor / parcelas;
+
+        for (let i=1; i<=parcelas; i++) {
+
+            const dataParcela = new Date(hoje);
+
+            dataParcela.setMonth(
+                dataParcela.getMonth() + (i-1)
+            );
+
+            const data =
+                dataParcela.getFullYear() +
+                '-' +
+                String(dataParcela.getMonth()+1).padStart(2,'0') +
+                '-' +
+                String(dataParcela.getDate()).padStart(2,'0');
+
+            /*
+             * A primeira parcela respeita o status escolhido.
+             * As próximas ficam pendentes.
+             */
+
+            const statusParcela =
+                i === 1
+                    ? status
+                    : 'pendente';
+
+            movimentos.push({
+                id:Date.now() + i,
+                data,
+                tipo,
+                descricao:`${descricao} (${i}/${parcelas})`,
+                valor:valorParcela,
+                conta,
+                forma,
+                status:statusParcela,
+                pago:statusParcela !== 'pendente',
+                parcelado:true,
+                parcela:i,
+                totalParcelas:parcelas
+            });
+        }
+
+        salvarDados();
+        atualizarInterface();
+        fecharModalLancamento();
+
+        mostrarToast(`${parcelas} parcelas cadastradas.`);
+
+        return;
+    }
+
+
+    /* =========================
+       RECORRENTE
+    ========================= */
+
+    if (recorrente) {
+
+        let meses =
+            parseInt(
+                document.getElementById('inputMesesRecorrencia').value
+            ) || 12;
+
+        meses = Math.max(2,Math.min(60,meses));
+
+        for (let i=0; i<meses; i++) {
+
+            const dataMov = new Date(hoje);
+
+            dataMov.setMonth(
+                dataMov.getMonth() + i
+            );
+
+            const data =
+                dataMov.getFullYear() +
+                '-' +
+                String(dataMov.getMonth()+1).padStart(2,'0') +
+                '-' +
+                String(dataMov.getDate()).padStart(2,'0');
+
+            /*
+             * Somente o primeiro lançamento recebe o status
+             * escolhido. Os próximos ficam pendentes.
+             */
+
+            const statusRecorrente =
+                i === 0
+                    ? status
+                    : 'pendente';
+
+            movimentos.push({
+                id:Date.now() + i,
+                data,
+                tipo,
+                descricao,
+                valor,
+                conta,
+                forma,
+                status:statusRecorrente,
+                pago:statusRecorrente !== 'pendente',
+                recorrente:true
+            });
+        }
+
+        salvarDados();
+        atualizarInterface();
+        fecharModalLancamento();
+
+        mostrarToast(`${meses} lançamentos recorrentes cadastrados.`);
+
+        return;
+    }
+
+
+    /* =========================
+       NORMAL
+    ========================= */
+
+    movimentos.push({
+        id:Date.now(),
+        data:dataBase,
+        tipo,
+        descricao,
+        valor,
+        conta,
+        forma,
+        status,
+        pago:status !== 'pendente'
+    });
+
+    salvarDados();
+    atualizarInterface();
+    fecharModalLancamento();
+
+    mostrarToast('Lançamento cadastrado.');
+}
+
+
+/* =========================================================
+   ATUALIZAR INTERFACE
+========================================================= */
+
+function atualizarInterface() {
+
+    normalizarMovimentos();
+
+    const lista =
+        obterMovimentosMes();
+
+    let receitasPrevistas = 0;
+    let receitasRecebidas = 0;
+    let aReceber = 0;
+
+    let despesasPrevistas = 0;
+    let despesasPagas = 0;
+    let aPagar = 0;
+
+    let ajustes = 0;
+
+    lista.forEach(m => {
+
+        const valor = Number(m.valor || 0);
+        const status = obterStatus(m);
+
+        if (m.tipo === 'Receita') {
+
+            receitasPrevistas += valor;
+
+            if (status === 'pendente') {
+                aReceber += valor;
+            } else {
+                receitasRecebidas += valor;
+            }
+
+        }
+
+        else if (m.tipo === 'Despesa') {
+
+            despesasPrevistas += valor;
+
+            if (status === 'pendente') {
+                aPagar += valor;
+            } else {
+                despesasPagas += valor;
+            }
+
+        }
+
+        else if (m.tipo === 'Saldo') {
+
+            ajustes += valor;
+        }
+
+    });
+
+
+    /*
+     * SALDO DISPONÍVEL:
+     * somente dinheiro que efetivamente entrou
+     * menos o que efetivamente saiu.
+     */
+
+    const saldoCaixa =
+        receitasRecebidas -
+        despesasPagas +
+        ajustes;
+
+
+    const totalPendentes =
+        aReceber + aPagar;
+
+
+    document.getElementById('mesAtual').textContent =
+        `${mesesNomes[dataAtual.getMonth()]} de ${dataAtual.getFullYear()}`;
+
+
+    document.getElementById('cardLiquidoValor').textContent =
+        formatarMoeda(saldoCaixa);
+
+    document.getElementById('cardSaldo').textContent =
+        formatarMoeda(saldoCaixa);
+
+    document.getElementById('cardReceitas').textContent =
+        formatarMoeda(receitasPrevistas);
+
+    document.getElementById('cardReceitasDetalhe').textContent =
+        `Recebidas: ${formatarMoeda(receitasRecebidas)}`;
+
+    document.getElementById('cardDespesasPagas').textContent =
+        formatarMoeda(despesasPagas);
+
+    document.getElementById('cardDespesasDetalhe').textContent =
+        `Previstas: ${formatarMoeda(despesasPrevistas)}`;
+
+    document.getElementById('cardPendentes').textContent =
+        formatarMoeda(totalPendentes);
+
+    document.getElementById('cardPendentesDetalhe').innerHTML =
+        `A receber: ${formatarMoeda(aReceber)}<br>` +
+        `A pagar: ${formatarMoeda(aPagar)}`;
+
+
+    const saldoElement =
+        document.getElementById('cardLiquidoValor');
+
+    saldoElement.classList.remove(
+        'valor-verde',
+        'valor-vermelho',
+        'valor-azul'
+    );
+
+    saldoElement.classList.add(
+        saldoCaixa >= 0
+            ? 'valor-verde'
+            : 'valor-vermelho'
+    );
+
+
+    renderizarResumo();
+}
+
+
+/* =========================================================
+   RESUMO
+========================================================= */
+
+function renderizarResumo() {
+
+    const lista =
+        obterMovimentosMes()
+        .sort((a,b) => {
+
+            return new Date(b.data || 0) -
+                   new Date(a.data || 0);
+
+        })
+        .slice(0,6);
+
+    const container =
+        document.getElementById('listaResumo');
+
+    if (!lista.length) {
+
+        container.innerHTML =
+            `<div class="sem-movimentos">
+                Nenhum lançamento neste mês.
+                <br><br>
+                Toque no <strong>+</strong> para cadastrar.
+            </div>`;
+
+        return;
+    }
+
+    container.innerHTML =
+        lista.map(m => gerarHtmlMovimento(
+            m,
+            movimentos.indexOf(m),
+            true
+        )).join('');
+
+    ativarSwipes();
+}
+
+
+/* =========================================================
+   HTML DO MOVIMENTO
+========================================================= */
+
+function gerarHtmlMovimento(m,index,resumo=false) {
+
+    const status =
+        obterStatus(m);
+
+    let statusTexto = 'Aplicado';
+    let statusClasse = 'status-ok';
+
+    if (m.tipo === 'Receita') {
+
+        if (status === 'pendente') {
+            statusTexto = 'A receber';
+            statusClasse = 'status-pendente';
+        } else {
+            statusTexto = 'Recebido';
+        }
+
+    }
+
+    else if (m.tipo === 'Despesa') {
+
+        if (status === 'pendente') {
+            statusTexto = 'Pendente';
+            statusClasse = 'status-pendente';
+        } else {
+            statusTexto = 'Pago';
+        }
+    }
+
+
+    const valorClasse =
+        m.tipo === 'Receita'
+            ? 'valor-verde'
+            : m.tipo === 'Despesa'
+                ? 'valor-vermelho'
+                : 'valor-azul';
+
+
+    const sinal =
+        m.tipo === 'Receita'
+            ? '+'
+            : m.tipo === 'Despesa'
+                ? '-'
+                : '';
+
+
+    const dataFormatada =
+        m.data
+            ? new Date(m.data + 'T12:00:00').toLocaleDateString('pt-BR')
+            : '';
+
+
+    return `
+        <div
+            class="item-movimento"
+            data-index="${index}"
+            data-movimento-index="${index}"
+        >
+
+            <div class="item-topo">
+
+                <div>
+                    <div class="item-descricao">
+                        ${escaparHtml(m.descricao)}
+                    </div>
+
+                    <div class="item-info">
+                        ${dataFormatada}
+                        ${m.conta ? ' • ' + escaparHtml(m.conta) : ''}
+                        ${m.forma ? ' • ' + escaparHtml(m.forma) : ''}
+                    </div>
+                </div>
+
+                <div
+                    class="item-valor ${valorClasse}"
+                >
+                    ${sinal}${formatarMoeda(m.valor)}
+                </div>
+
+            </div>
+
+            <div class="item-info">
+
+                <span class="status-badge ${statusClasse}">
+                    ${statusTexto}
+                </span>
+
+                ${m.parcelado ? ` • Parcela ${m.parcela}/${m.totalParcelas}` : ''}
+                ${m.recorrente ? ' • Recorrente' : ''}
+
+            </div>
+
+            ${
+                !resumo
+                ? `
+                    <div class="item-acoes">
+
+                        <button
+                            type="button"
+                            onclick="editarMovimento(${index})"
+                        >
+                            ✏️ Editar
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn-excluir"
+                            onclick="excluirMovimento(${index})"
+                        >
+                            🗑️ Excluir
+                        </button>
+
+                    </div>
+                `
+                : ''
+            }
+
+        </div>
+    `;
+}
+
+
+/* =========================================================
+   ESCAPAR HTML
+========================================================= */
+
+function escaparHtml(texto) {
+
+    return String(texto ?? '')
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#039;');
+}
+
+
+/* =========================================================
+   HISTÓRICO
+========================================================= */
+
+function abrirModalHistorico() {
+
+    document.getElementById('modalHistorico')
+        .classList.add('aberto');
+
+    carregarListaHistoricoModal();
+}
+
+
+function fecharModalHistorico() {
+
+    document.getElementById('modalHistorico')
+        .classList.remove('aberto');
+}
+
+
+function toggleFiltroPeriodo() {
+
+    document
+        .getElementById('filtroPeriodo')
+        .classList.toggle('aberto');
+}
+
+
+function carregarListaHistoricoModal() {
+
+    const container =
+        document.getElementById('listaHistoricoModal');
+
+    let lista =
+        obterMovimentosMes()
+        .map((m,index) => ({
+            ...m,
+            __index:movimentos.indexOf(m)
+        }));
+
+
+    const inicio =
+        document.getElementById('filtroMesInicial').value;
+
+    const fim =
+        document.getElementById('filtroMesFinal').value;
+
+
+    if (inicio) {
+
+        lista = lista.filter(m =>
+            (m.data || '').substring(0,7) >= inicio
+        );
+    }
+
+
+    if (fim) {
+
+        lista = lista.filter(m =>
+            (m.data || '').substring(0,7) <= fim
+        );
+    }
+
+
+    lista.sort((a,b) => {
+
+        return new Date(b.data || 0) -
+               new Date(a.data || 0);
+
+    });
+
+
+    if (!lista.length) {
+
+        container.innerHTML =
+            `<div class="sem-movimentos">
+                Nenhum lançamento encontrado.
+            </div>`;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        lista.map(m =>
+            gerarHtmlMovimento(
+                m,
+                m.__index,
+                false
+            )
+        ).join('');
+
+    ativarSwipes();
+}
+
+
+/* =========================================================
+   SWIPE
+========================================================= */
+
+function ativarSwipes() {
+
+    document
+        .querySelectorAll('.item-movimento')
+        .forEach(item => {
+
+            item.addEventListener(
+                'touchstart',
+                iniciarSwipe,
+                {passive:true}
+            );
+
+            item.addEventListener(
+                'touchend',
+                finalizarSwipe,
+                {passive:true}
+            );
+        });
+}
+
+
+function iniciarSwipe(event) {
+
+    const toque =
+        event.changedTouches[0];
+
+    toqueInicioX = toque.clientX;
+    toqueInicioY = toque.clientY;
+
+    movimentoPorSwipe = false;
+}
+
+
+function finalizarSwipe(event) {
+
+    const toque =
+        event.changedTouches[0];
+
+    const deltaX =
+        toque.clientX - toqueInicioX;
+
+    const deltaY =
+        toque.clientY - toqueInicioY;
+
+
+    /*
+     * Ignora movimentos predominantemente verticais.
+     */
+
+    if (Math.abs(deltaX) < 70 ||
+        Math.abs(deltaX) <= Math.abs(deltaY)) {
+
+        return;
+    }
+
+
+    const item =
+        event.currentTarget;
+
+    const index =
+        Number(item.dataset.movimentoIndex);
+
+
+    movimentoPorSwipe = true;
+
+
+    if (deltaX > 0) {
+
+        /*
+         * Direita = pago / recebido
+         */
+
+        alterarStatusPorSwipe(
+            index,
+            false
+        );
+
+    } else {
+
+        /*
+         * Esquerda = pendente
+         */
+
+        alterarStatusPorSwipe(
+            index,
+            true
+        );
+    }
+}
+
+
+function alterarStatusPorSwipe(index, pendente) {
+
+    const movimento =
+        movimentos[index];
+
+    if (!movimento) return;
+
+    if (movimento.tipo === 'Saldo') {
+        mostrarToast('Saldo não possui status pendente.');
+        return;
+    }
+
+
+    if (pendente) {
+
+        movimento.status = 'pendente';
+        movimento.pago = false;
+
+        mostrarToast(
+            movimento.tipo === 'Receita'
+                ? 'Marcado como A receber.'
+                : 'Marcado como Pendente.'
+        );
+
+    } else {
+
+        movimento.status =
+            movimento.tipo === 'Receita'
+                ? 'recebido'
+                : 'pago';
+
+        movimento.pago = true;
+
+        mostrarToast(
+            movimento.tipo === 'Receita'
+                ? 'Receita marcada como recebida.'
+                : 'Despesa marcada como paga.'
+        );
+    }
+
+
+    salvarDados();
+    atualizarInterface();
+
+    if (
+        document
+            .getElementById('modalHistorico')
+            .classList.contains('aberto')
+    ) {
+        carregarListaHistoricoModal();
+    }
+}
+
+
+/* =========================================================
+   EDITAR
+========================================================= */
+
+function editarMovimento(index) {
+
+    const m =
+        movimentos[index];
+
+    if (!m) return;
+
+
+    document.getElementById('editIndex').value =
+        index;
+
+    document.getElementById('inputDescricao').value =
+        String(m.descricao || '')
+        .replace(/\s*\(\d+\/\d+\)$/,'');
+
+    document.getElementById('inputValor').value =
+        Number(m.valor || 0).toFixed(2);
+
+    document.getElementById('inputTipo').value =
+        m.tipo;
+
+    document.getElementById('inputConta').value =
+        m.conta || 'Conta principal';
+
+    document.getElementById('inputForma').value =
+        m.forma || 'PIX';
+
+
+    selecionarTipo(m.tipo);
+
+    selecionarStatus(obterStatus(m));
+
+
+    document
+        .querySelectorAll('#baloesConta .chip')
+        .forEach(btn => {
+
+            const texto =
+                btn.textContent
+                    .replace(/[^\wÀ-ÿ+ ]/g,'')
+                    .trim()
+                    .toLowerCase();
+
+            btn.classList.remove('ativo');
+
+            if (
+                (m.conta === 'Conta principal' && texto.includes('principal')) ||
+                (m.conta === 'Nubank' && texto.includes('nubank')) ||
+                (m.conta === 'Caixa' && texto.includes('caixa')) ||
+                (m.conta === 'Outra' && texto.includes('outra'))
+            ) {
+                btn.classList.add('ativo');
+            }
+        });
+
+
+    document
+        .querySelectorAll('#baloesForma .chip')
+        .forEach(btn => {
+
+            btn.classList.remove('ativo');
+
+            const formaTexto =
+                btn.textContent.trim().toLowerCase();
+
+            if (
+                formaTexto.includes(
+                    String(m.forma || 'PIX').toLowerCase()
+                )
+            ) {
+                btn.classList.add('ativo');
+            }
+        });
+
+
+    document.getElementById('tituloModalLancamento').textContent =
+        'Editar Lançamento';
+
+    document.getElementById('btnSalvarForm').textContent =
+        'Salvar Alterações';
+
+
+    document
+        .getElementById('modalHistorico')
+        .classList.remove('aberto');
+
+
+    document
+        .getElementById('modalLancamento')
+        .classList.add('aberto');
+}
+
+
+/* =========================================================
+   EXCLUIR
+========================================================= */
+
+function excluirMovimento(index) {
+
+    const m =
+        movimentos[index];
+
+    if (!m) return;
+
+    if (
+        !confirm(
+            `Excluir "${m.descricao}"?`
+        )
+    ) {
+        return;
+    }
+
+
+    movimentos.splice(index,1);
+
+    salvarDados();
+    atualizarInterface();
+
+    if (
+        document
+            .getElementById('modalHistorico')
+            .classList.contains('aberto')
+    ) {
+        carregarListaHistoricoModal();
+    }
+
+    mostrarToast('Lançamento excluído.');
+}
+
+
+/* =========================================================
+   MUDAR MÊS
+========================================================= */
 
 function mudarMes(direcao) {
 
@@ -1786,818 +2610,40 @@ function mudarMes(direcao) {
 
     atualizarInterface();
 
-}
-
-
-/* ======================================================
-   DASHBOARD
-======================================================= */
-
-function atualizarInterface() {
-
-    const mes =
-        dataAtual.getMonth();
-
-    const ano =
-        dataAtual.getFullYear();
-
-    document.getElementById(
-        'labelMesAno'
-    ).innerText =
-        `${mesesNomes[mes]} de ${ano}`;
-
-    const lista =
-        obterMovimentosMes();
-
-    let receitas = 0;
-    let despesas = 0;
-    let pendentes = 0;
-    let ajustes = 0;
-
-    lista.forEach(m => {
-
-        const valor =
-            Number(m.valor) || 0;
-
-        if(m.tipo === 'Receita') {
-
-            if(m.pago)
-                receitas += valor;
-            else
-                pendentes += valor;
-
-        }
-
-        else if(m.tipo === 'Despesa') {
-
-            if(m.pago)
-                despesas += valor;
-            else
-                pendentes += valor;
-
-        }
-
-        else if(m.tipo === 'Saldo') {
-
-            ajustes += valor;
-
-        }
-
-    });
-
-    const saldo =
-        receitas -
-        despesas +
-        ajustes;
-
-    const liquido =
-        receitas -
-        despesas -
-        pendentes +
-        ajustes;
-
-    document.getElementById(
-        'cardReceitas'
-    ).innerText =
-        formatarMoeda(receitas);
-
-    document.getElementById(
-        'cardSaldo'
-    ).innerText =
-        formatarMoeda(saldo);
-
-    document.getElementById(
-        'cardDespesasPagas'
-    ).innerText =
-        formatarMoeda(despesas);
-
-    document.getElementById(
-        'cardPendentes'
-    ).innerText =
-        formatarMoeda(pendentes);
-
-    const liquidoEl =
-        document.getElementById(
-            'cardLiquidoValor'
-        );
-
-    liquidoEl.innerText =
-        formatarMoeda(liquido);
-
-    liquidoEl.style.color =
-        liquido >= 0
-        ? 'var(--success-color)'
-        : 'var(--danger-color)';
-
-    salvarDados();
-
-}
-
-
-/* ======================================================
-   SALVAR MOVIMENTO
-======================================================= */
-
-function salvarMovimento(e) {
-
-    e.preventDefault();
-
-    const editIndex =
-        document.getElementById(
-            'editIndex'
-        ).value;
-
-    const tipo =
-        document.getElementById(
-            'inputTipo'
-        ).value;
-
-    const descricao =
-        document.getElementById(
-            'inputDescricao'
-        ).value.trim();
-
-    const valor =
-        Number(
-            document.getElementById(
-                'inputValor'
-            ).value
-        );
-
-    const forma =
-        document.getElementById(
-            'inputForma'
-        ).value;
-
-    const conta =
-        document.getElementById(
-            'inputConta'
-        ).value ||
-        'Conta principal';
-
-    const pago =
-        document.getElementById(
-            'inputPago'
-        ).checked;
-
-    if(
-        !descricao ||
-        !valor ||
-        valor <= 0
+    if (
+        document
+            .getElementById('modalHistorico')
+            .classList.contains('aberto')
     ) {
-
-        alert(
-            'Informe descrição e valor válido.'
-        );
-
-        return;
-
-    }
-
-
-    /* EDIÇÃO */
-
-    if(editIndex !== '') {
-
-        const index =
-            Number(editIndex);
-
-        if(movimentos[index]) {
-
-            movimentos[index].tipo =
-                tipo;
-
-            movimentos[index].descricao =
-                descricao;
-
-            movimentos[index].valor =
-                valor;
-
-            movimentos[index].forma =
-                forma;
-
-            movimentos[index].conta =
-                conta;
-
-            movimentos[index].pago =
-                pago;
-
-        }
-
-        finalizarFormulario();
-
-        atualizarInterface();
-
-        return;
-
-    }
-
-
-    /* AJUSTE DE SALDO */
-
-    if(tipo === 'Saldo') {
-
-        movimentos.push({
-
-            id:Date.now(),
-
-            tipo:'Saldo',
-
-            descricao,
-
-            valor,
-
-            forma:'Ajuste',
-
-            conta,
-
-            pago:true,
-
-            data:
-                obterMesAtualString()
-
-        });
-
-        finalizarFormulario();
-
-        atualizarInterface();
-
-        return;
-
-    }
-
-
-    const parcelado =
-        document.getElementById(
-            'inputParcelado'
-        ).checked;
-
-    const recorrente =
-        document.getElementById(
-            'inputRecorrente'
-        ).checked;
-
-
-    /* PARCELADO */
-
-    if(parcelado) {
-
-        const qtd =
-            Number(
-                document.getElementById(
-                    'inputParcelas'
-                ).value
-            );
-
-        if(qtd < 2) {
-
-            alert(
-                'Informe pelo menos 2 parcelas.'
-            );
-
-            return;
-
-        }
-
-        const valorParcela =
-            Math.round(
-                (
-                    valor / qtd
-                ) * 100
-            ) / 100;
-
-        for(
-            let i=0;
-            i<qtd;
-            i++
-        ) {
-
-            const data =
-                new Date(
-                    dataAtual.getFullYear(),
-                    dataAtual.getMonth()+i,
-                    1
-                );
-
-            const ano =
-                data.getFullYear();
-
-            const mes =
-                String(
-                    data.getMonth()+1
-                ).padStart(2,'0');
-
-            let valorAtual =
-                valorParcela;
-
-            if(i === qtd-1) {
-
-                valorAtual =
-                    Math.round(
-                        (
-                            valor -
-                            (
-                                valorParcela *
-                                (qtd-1)
-                            )
-                        ) * 100
-                    ) / 100;
-
-            }
-
-            movimentos.push({
-
-                id:
-                    Date.now()+i,
-
-                tipo,
-
-                descricao:
-                    `${descricao} (${i+1}/${qtd})`,
-
-                valor:
-                    valorAtual,
-
-                forma,
-
-                conta,
-
-                pago:
-                    i === 0
-                    ? pago
-                    : false,
-
-                data:
-                    `${ano}-${mes}`,
-
-                parcelaAtual:
-                    i+1,
-
-                totalParcelas:
-                    qtd
-
-            });
-
-        }
-
-    }
-
-    else {
-
-        /* NORMAL */
-
-        movimentos.push({
-
-            id:Date.now(),
-
-            tipo,
-
-            descricao,
-
-            valor,
-
-            forma,
-
-            conta,
-
-            pago,
-
-            data:
-                obterMesAtualString()
-
-        });
-
-        /* RECORRENTE */
-
-        if(recorrente) {
-
-            const meses =
-                Number(
-                    document.getElementById(
-                        'inputMesesRecorrencia'
-                    ).value
-                );
-
-            for(
-                let i=1;
-                i<meses;
-                i++
-            ) {
-
-                const data =
-                    new Date(
-                        dataAtual.getFullYear(),
-                        dataAtual.getMonth()+i,
-                        1
-                    );
-
-                const ano =
-                    data.getFullYear();
-
-                const mes =
-                    String(
-                        data.getMonth()+1
-                    ).padStart(2,'0');
-
-                movimentos.push({
-
-                    id:
-                        Date.now()+1000+i,
-
-                    tipo,
-
-                    descricao,
-
-                    valor,
-
-                    forma,
-
-                    conta,
-
-                    pago:false,
-
-                    data:
-                        `${ano}-${mes}`,
-
-                    recorrente:true
-
-                });
-
-            }
-
-        }
-
-    }
-
-    finalizarFormulario();
-
-    atualizarInterface();
-
-}
-
-
-/* ======================================================
-   FINALIZAR FORMULÁRIO
-======================================================= */
-
-function finalizarFormulario() {
-
-    document.getElementById(
-        'formLancamento'
-    ).reset();
-
-    document.getElementById(
-        'editIndex'
-    ).value='';
-
-    selecionarTipo(
-        'Despesa'
-    );
-
-    selecionarBalaoPorValor(
-        'forma',
-        'PIX'
-    );
-
-    document.getElementById(
-        'inputConta'
-    ).value =
-        'Conta principal';
-
-    document.querySelectorAll(
-        '#baloesConta .balao-opcao'
-    ).forEach(
-        b =>
-            b.classList.remove(
-                'selecionado'
-            )
-    );
-
-    document.getElementById(
-        'inputPago'
-    ).checked=true;
-
-    document.getElementById(
-        'btnSalvarForm'
-    ).innerText =
-        'Cadastrar';
-
-    document.getElementById(
-        'camposParcelamento'
-    ).classList.remove(
-        'ativo'
-    );
-
-    document.getElementById(
-        'camposRecorrencia'
-    ).classList.remove(
-        'ativo'
-    );
-
-}
-
-
-/* ======================================================
-   HISTÓRICO
-======================================================= */
-
-function abrirModalHistorico() {
-
-    carregarListaHistoricoModal();
-
-    document.getElementById(
-        'modalHistorico'
-    ).classList.add(
-        'ativo'
-    );
-
-}
-
-
-function fecharModalHistorico() {
-
-    document.getElementById(
-        'modalHistorico'
-    ).classList.remove(
-        'ativo'
-    );
-
-}
-
-
-function carregarListaHistoricoModal() {
-
-    const lista =
-        document.getElementById(
-            'listaHistoricoModal'
-        );
-
-    lista.innerHTML='';
-
-    const dados =
-        obterMovimentosMes();
-
-    if(!dados.length) {
-
-        lista.innerHTML = `
-            <li style="
-                text-align:center;
-                color:var(--muted-color);
-                padding:20px">
-                Nenhum lançamento neste mês.
-            </li>
-        `;
-
-        return;
-
-    }
-
-    dados
-        .slice()
-        .sort(
-            (a,b)=>b.id-a.id
-        )
-        .forEach(m => {
-
-            const index =
-                movimentos.findIndex(
-                    x =>
-                        x.id === m.id
-                );
-
-            const li =
-                document.createElement(
-                    'li'
-                );
-
-            li.className =
-                'item-movimento';
-
-            let sinal='+';
-            let cor =
-                'var(--success-color)';
-
-            if(m.tipo === 'Despesa') {
-
-                sinal='-';
-
-                cor =
-                    'var(--danger-color)';
-
-            }
-
-            if(m.tipo === 'Saldo') {
-
-                sinal =
-                    m.valor >= 0
-                    ? '+'
-                    : '';
-
-                cor =
-                    'var(--primary-color)';
-
-            }
-
-            li.innerHTML = `
-
-                <div class="item-linha">
-
-                    <div class="item-info">
-
-                        <p>
-                            ${escaparHTML(
-                                m.descricao
-                            )}
-                        </p>
-
-                        <span>
-                            ${m.tipo}
-                            • ${m.conta || ''}
-                            • ${m.forma || ''}
-                            • ${m.pago
-                                ? 'Pago/Recebido'
-                                : 'Pendente'}
-                        </span>
-
-                    </div>
-
-                    <strong
-                        style="
-                            color:${cor};
-                            white-space:nowrap">
-
-                        ${sinal}
-                        ${formatarMoeda(
-                            Math.abs(
-                                Number(m.valor)
-                            )
-                        )}
-
-                    </strong>
-
-                </div>
-
-                <div style="
-                    display:flex;
-                    justify-content:flex-end;
-                    gap:6px;
-                    margin-top:8px">
-
-                    <button
-                        class="btn-acao btn-editar"
-                        onclick="
-                            editarMovimento(
-                                ${index}
-                            )">
-                        ✏️ Editar
-                    </button>
-
-                    <button
-                        class="btn-acao btn-excluir"
-                        onclick="
-                            excluirMovimento(
-                                ${index}
-                            )">
-                        🗑️ Excluir
-                    </button>
-
-                </div>
-            `;
-
-            lista.appendChild(li);
-
-        });
-
-}
-
-
-function editarMovimento(index) {
-
-    const m =
-        movimentos[index];
-
-    if(!m)
-        return;
-
-    document.getElementById(
-        'editIndex'
-    ).value=index;
-
-    selecionarTipo(
-        m.tipo
-    );
-
-    document.getElementById(
-        'inputDescricao'
-    ).value =
-        m.descricao.replace(
-            /\s+\(\d+\/\d+\)$/,
-            ''
-        );
-
-    document.getElementById(
-        'inputValor'
-    ).value =
-        m.valor;
-
-    selecionarBalaoPorValor(
-        'forma',
-        m.forma || 'PIX'
-    );
-
-    selecionarBalaoPorValor(
-        'conta',
-        m.conta || ''
-    );
-
-    document.getElementById(
-        'inputPago'
-    ).checked =
-        !!m.pago;
-
-    document.getElementById(
-        'btnSalvarForm'
-    ).innerText =
-        'Salvar Alterações';
-
-    fecharModalHistorico();
-
-    const painel =
-        document.getElementById(
-            'conteudoPainelNovo'
-        );
-
-    if(
-        !painel.classList.contains(
-            'ativo'
-        )
-    ) {
-
-        togglePainelNovo();
-
-    }
-
-}
-
-
-function excluirMovimento(index) {
-
-    if(!movimentos[index])
-        return;
-
-    if(
-        confirm(
-            'Deseja realmente excluir este lançamento?'
-        )
-    ) {
-
-        movimentos.splice(
-            index,
-            1
-        );
-
-        salvarDados();
-
-        atualizarInterface();
-
         carregarListaHistoricoModal();
-
     }
-
 }
 
 
-/* ======================================================
+/* =========================================================
    GRÁFICOS
-======================================================= */
+========================================================= */
 
 function abrirModalGraficos() {
 
-    document.getElementById(
-        'fabMenu'
-    ).classList.remove(
-        'ativo'
+    fecharConfigMenu();
+
+    document
+        .getElementById('modalGraficos')
+        .classList.add('aberto');
+
+    setTimeout(
+        renderizarGraficos,
+        50
     );
-
-    document.getElementById(
-        'modalGraficos'
-    ).classList.add(
-        'ativo'
-    );
-
-    renderizarGraficos();
-
 }
 
 
 function fecharModalGraficos() {
 
-    document.getElementById(
-        'modalGraficos'
-    ).classList.remove(
-        'ativo'
-    );
-
+    document
+        .getElementById('modalGraficos')
+        .classList.remove('aberto');
 }
 
 
@@ -2606,367 +2652,338 @@ function renderizarGraficos() {
     const lista =
         obterMovimentosMes();
 
-    let receitas=0;
-    let despesas=0;
+
+    let receitasRecebidas = 0;
+    let despesasPagas = 0;
+
+    const formas = {};
+
+
+    lista.forEach(m => {
+
+        const status =
+            obterStatus(m);
+
+        if (
+            m.tipo === 'Receita' &&
+            status !== 'pendente'
+        ) {
+            receitasRecebidas += Number(m.valor || 0);
+        }
+
+
+        if (
+            m.tipo === 'Despesa' &&
+            status !== 'pendente'
+        ) {
+
+            despesasPagas += Number(m.valor || 0);
+
+            const forma =
+                m.forma || 'Outra';
+
+            formas[forma] =
+                (formas[forma] || 0) +
+                Number(m.valor || 0);
+        }
+    });
+
+
+    if (graficoReceitasDespesas) {
+        graficoReceitasDespesas.destroy();
+    }
+
+
+    if (graficoFormas) {
+        graficoFormas.destroy();
+    }
+
+
+    const contexto1 =
+        document
+            .getElementById('graficoReceitasDespesas')
+            .getContext('2d');
+
+
+    graficoReceitasDespesas =
+        new Chart(
+            contexto1,
+            {
+                type:'bar',
+                data:{
+                    labels:[
+                        'Recebido',
+                        'Pago'
+                    ],
+                    datasets:[
+                        {
+                            label:'Valor',
+                            data:[
+                                receitasRecebidas,
+                                despesasPagas
+                            ]
+                        }
+                    ]
+                },
+                options:{
+                    responsive:true,
+                    plugins:{
+                        legend:{
+                            display:false
+                        }
+                    }
+                }
+            }
+        );
+
+
+    const contexto2 =
+        document
+            .getElementById('graficoFormas')
+            .getContext('2d');
+
+
+    graficoFormas =
+        new Chart(
+            contexto2,
+            {
+                type:'doughnut',
+                data:{
+                    labels:Object.keys(formas).length
+                        ? Object.keys(formas)
+                        : ['Sem despesas'],
+                    datasets:[
+                        {
+                            data:Object.keys(formas).length
+                                ? Object.values(formas)
+                                : [1]
+                        }
+                    ]
+                },
+                options:{
+                    responsive:true
+                }
+            }
+        );
+
+
+    gerarAnaliseFinanceira();
+}
+
+
+/* =========================================================
+   ANÁLISE FINANCEIRA
+========================================================= */
+
+function gerarAnaliseFinanceira() {
+
+    const lista =
+        obterMovimentosMes();
+
+
+    let receitasPrevistas = 0;
+    let receitasRecebidas = 0;
+    let aReceber = 0;
+
+    let despesasPrevistas = 0;
+    let despesasPagas = 0;
+    let aPagar = 0;
+
+    let ajustes = 0;
+
 
     lista.forEach(m => {
 
         const valor =
-            Number(m.valor)||0;
+            Number(m.valor || 0);
 
-        if(m.tipo === 'Receita')
-            receitas += valor;
+        const status =
+            obterStatus(m);
 
-        if(m.tipo === 'Despesa')
-            despesas += valor;
 
-    });
+        if (m.tipo === 'Receita') {
 
-    if(chartRD)
-        chartRD.destroy();
+            receitasPrevistas += valor;
 
-    chartRD =
-        new Chart(
-            document
-                .getElementById(
-                    'graficoReceitaDespesa'
-                )
-                .getContext('2d'),
-            {
-                type:'bar',
-
-                data:{
-                    labels:[
-                        'Receitas',
-                        'Despesas'
-                    ],
-
-                    datasets:[{
-
-                        data:[
-                            receitas,
-                            despesas
-                        ],
-
-                        backgroundColor:[
-                            '#28a745',
-                            '#dc3545'
-                        ],
-
-                        borderRadius:6
-
-                    }]
-                },
-
-                options:{
-                    responsive:true,
-                    maintainAspectRatio:false,
-
-                    plugins:{
-                        legend:{
-                            display:false
-                        }
-                    }
-                }
+            if (status === 'pendente') {
+                aReceber += valor;
+            } else {
+                receitasRecebidas += valor;
             }
-        );
-
-
-    const porConta={};
-
-    lista
-        .filter(
-            m =>
-                m.tipo === 'Despesa'
-        )
-        .forEach(m => {
-
-            const conta =
-                m.conta ||
-                'Conta principal';
-
-            porConta[conta] =
-                (
-                    porConta[conta] ||
-                    0
-                ) +
-                Number(m.valor||0);
-
-        });
-
-    const contas =
-        Object.keys(porConta);
-
-    if(chartCat)
-        chartCat.destroy();
-
-    chartCat =
-        new Chart(
-            document
-                .getElementById(
-                    'graficoCategorias'
-                )
-                .getContext('2d'),
-            {
-                type:'bar',
-
-                data:{
-                    labels:
-                        contas.length
-                        ? contas
-                        : ['Nenhuma despesa'],
-
-                    datasets:[{
-
-                        data:
-                            contas.length
-                            ? contas.map(
-                                c =>
-                                    porConta[c]
-                              )
-                            : [0],
-
-                        backgroundColor:
-                            '#007bff',
-
-                        borderRadius:6
-
-                    }]
-                },
-
-                options:{
-                    indexAxis:'y',
-                    responsive:true,
-                    maintainAspectRatio:false,
-
-                    plugins:{
-                        legend:{
-                            display:false
-                        }
-                    }
-                }
-            }
-        );
-
-
-    gerarAnaliseFinanceira(
-        receitas,
-        despesas,
-        lista
-    );
-
-}
-
-
-function gerarAnaliseFinanceira(
-    receitas,
-    despesas,
-    lista
-) {
-
-    const analise =
-        document.getElementById(
-            'analiseFinanceira'
-        );
-
-    const pendentes =
-        lista
-        .filter(
-            m =>
-                !m.pago &&
-                m.tipo !== 'Saldo'
-        )
-        .reduce(
-            (s,m) =>
-                s + Number(m.valor||0),
-            0
-        );
-
-    const saldo =
-        receitas-despesas;
-
-    let html='';
-
-    if(!lista.length) {
-
-        html =
-            `<div class="analise-item">
-                📊 Nenhum lançamento neste mês.
-            </div>`;
-
-    }
-    else {
-
-        html += `
-            <div class="analise-item">
-                💰 Receitas:
-                <strong>
-                    ${formatarMoeda(receitas)}
-                </strong>
-            </div>
-        `;
-
-        html += `
-            <div class="analise-item">
-                💸 Despesas:
-                <strong>
-                    ${formatarMoeda(despesas)}
-                </strong>
-            </div>
-        `;
-
-        html += `
-            <div class="analise-item">
-                ${saldo >= 0 ? '✅' : '⚠️'}
-                Resultado:
-                <strong>
-                    ${formatarMoeda(saldo)}
-                </strong>
-            </div>
-        `;
-
-        if(pendentes > 0) {
-
-            html += `
-                <div class="analise-item">
-                    ⏳ Pendências:
-                    <strong>
-                        ${formatarMoeda(pendentes)}
-                    </strong>
-                </div>
-            `;
 
         }
 
+        else if (m.tipo === 'Despesa') {
+
+            despesasPrevistas += valor;
+
+            if (status === 'pendente') {
+                aPagar += valor;
+            } else {
+                despesasPagas += valor;
+            }
+
+        }
+
+        else if (m.tipo === 'Saldo') {
+
+            ajustes += valor;
+        }
+
+    });
+
+
+    const saldoAtual =
+        receitasRecebidas -
+        despesasPagas +
+        ajustes;
+
+
+    const resultadoPrevisto =
+        receitasPrevistas -
+        despesasPrevistas +
+        ajustes;
+
+
+    let texto = `
+        <strong>📊 Análise do mês</strong><br><br>
+
+        💰 <strong>Saldo disponível:</strong>
+        ${formatarMoeda(saldoAtual)}<br>
+
+        🟢 <strong>Receitas recebidas:</strong>
+        ${formatarMoeda(receitasRecebidas)}<br>
+
+        🕐 <strong>A receber:</strong>
+        ${formatarMoeda(aReceber)}<br>
+
+        🔴 <strong>Despesas pagas:</strong>
+        ${formatarMoeda(despesasPagas)}<br>
+
+        🕐 <strong>A pagar:</strong>
+        ${formatarMoeda(aPagar)}<br><br>
+
+        📈 <strong>Resultado previsto:</strong>
+        ${formatarMoeda(resultadoPrevisto)}
+    `;
+
+
+    if (aReceber > 0) {
+
+        texto += `
+            <br><br>
+            ℹ️ Você ainda tem
+            <strong>${formatarMoeda(aReceber)}</strong>
+            para receber.
+        `;
     }
 
-    analise.innerHTML =
-        html;
 
+    if (aPagar > 0) {
+
+        texto += `
+            <br>
+            ⚠️ Existem
+            <strong>${formatarMoeda(aPagar)}</strong>
+            em despesas pendentes.
+        `;
+    }
+
+
+    if (saldoAtual < 0) {
+
+        texto += `
+            <br><br>
+            🔴 O saldo disponível está negativo.
+        `;
+
+    } else if (saldoAtual > 0) {
+
+        texto += `
+            <br><br>
+            🟢 O saldo disponível está positivo.
+        `;
+    }
+
+
+    document.getElementById('analiseFinanceira').innerHTML =
+        texto;
 }
 
 
-/* ======================================================
-   MENU +
-======================================================= */
-
-function toggleFab() {
-
-    document.getElementById(
-        'fabMenu'
-    ).classList.toggle(
-        'ativo'
-    );
-
-}
-
-
-/* ======================================================
+/* =========================================================
    BACKUP
-======================================================= */
+========================================================= */
 
 function fazerBackup() {
 
-    document.getElementById(
-        'fabMenu'
-    ).classList.remove(
-        'ativo'
-    );
+    fecharConfigMenu();
 
     const backup = {
 
-        versao:1,
-
-        aplicativo:
-            'Controle Financeiro',
+        versao:4,
 
         dataBackup:
             new Date().toISOString(),
 
         movimentos:
-            movimentos,
+
+            movimentos.map(m => ({
+                ...m,
+                status:obterStatus(m),
+                pago:obterStatus(m) !== 'pendente'
+            })),
 
         tema:
-            localStorage.getItem(
-                'controle_financeiro_tema'
-            ) || 'claro'
-
+            localStorage.getItem('tema_financeiro') || 'light'
     };
 
-    const conteudo =
-        JSON.stringify(
-            backup,
-            null,
-            2
-        );
 
     const blob =
         new Blob(
-            [conteudo],
+            [
+                JSON.stringify(
+                    backup,
+                    null,
+                    2
+                )
+            ],
             {
-                type:
-                    'application/json'
+                type:'application/json'
             }
         );
 
+
     const url =
-        URL.createObjectURL(
-            blob
-        );
+        URL.createObjectURL(blob);
 
     const a =
-        document.createElement(
-            'a'
-        );
+        document.createElement('a');
 
-    const agora =
-        new Date();
-
-    const data =
-        `${agora.getFullYear()}-` +
-        `${String(
-            agora.getMonth()+1
-        ).padStart(2,'0')}-` +
-        `${String(
-            agora.getDate()
-        ).padStart(2,'0')}`;
-
-    a.href=url;
+    a.href = url;
 
     a.download =
-        `backup-controle-financeiro-${data}.json`;
-
-    document.body.appendChild(a);
+        `backup-financeiro-${new Date().toISOString().slice(0,10)}.json`;
 
     a.click();
 
-    document.body.removeChild(a);
-
     URL.revokeObjectURL(url);
 
-    alert(
-        '✅ Backup realizado com sucesso!'
-    );
-
+    mostrarToast('Backup criado.');
 }
 
 
-/* ======================================================
+/* =========================================================
    RESTAURAR BACKUP
-======================================================= */
+========================================================= */
 
 function abrirRestaurarBackup() {
 
-    document.getElementById(
-        'fabMenu'
-    ).classList.remove(
-        'ativo'
-    );
+    fecharConfigMenu();
 
-    document.getElementById(
-        'inputRestaurarBackup'
-    ).click();
-
+    document
+        .getElementById('inputRestaurarBackup')
+        .click();
 }
 
 
@@ -2975,289 +2992,449 @@ function restaurarBackup(event) {
     const arquivo =
         event.target.files[0];
 
-    if(!arquivo)
-        return;
+    if (!arquivo) return;
+
 
     const leitor =
         new FileReader();
 
-    leitor.onload =
-        function(e) {
 
-            try {
+    leitor.onload = function(e) {
 
-                const dados =
-                    JSON.parse(
-                        e.target.result
-                    );
+        try {
 
-                if(
-                    !dados ||
-                    !Array.isArray(
-                        dados.movimentos
-                    )
-                ) {
+            const dados =
+                JSON.parse(e.target.result);
 
-                    throw new Error(
-                        'Backup inválido.'
-                    );
 
-                }
+            if (
+                !dados ||
+                !Array.isArray(dados.movimentos)
+            ) {
 
-                const confirmar =
-                    confirm(
-                        'Restaurar este backup irá substituir os dados atuais do aplicativo. Deseja continuar?'
-                    );
-
-                if(!confirmar)
-                    return;
-
-                movimentos =
-                    dados.movimentos;
-
-                salvarDados();
-
-                if(
-                    dados.tema ===
-                    'escuro'
-                ) {
-
-                    localStorage.setItem(
-                        'controle_financeiro_tema',
-                        'escuro'
-                    );
-
-                }
-                else {
-
-                    localStorage.setItem(
-                        'controle_financeiro_tema',
-                        'claro'
-                    );
-
-                }
-
-                carregarTema();
-
-                atualizarInterface();
-
-                alert(
-                    '✅ Backup restaurado com sucesso!'
+                throw new Error(
+                    'Backup inválido.'
                 );
-
-            }
-            catch(error) {
-
-                alert(
-                    '❌ Não foi possível restaurar este arquivo.\n\nO backup pode estar inválido ou corrompido.'
-                );
-
             }
 
-            event.target.value='';
 
-        };
+            if (
+                !confirm(
+                    'Restaurar este backup substituirá os lançamentos atuais. Continuar?'
+                )
+            ) {
 
-    leitor.readAsText(
-        arquivo
-    );
+                event.target.value = '';
+                return;
+            }
 
+
+            movimentos =
+                dados.movimentos;
+
+
+            normalizarMovimentos();
+
+
+            if (dados.tema) {
+
+                localStorage.setItem(
+                    'tema_financeiro',
+                    dados.tema
+                );
+            }
+
+
+            carregarTema();
+            atualizarInterface();
+
+            mostrarToast('Backup restaurado com sucesso.');
+
+        }
+
+        catch (erro) {
+
+            alert(
+                'Não foi possível restaurar o backup.'
+            );
+        }
+
+
+        event.target.value = '';
+    };
+
+
+    leitor.readAsText(arquivo);
 }
 
 
-/* ======================================================
-   RESETAR TUDO
-======================================================= */
+/* =========================================================
+   RELATÓRIO
+========================================================= */
+
+function gerarRelatorioPDF() {
+
+    fecharConfigMenu();
+
+    /*
+     * Relatório simples em HTML para impressão/PDF.
+     * O usuário pode escolher "Salvar como PDF".
+     */
+
+    const lista =
+        obterMovimentosMes();
+
+
+    const nomeMes =
+        `${mesesNomes[dataAtual.getMonth()]} de ${dataAtual.getFullYear()}`;
+
+
+    let receitas = 0;
+    let despesas = 0;
+    let pendentes = 0;
+
+
+    lista.forEach(m => {
+
+        const valor =
+            Number(m.valor || 0);
+
+        const status =
+            obterStatus(m);
+
+
+        if (m.tipo === 'Receita') {
+
+            if (status === 'pendente') {
+                pendentes += valor;
+            } else {
+                receitas += valor;
+            }
+
+        }
+
+        else if (m.tipo === 'Despesa') {
+
+            if (status === 'pendente') {
+                pendentes += valor;
+            } else {
+                despesas += valor;
+            }
+        }
+    });
+
+
+    const saldo =
+        receitas - despesas;
+
+
+    const linhas =
+        lista.map(m => {
+
+            const status =
+                obterStatus(m);
+
+            const statusTexto =
+                m.tipo === 'Receita'
+                    ? status === 'pendente'
+                        ? 'A receber'
+                        : 'Recebido'
+                    : m.tipo === 'Despesa'
+                        ? status === 'pendente'
+                            ? 'Pendente'
+                            : 'Pago'
+                        : 'Aplicado';
+
+
+            return `
+                <tr>
+                    <td>${m.data || ''}</td>
+                    <td>${escaparHtml(m.descricao)}</td>
+                    <td>${m.tipo}</td>
+                    <td>${statusTexto}</td>
+                    <td>${formatarMoeda(m.valor)}</td>
+                </tr>
+            `;
+        }).join('');
+
+
+    const janela =
+        window.open(
+            '',
+            '_blank'
+        );
+
+
+    janela.document.write(`
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+            <meta charset="UTF-8">
+
+            <title>Relatório Financeiro</title>
+
+            <style>
+
+                body {
+                    font-family:Arial;
+                    padding:30px;
+                    color:#111;
+                }
+
+                h1 {
+                    font-size:22px;
+                }
+
+                .resumo {
+                    display:flex;
+                    gap:25px;
+                    margin:20px 0;
+                }
+
+                .box {
+                    padding:12px;
+                    border:1px solid #ddd;
+                    border-radius:8px;
+                }
+
+                table {
+                    width:100%;
+                    border-collapse:collapse;
+                }
+
+                th,
+                td {
+                    border:1px solid #ddd;
+                    padding:8px;
+                    font-size:12px;
+                }
+
+                th {
+                    background:#f3f3f3;
+                }
+
+            </style>
+        </head>
+
+        <body>
+
+            <h1>Controle Financeiro</h1>
+
+            <h2>${nomeMes}</h2>
+
+            <div class="resumo">
+
+                <div class="box">
+                    Receitas: ${formatarMoeda(receitas)}
+                </div>
+
+                <div class="box">
+                    Despesas: ${formatarMoeda(despesas)}
+                </div>
+
+                <div class="box">
+                    Pendentes: ${formatarMoeda(pendentes)}
+                </div>
+
+                <div class="box">
+                    Saldo: ${formatarMoeda(saldo)}
+                </div>
+
+            </div>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Tipo</th>
+                        <th>Status</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    ${linhas}
+                </tbody>
+
+            </table>
+
+            <script>
+                window.onload = function() {
+                    window.print();
+                };
+            <\/script>
+
+        </body>
+        </html>
+    `);
+
+    janela.document.close();
+}
+
+
+/* =========================================================
+   RESET
+========================================================= */
 
 function abrirModalReset() {
 
-    document.getElementById(
-        'fabMenu'
-    ).classList.remove(
-        'ativo'
-    );
+    fecharConfigMenu();
 
-    document.getElementById(
-        'modalReset'
-    ).classList.add(
-        'ativo'
-    );
-
+    document
+        .getElementById('modalReset')
+        .classList.add('aberto');
 }
 
 
 function fecharModalReset() {
 
-    document.getElementById(
-        'modalReset'
-    ).classList.remove(
-        'ativo'
-    );
-
+    document
+        .getElementById('modalReset')
+        .classList.remove('aberto');
 }
 
 
-function confirmarResetTudo() {
+function confirmarReset() {
 
-    const primeira =
-        confirm(
-            'ATENÇÃO!\n\nTodos os lançamentos financeiros serão apagados.\n\nVocê tem certeza?'
-        );
+    movimentos = [];
 
-    if(!primeira)
-        return;
-
-    const segunda =
-        confirm(
-            'ÚLTIMA CONFIRMAÇÃO!\n\nIsso não poderá ser desfeito.\n\nDeseja realmente APAGAR TUDO?'
-        );
-
-    if(!segunda)
-        return;
-
-    movimentos=[];
-
-    localStorage.removeItem(
-        'movimentos_financeiros_v4'
-    );
-
-    fecharModalReset();
+    salvarDados();
 
     atualizarInterface();
 
-    alert(
-        '🗑️ Todos os lançamentos foram apagados.'
-    );
+    fecharModalReset();
 
+    mostrarToast('Todos os lançamentos foram apagados.');
 }
 
 
-/* ======================================================
-   EXPORTAR RELATÓRIO
-======================================================= */
+/* =========================================================
+   FECHAR MODAL CLICANDO FORA
+========================================================= */
 
-function gerarRelatorioPDF() {
+function fecharModalFora(event,id) {
 
-    document.getElementById(
-        'fabMenu'
-    ).classList.remove(
-        'ativo'
-    );
-
-    window.print();
-
-}
-
-
-/* ======================================================
-   AUXILIAR
-======================================================= */
-
-function escaparHTML(texto) {
-
-    return String(texto)
-        .replace(/&/g,'&amp;')
-        .replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;')
-        .replace(/'/g,'&#039;');
-
-}
-
-
-/* ======================================================
-   FECHAR MODAIS
-======================================================= */
-
-function fecharModalAoClicarFora(
-    event,
-    id
-) {
-
-    if(
+    if (
         event.target.id === id
     ) {
 
-        document.getElementById(
-            id
-        ).classList.remove(
-            'ativo'
-        );
+        if (id === 'modalLancamento') {
+            fecharModalLancamento();
+        }
 
+        if (id === 'modalHistorico') {
+            fecharModalHistorico();
+        }
+
+        if (id === 'modalGraficos') {
+            fecharModalGraficos();
+        }
+
+        if (id === 'modalReset') {
+            fecharModalReset();
+        }
     }
-
 }
 
 
-/* ======================================================
-   CLIQUE FORA DO MENU +
-======================================================= */
+/* =========================================================
+   CLIQUE FORA CONFIG
+========================================================= */
 
 document.addEventListener(
     'click',
     function(event) {
 
-        const fab =
-            document.getElementById(
-                'fabMenu'
-            );
+        const menu =
+            document.getElementById('menuConfig');
 
-        if(
-            fab &&
-            !fab.contains(event.target)
+        const botao =
+            document.getElementById('btnConfig');
+
+        if (
+            menu.classList.contains('aberto') &&
+            !menu.contains(event.target) &&
+            !botao.contains(event.target)
         ) {
 
-            fab.classList.remove(
-                'ativo'
-            );
-
+            fecharConfigMenu();
         }
-
     }
 );
 
 
-/* ======================================================
+/* =========================================================
    ESC
-======================================================= */
+========================================================= */
 
 document.addEventListener(
     'keydown',
-    function(e) {
+    function(event) {
 
-        if(e.key === 'Escape') {
-
-            fecharModalHistorico();
-
-            fecharModalGraficos();
-
-            fecharModalReset();
-
-            document.getElementById(
-                'fabMenu'
-            ).classList.remove(
-                'ativo'
-            );
-
+        if (event.key !== 'Escape') {
+            return;
         }
 
+
+        if (
+            document
+                .getElementById('modalLancamento')
+                .classList.contains('aberto')
+        ) {
+            fecharModalLancamento();
+            return;
+        }
+
+
+        if (
+            document
+                .getElementById('modalHistorico')
+                .classList.contains('aberto')
+        ) {
+            fecharModalHistorico();
+            return;
+        }
+
+
+        if (
+            document
+                .getElementById('modalGraficos')
+                .classList.contains('aberto')
+        ) {
+            fecharModalGraficos();
+            return;
+        }
+
+
+        if (
+            document
+                .getElementById('modalReset')
+                .classList.contains('aberto')
+        ) {
+            fecharModalReset();
+            return;
+        }
+
+
+        fecharConfigMenu();
     }
 );
 
 
-/* ======================================================
+/* =========================================================
    INICIALIZAÇÃO
-======================================================= */
+========================================================= */
 
-window.onload =
-    function() {
+window.onload = function() {
 
-        carregarTema();
+    normalizarMovimentos();
 
-        atualizarInterface();
+    carregarTema();
 
-    };
-
+    atualizarInterface();
+};
 </script>
 
 </body>
