@@ -175,6 +175,12 @@ button {
     font-weight:bold;
 }
 
+.card-principal .subtitulo-saldo {
+    margin-top:6px;
+    color:var(--muted);
+    font-size:11px;
+}
+
 .grid-cards {
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -184,7 +190,7 @@ button {
 
 .card-mini {
     padding:14px;
-    min-height:105px;
+    min-height:112px;
 }
 
 .card-mini .titulo {
@@ -202,7 +208,7 @@ button {
     margin-top:7px;
     font-size:11px;
     color:var(--muted);
-    line-height:1.4;
+    line-height:1.45;
 }
 
 .valor-verde {
@@ -406,7 +412,7 @@ select:focus {
     background:var(--bg);
     color:var(--text);
     border-radius:10px;
-    padding:10px 5px;
+    padding:11px 5px;
     font-size:12px;
 }
 
@@ -496,7 +502,7 @@ select:focus {
 ========================= */
 
 .mais-opcoes {
-    margin-top:5px;
+    margin-top:7px;
     border-top:1px solid var(--border);
     padding-top:8px;
 }
@@ -911,6 +917,10 @@ select:focus {
             R$ 0,00
         </div>
 
+        <div class="subtitulo-saldo">
+            Dinheiro em caixa menos contas a pagar
+        </div>
+
     </div>
 
     <!-- 4 CARDS -->
@@ -934,15 +944,17 @@ select:focus {
                 id="cardReceitasDetalhe"
                 class="detalhe"
             >
-                Recebidas: R$ 0,00
+                Já recebi: R$ 0,00<br>
+                Falta receber: R$ 0,00
             </div>
 
         </div>
 
+
         <div class="card card-mini">
 
             <div class="titulo">
-                Saldo (Caixa)
+                Saldo Caixa
             </div>
 
             <div
@@ -952,11 +964,15 @@ select:focus {
                 R$ 0,00
             </div>
 
-            <div class="detalhe">
-                Recebido − pago
+            <div
+                id="cardSaldoDetalhe"
+                class="detalhe"
+            >
+                Dinheiro que tenho agora
             </div>
 
         </div>
+
 
         <div class="card card-mini">
 
@@ -979,6 +995,7 @@ select:focus {
             </div>
 
         </div>
+
 
         <div class="card card-mini">
 
@@ -1005,7 +1022,8 @@ select:focus {
 
     </div>
 
-    <!-- HISTÓRICO AGORA SOMENTE COMO BOTÃO -->
+
+    <!-- HISTÓRICO -->
 
     <button
         class="botao-historico"
@@ -1128,7 +1146,9 @@ select:focus {
 
                 <div class="form-group">
 
-                    <label>O que você quer lançar?</label>
+                    <label>
+                        O que você quer lançar?
+                    </label>
 
                     <div class="tipo-opcoes">
 
@@ -1137,7 +1157,7 @@ select:focus {
                             id="tipoDespesa"
                             onclick="selecionarTipo('Despesa')"
                         >
-                            🔴 Despesa
+                            🔴 Vou pagar
                         </button>
 
                         <button
@@ -1145,7 +1165,7 @@ select:focus {
                             id="tipoReceita"
                             onclick="selecionarTipo('Receita')"
                         >
-                            🟢 Receita
+                            🟢 Vou receber
                         </button>
 
                         <button
@@ -1153,7 +1173,7 @@ select:focus {
                             id="tipoSaldo"
                             onclick="selecionarTipo('Saldo')"
                         >
-                            🔵 Saldo
+                            🔵 Ajustar saldo
                         </button>
 
                     </div>
@@ -1167,12 +1187,14 @@ select:focus {
 
                     <div class="form-group">
 
-                        <label>Descrição</label>
+                        <label>
+                            O que é?
+                        </label>
 
                         <input
                             type="text"
                             id="inputDescricao"
-                            placeholder="Ex.: Mercado"
+                            placeholder="Ex.: Cartão, salário, aluguel..."
                             required
                         >
 
@@ -1180,7 +1202,9 @@ select:focus {
 
                     <div class="form-group">
 
-                        <label>Valor</label>
+                        <label>
+                            Quanto?
+                        </label>
 
                         <input
                             type="number"
@@ -1190,54 +1214,6 @@ select:focus {
                             placeholder="0,00"
                             required
                         >
-
-                    </div>
-
-                </div>
-
-
-                <!-- CONTA -->
-
-                <div class="form-group">
-
-                    <label>Conta</label>
-
-                    <div
-                        class="chips"
-                        id="baloesConta"
-                    >
-
-                        <button
-                            type="button"
-                            class="chip ativo"
-                            onclick="selecionarConta('Conta principal',this)"
-                        >
-                            💳 Principal
-                        </button>
-
-                        <button
-                            type="button"
-                            class="chip"
-                            onclick="selecionarConta('Nubank',this)"
-                        >
-                            🟣 Nubank
-                        </button>
-
-                        <button
-                            type="button"
-                            class="chip"
-                            onclick="selecionarConta('Caixa',this)"
-                        >
-                            💵 Caixa
-                        </button>
-
-                        <button
-                            type="button"
-                            class="chip"
-                            onclick="selecionarConta('Outra',this)"
-                        >
-                            + Outra
-                        </button>
 
                     </div>
 
@@ -1308,12 +1284,62 @@ select:focus {
                         class="conteudo-extras"
                     >
 
+                        <!-- CONTA -->
+
+                        <div class="form-group">
+
+                            <label>
+                                Onde está o dinheiro?
+                            </label>
+
+                            <div
+                                class="chips"
+                                id="baloesConta"
+                            >
+
+                                <button
+                                    type="button"
+                                    class="chip ativo"
+                                    onclick="selecionarConta('Conta principal',this)"
+                                >
+                                    💳 Principal
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="chip"
+                                    onclick="selecionarConta('Nubank',this)"
+                                >
+                                    🟣 Nubank
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="chip"
+                                    onclick="selecionarConta('Caixa',this)"
+                                >
+                                    💵 Caixa
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="chip"
+                                    onclick="selecionarConta('Outra',this)"
+                                >
+                                    + Outra
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
                         <!-- FORMA -->
 
                         <div class="form-group">
 
                             <label>
-                                Forma de pagamento
+                                Como foi pago?
                             </label>
 
                             <div
@@ -1366,12 +1392,12 @@ select:focus {
                         </div>
 
 
-                        <!-- PARCELADO -->
+                        <!-- PARCELAMENTO -->
 
                         <div class="opcao-linha">
 
                             <span>
-                                Parcelado
+                                Parcelar compra
                             </span>
 
                             <input
@@ -1394,7 +1420,7 @@ select:focus {
                             >
 
                                 <label>
-                                    Número de parcelas
+                                    Em quantas vezes?
                                 </label>
 
                                 <input
@@ -1410,12 +1436,12 @@ select:focus {
                         </div>
 
 
-                        <!-- RECORRENTE -->
+                        <!-- RECORRÊNCIA -->
 
                         <div class="opcao-linha">
 
                             <span>
-                                Recorrente
+                                Repetir todo mês
                             </span>
 
                             <input
@@ -1438,7 +1464,7 @@ select:focus {
                             >
 
                                 <label>
-                                    Repetir por quantos meses?
+                                    Por quantos meses?
                                 </label>
 
                                 <input
@@ -1503,8 +1529,6 @@ select:focus {
         </div>
 
         <div class="modal-body">
-
-            <!-- INDICAÇÃO VISUAL DO SWIPE -->
 
             <div class="historico-ajuda">
 
@@ -1773,6 +1797,7 @@ let toqueInicioY = 0;
 let swipeItemAtual = null;
 let swipeMovendo = false;
 let swipeDeltaAtual = 0;
+let mousePressionado = false;
 
 
 /* =========================================================
@@ -2098,24 +2123,25 @@ function atualizarTextosStatus() {
         document
             .getElementById('textoStatusQuitado')
             .textContent =
-            'Recebido';
+            'Já recebi';
 
         document
             .getElementById('textoStatusPendente')
             .textContent =
-            'A receber';
+            'Vou receber';
 
     } else {
 
         document
             .getElementById('textoStatusQuitado')
             .textContent =
-            'Pago';
+            'Já paguei';
 
         document
             .getElementById('textoStatusPendente')
             .textContent =
-            'Pendente';
+            'Vou pagar';
+
     }
 }
 
@@ -2284,7 +2310,7 @@ function abrirModalLancamento() {
             'btnSalvarForm'
         )
         .textContent =
-        'Cadastrar Lançamento';
+        'Salvar Lançamento';
 
     selecionarTipo('Despesa');
 
@@ -2486,7 +2512,7 @@ function salvarMovimento(event) {
     ) {
 
         mostrarToast(
-            'Informe descrição e valor.'
+            'Informe o que é e quanto custa.'
         );
 
         return;
@@ -2607,8 +2633,22 @@ function salvarMovimento(event) {
             );
 
 
-        const valorParcela =
-            valor / parcelas;
+        /*
+         * Ajuste de centavos:
+         * garante que a soma das parcelas
+         * seja exatamente igual ao total.
+         */
+
+        const valorCentavos =
+            Math.round(valor * 100);
+
+        const parcelaBase =
+            Math.floor(
+                valorCentavos / parcelas
+            );
+
+        const resto =
+            valorCentavos % parcelas;
 
 
         for (
@@ -2644,6 +2684,15 @@ function salvarMovimento(event) {
                     : 'pendente';
 
 
+            const valorDaParcelaCentavos =
+                parcelaBase +
+                (
+                    i <= resto
+                        ? 1
+                        : 0
+                );
+
+
             movimentos.push({
 
                 id:
@@ -2657,7 +2706,7 @@ function salvarMovimento(event) {
                     `${descricao} (${i}/${parcelas})`,
 
                 valor:
-                    valorParcela,
+                    valorDaParcelaCentavos / 100,
 
                 conta,
 
@@ -2789,7 +2838,7 @@ function salvarMovimento(event) {
         fecharModalLancamento();
 
         mostrarToast(
-            `${meses} lançamentos recorrentes cadastrados.`
+            `${meses} lançamentos cadastrados.`
         );
 
         return;
@@ -2911,10 +2960,32 @@ function atualizarInterface() {
     });
 
 
+    /*
+     * SALDO CAIXA
+     *
+     * É o dinheiro que efetivamente entrou
+     * menos o que efetivamente saiu.
+     */
+
     const saldoCaixa =
         receitasRecebidas -
         despesasPagas +
         ajustes;
+
+
+    /*
+     * SALDO DISPONÍVEL
+     *
+     * É o dinheiro em caixa menos
+     * as contas que ainda precisam ser pagas.
+     *
+     * Receitas a receber NÃO entram aqui,
+     * porque ainda não chegaram.
+     */
+
+    const saldoDisponivel =
+        saldoCaixa -
+        aPagar;
 
 
     const totalPendentes =
@@ -2928,17 +2999,29 @@ function atualizarInterface() {
         `${mesesNomes[dataAtual.getMonth()]} de ${dataAtual.getFullYear()}`;
 
 
+    /* SALDO DISPONÍVEL */
+
     document
         .getElementById('cardLiquidoValor')
         .textContent =
-        formatarMoeda(saldoCaixa);
+        formatarMoeda(saldoDisponivel);
 
+
+    /* SALDO CAIXA */
 
     document
         .getElementById('cardSaldo')
         .textContent =
         formatarMoeda(saldoCaixa);
 
+
+    document
+        .getElementById('cardSaldoDetalhe')
+        .textContent =
+        'Dinheiro que tenho agora';
+
+
+    /* RECEITAS */
 
     document
         .getElementById('cardReceitas')
@@ -2948,9 +3031,12 @@ function atualizarInterface() {
 
     document
         .getElementById('cardReceitasDetalhe')
-        .textContent =
-        `Recebidas: ${formatarMoeda(receitasRecebidas)}`;
+        .innerHTML =
+        `Já recebi: ${formatarMoeda(receitasRecebidas)}<br>` +
+        `Falta receber: ${formatarMoeda(aReceber)}`;
 
+
+    /* DESPESAS */
 
     document
         .getElementById('cardDespesasPagas')
@@ -2964,6 +3050,8 @@ function atualizarInterface() {
         `Previstas: ${formatarMoeda(despesasPrevistas)}`;
 
 
+    /* PENDENTES */
+
     document
         .getElementById('cardPendentes')
         .textContent =
@@ -2976,6 +3064,8 @@ function atualizarInterface() {
         `A receber: ${formatarMoeda(aReceber)}<br>` +
         `A pagar: ${formatarMoeda(aPagar)}`;
 
+
+    /* COR DO SALDO */
 
     const saldoElement =
         document
@@ -2992,7 +3082,7 @@ function atualizarInterface() {
 
 
     saldoElement.classList.add(
-        saldoCaixa >= 0
+        saldoDisponivel >= 0
             ? 'valor-verde'
             : 'valor-vermelho'
     );
@@ -3163,7 +3253,7 @@ function gerarHtmlMovimento(
 
                     ${
                         m.recorrente
-                            ? ' • Recorrente'
+                            ? ' • Mensal'
                             : ''
                     }
 
@@ -3289,8 +3379,8 @@ function carregarListaHistoricoModal() {
 
 
     /*
-     * Se não houver filtro,
-     * mostra o mês selecionado.
+     * Sem filtro:
+     * mostra apenas o mês selecionado.
      */
 
     if (!inicio && !fim) {
@@ -3413,8 +3503,6 @@ function ativarSwipes() {
             );
 
 
-            /* Mouse */
-
             item.addEventListener(
                 'mousedown',
                 iniciarSwipeMouse
@@ -3440,10 +3528,33 @@ function ativarSwipes() {
 
 
 /* =========================
+   VERIFICAÇÃO DE BOTÃO
+========================= */
+
+function eventoEmControle(event) {
+
+    const alvo =
+        event.target;
+
+    if (!alvo) {
+        return false;
+    }
+
+    return !!alvo.closest(
+        'button,input,select,a'
+    );
+}
+
+
+/* =========================
    TOUCH
 ========================= */
 
 function iniciarSwipe(event) {
+
+    if (eventoEmControle(event)) {
+        return;
+    }
 
     const toque =
         event.changedTouches[0];
@@ -3486,11 +3597,6 @@ function moverSwipe(event) {
     const deltaY =
         toque.clientY - toqueInicioY;
 
-
-    /*
-     * Se for claramente um movimento vertical,
-     * deixa a página rolar normalmente.
-     */
 
     if (
         !swipeMovendo &&
@@ -3586,20 +3692,12 @@ function finalizarSwipe(event) {
 
     if (deltaX > 0) {
 
-        /*
-         * Direita = Pago / Recebido
-         */
-
         alterarStatusPorSwipe(
             index,
             false
         );
 
     } else {
-
-        /*
-         * Esquerda = Pendente
-         */
 
         alterarStatusPorSwipe(
             index,
@@ -3638,10 +3736,11 @@ function cancelarSwipe() {
    MOUSE
 ========================= */
 
-let mousePressionado = false;
-
-
 function iniciarSwipeMouse(event) {
+
+    if (eventoEmControle(event)) {
+        return;
+    }
 
     mousePressionado = true;
 
@@ -3771,7 +3870,7 @@ function alterarStatusPorSwipe(
     ) {
 
         mostrarToast(
-            'Saldo não possui status pendente.'
+            'Ajuste de saldo não possui status.'
         );
 
         return;
@@ -3789,8 +3888,8 @@ function alterarStatusPorSwipe(
 
         mostrarToast(
             movimento.tipo === 'Receita'
-                ? 'Marcado como A receber.'
-                : 'Marcado como Pendente.'
+                ? 'Marcado como "Vou receber".'
+                : 'Marcado como "Vou pagar".'
         );
 
     } else {
@@ -3911,9 +4010,7 @@ function editarMovimento(index) {
     );
 
 
-    /*
-     * Conta
-     */
+    /* CONTA */
 
     document
         .querySelectorAll(
@@ -3973,9 +4070,7 @@ function editarMovimento(index) {
         });
 
 
-    /*
-     * Forma
-     */
+    /* FORMA */
 
     document
         .querySelectorAll(
@@ -4028,8 +4123,8 @@ function editarMovimento(index) {
 
 
     /*
-     * Ao editar, abre as opções extras
-     * se houver informação adicional.
+     * Ao editar algo que usa informações extras,
+     * abre as opções automaticamente.
      */
 
     if (
@@ -4048,6 +4143,23 @@ function editarMovimento(index) {
                 'setaExtras'
             )
             .textContent = '⌃';
+    }
+
+
+    if (m.parcelado || m.recorrente) {
+
+        document
+            .getElementById(
+                'conteudoExtras'
+            )
+            .classList.add('aberto');
+
+        document
+            .getElementById(
+                'setaExtras'
+            )
+            .textContent = '⌃';
+
     }
 
 
@@ -4335,7 +4447,7 @@ function renderizarGraficos() {
 
 
 /* =========================================================
-   ANÁLISE
+   ANÁLISE FINANCEIRA
 ========================================================= */
 
 function gerarAnaliseFinanceira() {
@@ -4420,10 +4532,25 @@ function gerarAnaliseFinanceira() {
     });
 
 
-    const saldoAtual =
+    /*
+     * Caixa = dinheiro que já entrou
+     * menos dinheiro que já saiu.
+     */
+
+    const saldoCaixa =
         receitasRecebidas -
         despesasPagas +
         ajustes;
+
+
+    /*
+     * Disponível = caixa menos contas
+     * que ainda precisam ser pagas.
+     */
+
+    const saldoDisponivel =
+        saldoCaixa -
+        aPagar;
 
 
     const resultadoPrevisto =
@@ -4438,22 +4565,26 @@ function gerarAnaliseFinanceira() {
         <br><br>
 
         💰 <strong>Saldo disponível:</strong>
-        ${formatarMoeda(saldoAtual)}
+        ${formatarMoeda(saldoDisponivel)}
         <br>
 
-        🟢 <strong>Receitas recebidas:</strong>
+        💵 <strong>Dinheiro em caixa:</strong>
+        ${formatarMoeda(saldoCaixa)}
+        <br>
+
+        🟢 <strong>Já recebi:</strong>
         ${formatarMoeda(receitasRecebidas)}
         <br>
 
-        🕐 <strong>A receber:</strong>
+        🕐 <strong>Falta receber:</strong>
         ${formatarMoeda(aReceber)}
         <br>
 
-        🔴 <strong>Despesas pagas:</strong>
+        🔴 <strong>Já paguei:</strong>
         ${formatarMoeda(despesasPagas)}
         <br>
 
-        🕐 <strong>A pagar:</strong>
+        🕐 <strong>Falta pagar:</strong>
         ${formatarMoeda(aPagar)}
         <br><br>
 
@@ -4486,18 +4617,17 @@ function gerarAnaliseFinanceira() {
 
             <br>
 
-            ⚠️ Existem
+            ⚠️ Você ainda precisa pagar
             <strong>
                 ${formatarMoeda(aPagar)}
-            </strong>
-            em despesas pendentes.
+            </strong>.
 
         `;
 
     }
 
 
-    if (saldoAtual < 0) {
+    if (saldoDisponivel < 0) {
 
         texto += `
 
@@ -4507,13 +4637,23 @@ function gerarAnaliseFinanceira() {
 
         `;
 
-    } else if (saldoAtual > 0) {
+    } else if (saldoDisponivel > 0) {
 
         texto += `
 
             <br><br>
 
             🟢 O saldo disponível está positivo.
+
+        `;
+
+    } else {
+
+        texto += `
+
+            <br><br>
+
+            ⚪ O saldo disponível está zerado.
 
         `;
 
@@ -4753,9 +4893,13 @@ function gerarRelatorioPDF() {
         `${mesesNomes[dataAtual.getMonth()]} de ${dataAtual.getFullYear()}`;
 
 
-    let receitas = 0;
-    let despesas = 0;
-    let pendentes = 0;
+    let receitasRecebidas = 0;
+    let receitasAReceber = 0;
+
+    let despesasPagas = 0;
+    let despesasAPagar = 0;
+
+    let ajustes = 0;
 
 
     lista.forEach(m => {
@@ -4775,12 +4919,12 @@ function gerarRelatorioPDF() {
                 status === 'pendente'
             ) {
 
-                pendentes +=
+                receitasAReceber +=
                     valor;
 
             } else {
 
-                receitas +=
+                receitasRecebidas +=
                     valor;
 
             }
@@ -4795,24 +4939,44 @@ function gerarRelatorioPDF() {
                 status === 'pendente'
             ) {
 
-                pendentes +=
+                despesasAPagar +=
                     valor;
 
             } else {
 
-                despesas +=
+                despesasPagas +=
                     valor;
 
             }
 
         }
 
+        else if (
+            m.tipo === 'Saldo'
+        ) {
+
+            ajustes +=
+                valor;
+
+        }
+
     });
 
 
-    const saldo =
-        receitas -
-        despesas;
+    const saldoCaixa =
+        receitasRecebidas -
+        despesasPagas +
+        ajustes;
+
+
+    const saldoDisponivel =
+        saldoCaixa -
+        despesasAPagar;
+
+
+    const pendentes =
+        receitasAReceber +
+        despesasAPagar;
 
 
     const linhas =
@@ -4872,6 +5036,16 @@ function gerarRelatorioPDF() {
         );
 
 
+    if (!janela) {
+
+        mostrarToast(
+            'Permita pop-ups para gerar o relatório.'
+        );
+
+        return;
+    }
+
+
     janela.document.write(`
 
         <!DOCTYPE html>
@@ -4899,8 +5073,9 @@ function gerarRelatorioPDF() {
                 }
 
                 .resumo {
-                    display:flex;
-                    gap:25px;
+                    display:grid;
+                    grid-template-columns:repeat(3,1fr);
+                    gap:12px;
                     margin:20px 0;
                 }
 
@@ -4940,16 +5115,27 @@ function gerarRelatorioPDF() {
                 ${nomeMes}
             </h2>
 
+
             <div class="resumo">
 
                 <div class="box">
-                    Receitas:
-                    ${formatarMoeda(receitas)}
+                    Recebido:
+                    ${formatarMoeda(receitasRecebidas)}
                 </div>
 
                 <div class="box">
-                    Despesas:
-                    ${formatarMoeda(despesas)}
+                    A receber:
+                    ${formatarMoeda(receitasAReceber)}
+                </div>
+
+                <div class="box">
+                    Pago:
+                    ${formatarMoeda(despesasPagas)}
+                </div>
+
+                <div class="box">
+                    A pagar:
+                    ${formatarMoeda(despesasAPagar)}
                 </div>
 
                 <div class="box">
@@ -4958,8 +5144,8 @@ function gerarRelatorioPDF() {
                 </div>
 
                 <div class="box">
-                    Saldo:
-                    ${formatarMoeda(saldo)}
+                    Saldo disponível:
+                    ${formatarMoeda(saldoDisponivel)}
                 </div>
 
             </div>
