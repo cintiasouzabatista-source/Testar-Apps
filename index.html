@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle Financeiro Avançado</title>
+    <title>Controle Financeiro</title>
     <!-- Chart.js para os Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -501,10 +501,10 @@
                     <div class="form-group">
                         <label>Conta</label>
                         <div class="baloes-selecao compacto" id="baloesConta">
-                            <button type="button" class="balao-opcao selecionado" data-value="Conta principal" onclick="selecionarBalao('conta','Conta principal',this)">Principal</button>
                             <button type="button" class="balao-opcao" data-value="Nubank" onclick="selecionarBalao('conta','Nubank',this)">Nubank</button>
                             <button type="button" class="balao-opcao" data-value="Itaú" onclick="selecionarBalao('conta','Itaú',this)">Itaú</button>
                             <button type="button" class="balao-opcao" data-value="Caixa" onclick="selecionarBalao('conta','Caixa',this)">Caixa</button>
+                             <button type="button" class="balao-opcao" data-value="Mercado Pago" onclick="selecionarBalao('conta','Mercado Pago',this)">MP</button>
                             <button type="button" class="balao-opcao" data-value="Santander" onclick="selecionarBalao('conta','Santander',this)">Santander</button>
                             <button type="button" class="balao-opcao" data-value="Outra" onclick="selecionarBalao('conta','Outra',this)">+ Outra</button>
                         </div>
@@ -512,7 +512,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Como foi?</label>
+                        <label>Tipo</label>
                         <div class="baloes-selecao compacto" id="baloesForma">
                             <button type="button" class="balao-opcao selecionado" data-value="PIX" onclick="selecionarBalao('forma','PIX',this)">PIX</button>
                             <button type="button" class="balao-opcao" data-value="Débito" onclick="selecionarBalao('forma','Débito',this)">Débito</button>
@@ -546,7 +546,7 @@
 
         <!-- Seções Inferiores -->
 <div class="secao-inferior" onclick="abrirModalHistorico()">
-            <span>📋 Histórico de Lançamentos (Editar / Excluir)</span>
+            <span>📋Histórico de Lançamentos</span>
             <span>▶</span>
         </div>
     </div>
