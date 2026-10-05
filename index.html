@@ -3,370 +3,972 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Pais e Filhos: Conexão e Astrologia</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Controle Financeiro Avançado</title>
+    <!-- Chart.js para os Gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            min-height: 100vh;
+        :root {
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
         }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            padding-bottom: 80px;
+        }
+
+        /* Topo e Meses */
+        .topo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 10px 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+        }
+
+        .topo-header button {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .topo-header span {
+            font-weight: bold;
+            font-size: 1.05rem;
+        }
+
+        /* Cartão de Resumo Financeiro Líquido */
+        .card-liquido {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .card-liquido h2 {
+            font-size: 0.75rem;
+            color: #666;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-liquido .valor {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--danger-color);
+        }
+
+        /* Grade de 4 Cards */
+        .grid-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .mini-card {
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .mini-card.receitas { background-color: var(--success-color); }
+        .mini-card.saldo { background-color: var(--primary-color); }
+        .mini-card.despesas { background-color: var(--danger-color); }
+        .mini-card.pendentes { background-color: var(--warning-color); color: #333; }
+
+        .mini-card h3 {
+            font-size: 0.8rem;
+            margin: 0 0 5px 0;
+            font-weight: 500;
+        }
+
+        .mini-card .valor-card {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        /* Formulário Colapsável de Novo Lançamento */
+        .painel-colapsavel {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .painel-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #333;
+            background: var(--card-bg);
+            user-select: none;
+        }
+
+        .painel-conteudo {
+            padding: 0 20px 20px 20px;
+            display: none;
+        }
+
+        .painel-conteudo.ativo {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            background-color: #fff;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+        }
+
+        .baloes-selecao {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .balao-opcao {
+            border: 1px solid var(--border-color);
+            background: #fff;
+            color: #555;
+            border-radius: 20px;
+            padding: 8px 13px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .balao-opcao:hover {
+            border-color: var(--primary-color);
+        }
+
+        .balao-opcao.selecionado {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .btn-cadastrar {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-cadastrar:hover {
+            background-color: #0056b3;
+        }
+
+        /* Seções Inferiores */
+        .secao-inferior {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 500;
+            color: #444;
+            user-select: none;
+        }
+
+        /* MODAL GERAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.ativo {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-card {
+            background: white;
+            width: 90%;
+            max-width: 420px;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-height: 85vh;
+            overflow-y: auto;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.ativo .modal-card {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .btn-fechar-modal {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        /* Lista de Lançamentos no Modal de Histórico */
+        .lista-movimentos {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .item-movimento {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .item-movimento:last-child {
+            border-bottom: none;
+        }
+
+        .item-info p {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .item-info span {
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .item-acoes-grupo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-acao {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .btn-editar { color: var(--primary-color); background: #e7f1ff; }
+        .btn-excluir { color: var(--danger-color); background: #f8d7da; }
+
+        /* MENU FLUTUANTE (FAB) */
+        .fab-container {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 1000;
+        }
+
+        .fab-button {
+            width: 60px;
+            height: 60px;
+            background-color: #2c3e50;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            border: none;
+            transition: transform 0.3s ease, background-color 0.2s;
+            user-select: none;
+        }
+
+        .fab-button:hover { background-color: #1a252f; }
+
+        .fab-options {
+            position: absolute;
+            bottom: 75px;
+            right: 0;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(15px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .fab-container.ativo .fab-options {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .fab-container.ativo .fab-button {
+            transform: rotate(45deg);
+            background-color: #dc3545;
+        }
+
+        .fab-item {
+            background-color: white;
+            color: #333;
+            padding: 10px 16px;
+            border-radius: 25px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+
+        .fab-item:hover { background-color: #f1f1f1; color: var(--primary-color); }
     </style>
 </head>
-<body class="text-slate-800 flex flex-col items-center justify-center p-4">
+<body>
 
-    <div id="app" class="w-full max-w-xl bg-white rounded-3xl shadow-xl overflow-hidden border border-sky-100">
-        <!-- Conteúdo dinâmico -->
+    <div class="container">
+        <!-- Título -->
+        <h1 style="font-size: 1.4rem; text-align: center; color: #1a73e8; margin-top: 0; margin-bottom: 15px;">Controle Financeiro</h1>
+
+        <!-- Seletor de Mês -->
+        <div class="topo-header">
+            <button onclick="mudarMes(-1)">&lt;</button>
+            <span id="labelMesAno">Outubro de 2026</span>
+            <button onclick="mudarMes(1)">&gt;</button>
+        </div>
+
+        <!-- Líquido -->
+        <div class="card-liquido">
+            <h2>Líquido (Considerando Pendências)</h2>
+            <div id="cardLiquidoValor" class="valor">R$ 0,00</div>
+        </div>
+
+        <!-- 4 Cards Superiores -->
+        <div class="grid-cards">
+            <div class="mini-card receitas">
+                <h3>Receitas</h3>
+                <div id="cardReceitas" class="valor-card">R$ 0,00</div>
+            </div>
+            <div class="mini-card saldo">
+                <h3>Saldo (Caixa)</h3>
+                <div id="cardSaldo" class="valor-card">R$ 0,00</div>
+            </div>
+            <div class="mini-card despesas">
+                <h3>Despesas Pagas</h3>
+                <div id="cardDespesasPagas" class="valor-card">R$ 0,00</div>
+            </div>
+            <div class="mini-card pendentes">
+                <h3>Pendentes</h3>
+                <div id="cardPendentes" class="valor-card">R$ 0,00</div>
+            </div>
+        </div>
+
+        <!-- Painel Colapsável de Novo Lançamento -->
+        <div class="painel-colapsavel">
+            <div class="painel-header" onclick="togglePainelNovo()">
+                <span>➕ Novo Lançamento</span>
+                <span id="setaPainel">▼</span>
+            </div>
+            <div id="conteudoPainelNovo" class="painel-conteudo">
+                <form id="formLancamento" onsubmit="salvarMovimento(event)">
+                    <input type="hidden" id="editIndex" value="">
+                    <div class="lancamento-tipo">
+                        <button type="button" class="tipo-opcao selecionado" id="tipoDespesa" onclick="selecionarTipo('Despesa')">💸 Despesa</button>
+                        <button type="button" class="tipo-opcao" id="tipoReceita" onclick="selecionarTipo('Receita')">💰 Receita</button>
+                        <select id="inputTipo" style="display:none">
+                            <option value="Despesa">Despesa</option>
+                            <option value="Receita">Receita</option>
+                        </select>
+                    </div>
+
+                    <div class="linha-rapida">
+                        <div class="form-group">
+                            <label>Descrição</label>
+                            <input type="text" id="inputDescricao" class="form-control" placeholder="Ex: Mercado" required>
+                        </div>
+                        <div class="form-group campo-destaque">
+                            <label>Valor (R$)</label>
+                            <input type="number" step="0.01" id="inputValor" class="form-control" placeholder="0,00" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Conta</label>
+                        <div class="baloes-selecao compacto" id="baloesConta">
+                            <button type="button" class="balao-opcao selecionado" data-value="Conta principal" onclick="selecionarBalao('conta','Conta principal',this)">Principal</button>
+                            <button type="button" class="balao-opcao" data-value="Nubank" onclick="selecionarBalao('conta','Nubank',this)">Nubank</button>
+                            <button type="button" class="balao-opcao" data-value="Itaú" onclick="selecionarBalao('conta','Itaú',this)">Itaú</button>
+                            <button type="button" class="balao-opcao" data-value="Caixa" onclick="selecionarBalao('conta','Caixa',this)">Caixa</button>
+                            <button type="button" class="balao-opcao" data-value="Santander" onclick="selecionarBalao('conta','Santander',this)">Santander</button>
+                            <button type="button" class="balao-opcao" data-value="Outra" onclick="selecionarBalao('conta','Outra',this)">+ Outra</button>
+                        </div>
+                        <input type="hidden" id="inputConta" value="Conta principal">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Como foi?</label>
+                        <div class="baloes-selecao compacto" id="baloesForma">
+                            <button type="button" class="balao-opcao selecionado" data-value="PIX" onclick="selecionarBalao('forma','PIX',this)">PIX</button>
+                            <button type="button" class="balao-opcao" data-value="Débito" onclick="selecionarBalao('forma','Débito',this)">Débito</button>
+                            <button type="button" class="balao-opcao" data-value="Crédito" onclick="selecionarBalao('forma','Crédito',this)">Crédito</button>
+                            <button type="button" class="balao-opcao" data-value="Dinheiro" onclick="selecionarBalao('forma','Dinheiro',this)">Dinheiro</button>
+                            <button type="button" class="balao-opcao" data-value="Transferência" onclick="selecionarBalao('forma','Transferência',this)">Transf.</button>
+                            <button type="button" class="balao-opcao" data-value="Boleto" onclick="selecionarBalao('forma','Boleto',this)">Boleto</button>
+                        </div>
+                        <input type="hidden" id="inputForma" value="PIX">
+                    </div>
+
+                    <div class="opcoes-extras">
+                        <div class="extras-toggle" onclick="toggleExtrasLancamento()">
+                            <span>⚙️ Mais opções</span><span id="setaExtras">▼</span>
+                        </div>
+                        <div id="extrasLancamento" class="extras-conteudo">
+                            <label class="checkbox-group">
+                                <input type="checkbox" id="inputPago" checked>
+                                <span>Pago / Recebido?</span>
+                            </label>
+                            <label class="checkbox-group" id="grupoRecorrente">
+                                <input type="checkbox" id="inputRecorrente">
+                                <span>Conta recorrente (repetir todo mês)</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" id="btnSalvarForm" class="btn-cadastrar">Cadastrar</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Seções Inferiores -->
+<div class="secao-inferior" onclick="abrirModalHistorico()">
+            <span>📋 Histórico de Lançamentos (Editar / Excluir)</span>
+            <span>▶</span>
+        </div>
+    </div>
+
+    <!-- MENU FLUTUANTE (FAB) COM OPÇÃO DE RELATÓRIO PDF -->
+    <div class="fab-container" id="fabMenu">
+        <ul class="fab-options">
+            <li class="fab-item" onclick="gerarRelatorioPDF()">📄 Exportar Relatório PDF</li>
+            <li class="fab-item" onclick="abrirModalGraficos()">📊 Ver Gráficos</li>
+        </ul>
+        <button class="fab-button" onclick="toggleFab()">+</button>
+    </div>
+
+    <!-- MODAL DE HISTÓRICO (EDIÇÃO E EXCLUSÃO) -->
+    <div id="modalHistorico" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Histórico do Mês</h3>
+                <button class="btn-fechar-modal" onclick="fecharModalHistorico()">&times;</button>
+            </div>
+            <ul id="listaHistoricoModal" class="lista-movimentos">
+                <!-- Itens carregados dinamicamente -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- MODAL DE GRÁFICOS -->
+    <div id="modalGraficos" class="modal-overlay">
+        <div class="modal-card" style="max-width: 460px;">
+            <div class="modal-header">
+                <h3>Gráficos Financeiros</h3>
+                <button class="btn-fechar-modal" onclick="fecharModalGraficos()">&times;</button>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <h4 style="text-align:center; font-size: 0.9rem; color:#666; margin-bottom: 8px;">Receitas x Despesas</h4>
+                <canvas id="graficoReceitaDespesa" style="max-height: 200px;"></canvas>
+            </div>
+            <div>
+                <h4 style="text-align:center; font-size: 0.9rem; color:#666; margin-bottom: 8px;">Despesas x Contas</h4>
+                <canvas id="graficoCategorias" style="max-height: 200px;"></canvas>
+            </div>
+        </div>
     </div>
 
     <script>
-        const questions = [
-            {
-                id: 1,
-                question: "O que mais me dá preguiça ou me irrita na rotina de casa?",
-                options: [
-                    "Quando mandam eu parar o que estou fazendo na hora",
-                    "A cobrança constante para arrumar o quarto ou organizar coisas",
-                    "Acordar cedo e a correria para sair",
-                    "Quando ninguém me ouve ou prestam atenção no celular"
-                ]
-            },
-            {
-                id: 2,
-                question: "O que eu mais sinto falta de fazermos juntos?",
-                options: [
-                    "Conversar sem pressa sobre o dia ou sobre a vida",
-                    "Sair para passear, comer algo gostoso ou viajar",
-                    "Assistir a filmes, séries ou jogar juntos",
-                    "Ficar em silêncio curtindo a companhia um do outro"
-                ]
-            },
-            {
-                id: 3,
-                question: "Quando eu fico chateado(a) ou estressado(a), qual é a melhor forma de me ajudar?",
-                options: [
-                    "Me dar espaço e deixar eu ficar sozinho(a) um pouco",
-                    "Chegar junto, me abraçar e oferecer ajuda",
-                    "Me fazer rir ou mudar de assunto para distrair",
-                    "Me ouvir desabafar sem dar bronca ou julgamento"
-                ]
-            },
-            {
-                id: 4,
-                question: "Se pudéssemos mudar uma única regra em casa por uma semana, qual seria?",
-                options: [
-                    "Zero horários rígidos para dormir ou acordar",
-                    "Liberdade total para escolher a comida ou pedir delivery",
-                    "Menos cobrança com tarefas e obrigações",
-                    "Mais tempo livre sem telas ou cobranças"
-                ]
-            },
-            {
-                id: 5,
-                question: "O que eu mais admiro em você (mas às vezes esqueço de dizer)?",
-                options: [
-                    "Seu jeito paciente e compreensivo nas horas difíceis",
-                    "Sua dedicação, força de vontade e coragem",
-                    "O quanto você me faz rir e deixa o dia mais leve",
-                    "Seu cuidado e o quanto se importa com o meu bem-estar"
-                ]
-            }
+        const mesesNomes = [
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
         ];
 
-        let state = {
-            step: 'welcome',
-            role: '', // 'parent' ou 'child'
-            parentData: { name: '', birthdate: '', message: '' },
-            childData: { name: '', birthdate: '', message: '' },
-            currentQuestionIndex: 0,
-            answers: [],
-            shareLink: ''
-        };
+        let dataAtual = new Date();
+        let movimentos = JSON.parse(localStorage.getItem('movimentos_financeiros_v3')) || [];
+        let chartRD = null;
+        let chartCat = null;
 
-        // Ao carregar a página, verifica se há dados na URL (caso seja o filho abrindo o link do pai)
-        window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const pName = urlParams.get('pName');
-            
-            if (pName) {
-                // Significa que o pai preencheu e mandou o link para o filho
-                state.parentData = {
-                    name: decodeURIComponent(pName),
-                    birthdate: urlParams.get('pDate') || '',
-                    message: decodeURIComponent(urlParams.get('pMsg') || '')
-                };
-                state.step = 'childWelcome';
-            }
-            render();
-        };
-
-        function getSign(dateStr) {
-            if (!dateStr) return "Desconhecido";
-            const [year, month, day] = dateStr.split('-').map(Number);
-            
-            if ((month == 3 && day >= 21) || (month == 4 && day <= 20)) return "Áries ♈";
-            if ((month == 4 && day >= 21) || (month == 5 && day <= 20)) return "Touro ♉";
-            if ((month == 5 && day >= 21) || (month == 6 && day <= 20)) return "Gêmeos ♊";
-            if ((month == 6 && day >= 21) || (month == 7 && day <= 22)) return "Câncer ♋";
-            if ((month == 7 && day >= 23) || (month == 8 && day <= 22)) return "Leão ♌";
-            if ((month == 8 && day >= 23) || (month == 9 && day <= 22)) return "Virgem ♍";
-            if ((month == 9 && day >= 23) || (month == 10 && day <= 22)) return "Libra ♎";
-            if ((month == 10 && day >= 23) || (month == 11 && day <= 21)) return "Escorpião ♏";
-            if ((month == 11 && day >= 22) || (month == 12 && day <= 21)) return "Sagitário ♐";
-            if ((month == 12 && day >= 22) || (month == 1 && day <= 20)) return "Capricórnio ♑";
-            if ((month == 1 && day >= 21) || (month == 2 && day <= 18)) return "Aquário ♒";
-            return "Peixes ♓";
+        function selecionarBalao(tipo, valor, botao) {
+            const grupoId = tipo === 'conta' ? 'baloesConta' : 'baloesForma';
+            const inputId = tipo === 'conta' ? 'inputConta' : 'inputForma';
+            document.querySelectorAll('#' + grupoId + ' .balao-opcao').forEach(b => b.classList.remove('selecionado'));
+            botao.classList.add('selecionado');
+            document.getElementById(inputId).value = valor;
         }
 
-        function render() {
-            const app = document.getElementById('app');
-            app.innerHTML = '';
+        function selecionarBalaoPorValor(tipo, valor) {
+            const grupoId = tipo === 'conta' ? 'baloesConta' : 'baloesForma';
+            const inputId = tipo === 'conta' ? 'inputConta' : 'inputForma';
+            const botoes = document.querySelectorAll('#' + grupoId + ' .balao-opcao');
+            let encontrado = false;
+            botoes.forEach(b => {
+                const selecionado = b.dataset.value === valor;
+                b.classList.toggle('selecionado', selecionado);
+                if (selecionado) encontrado = true;
+            });
+            if (!encontrado) {
+                botoes.forEach(b => b.classList.remove('selecionado'));
+            }
+            document.getElementById(inputId).value = valor;
+        }
 
-            if (state.step === 'welcome') {
-                app.innerHTML = `
-                    <div class="p-8 text-center">
-                        <div class="w-20 h-20 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl shadow-inner">
-                            ✨
-                        </div>
-                        <h1 class="text-2xl sm:text-3xl font-bold text-sky-900 mb-3">Conexão Pais & Filhos</h1>
-                        <p class="text-slate-600 text-base sm:text-lg mb-8 leading-relaxed">
-                            Responda o quiz, deixe sua mensagem e envie o link para o seu filho(a) completar a experiência!
-                        </p>
-                        <button onclick="startParentFlow()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-4 px-6 rounded-2xl text-lg shadow-lg transition transform active:scale-95">
-                            Começar como Pai / Mãe 🚀
-                        </button>
-                    </div>
-                `;
-            } else if (state.step === 'childWelcome') {
-                app.innerHTML = `
-                    <div class="p-8 text-center">
-                        <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl shadow-inner">
-                            💌
-                        </div>
-                        <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">Você recebeu um convite!</h1>
-                        <p class="text-slate-600 text-base mb-6 leading-relaxed">
-                            <b>${state.parentData.name}</b> já respondeu a parte dele(a) e te mandou este link. Agora é a sua vez de responder e ver o resultado!
-                        </p>
-                        <button onclick="startChildFlow()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-4 px-6 rounded-2xl text-lg shadow-lg transition">
-                            Responder Agora 🧒
-                        </button>
-                    </div>
-                `;
-            } else if (state.step === 'identification') {
-                const isParent = state.role === 'parent';
-                app.innerHTML = `
-                    <div class="p-6 sm:p-8">
-                        <h2 class="text-2xl font-bold text-sky-900 mb-2">${isParent ? 'Seus Dados (Pai / Mãe)' : 'Seus Dados (Filho / Filha)'}</h2>
-                        <p class="text-slate-600 mb-6 text-sm">Insira seu nome e data de nascimento:</p>
-                        
-                        <div class="space-y-4 mb-6">
-                            <div>
-                                <label class="block text-slate-700 font-semibold mb-2 text-sm">Seu Nome:</label>
-                                <input type="text" id="userName" value="${isParent ? state.parentData.name : state.childData.name}" class="w-full p-4 rounded-2xl border-2 border-slate-200 focus:border-sky-500 focus:outline-none text-slate-700 text-base" placeholder="Ex: Cíntia / Sophya">
-                            </div>
-                            <div>
-                                <label class="block text-slate-700 font-semibold mb-2 text-sm">Sua Data de Nascimento:</label>
-                                <input type="date" id="userDate" value="${isParent ? state.parentData.birthdate : state.childData.birthdate}" class="w-full p-4 rounded-2xl border-2 border-slate-200 focus:border-sky-500 focus:outline-none text-slate-700 text-base">
-                            </div>
-                        </div>
+        function toggleFab() {
+            document.getElementById('fabMenu').classList.toggle('ativo');
+        }
 
-                        <button onclick="saveIdentification()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-4 px-6 rounded-2xl text-lg shadow-lg transition">
-                            Avançar para o Quiz 🎯
-                        </button>
-                    </div>
-                `;
-            } else if (state.step === 'quiz') {
-                const q = questions[state.currentQuestionIndex];
-                const progress = ((state.currentQuestionIndex + 1) / questions.length) * 100;
-                
-                app.innerHTML = `
-                    <div class="p-6 sm:p-8">
-                        <div class="flex justify-between items-center mb-4">
-                            <span class="text-xs font-bold uppercase tracking-wider bg-sky-100 text-sky-700 px-3 py-1 rounded-full">
-                                Pergunta ${state.currentQuestionIndex + 1} de ${questions.length}
-                            </span>
-                            <span class="text-sm font-semibold text-slate-500">${state.role === 'parent' ? state.parentData.name : state.childData.name}</span>
-                        </div>
-                        
-                        <div class="w-full bg-slate-100 h-2.5 rounded-full mb-6 overflow-hidden">
-                            <div class="bg-sky-600 h-2.5 rounded-full transition-all duration-300" style="width: ${progress}%"></div>
-                        </div>
+        window.addEventListener('click', function(e) {
+            const fab = document.getElementById('fabMenu');
+            if (!fab.contains(e.target)) {
+                fab.classList.remove('ativo');
+            }
+        });
 
-                        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mb-6 leading-snug">
-                            ${q.question}
-                        </h3>
+        function togglePainelNovo() {
+            const conteudo = document.getElementById('conteudoPainelNovo');
+            const seta = document.getElementById('setaPainel');
+            conteudo.classList.toggle('ativo');
+            seta.innerText = conteudo.classList.contains('ativo') ? '▲' : '▼';
+        }
 
-                        <div class="space-y-3">
-                            ${q.options.map((opt, idx) => `
-                                <button onclick="selectAnswer(${idx})" class="w-full text-left p-4 sm:p-5 rounded-2xl border-2 border-slate-100 hover:border-sky-500 hover:bg-sky-50 text-slate-700 hover:text-sky-900 font-medium text-base sm:text-lg transition shadow-sm">
-                                    ${opt}
-                                </button>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            } else if (state.step === 'messageInput') {
-                const isParent = state.role === 'parent';
-                app.innerHTML = `
-                    <div class="p-6 sm:p-8">
-                        <h2 class="text-2xl font-bold text-slate-900 mb-2">Deixe sua Mensagem</h2>
-                        <p class="text-slate-600 text-sm sm:text-base mb-6">
-                            ${isParent ? 'Escreva uma mensagem especial para o seu filho ou filha:' : 'Escreva uma mensagem especial para o seu pai ou mãe:'}
-                        </p>
+        function mudarMes(direcao) {
+            dataAtual.setMonth(dataAtual.getMonth() + direcao);
+            atualizarInterface();
+        }
 
-                        <textarea id="customMessage" rows="5" class="w-full p-4 rounded-2xl border-2 border-slate-200 focus:border-sky-500 focus:outline-none text-slate-700 text-base mb-6 resize-none" placeholder="Digite aqui o que você gostaria de dizer com o coração aberto..."></textarea>
+        function formatarMoeda(valor) {
+            return 'R$ ' + valor.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
 
-                        <button onclick="saveMessage()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-4 px-6 rounded-2xl text-lg shadow-lg transition">
-                            Gerar Link para Enviar 🔗
-                        </button>
-                    </div>
-                `;
-            } else if (state.step === 'shareScreen') {
-                app.innerHTML = `
-                    <div class="p-6 sm:p-8 text-center">
-                        <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
-                            🔗
-                        </div>
-                        <h2 class="text-2xl font-bold text-slate-900 mb-2">Sua parte está pronta!</h2>
-                        <p class="text-slate-600 text-sm mb-6">
-                            Agora copie o link abaixo e mande para seu filho(a) no WhatsApp. Quando ele(a) abrir, vai responder a parte dele(a) e o mural completo vai aparecer!
-                        </p>
+        function obterMovimentosMes() {
+            const mesIndex = dataAtual.getMonth();
+            const ano = dataAtual.getFullYear();
+            return movimentos.filter(m => {
+                const [mAno, mMes] = m.data.split('-');
+                return parseInt(mAno) === ano && parseInt(mMes) === (mesIndex + 1);
+            });
+        }
 
-                        <div class="bg-slate-50 border-2 border-slate-200 p-3 rounded-2xl text-xs text-slate-600 break-all mb-4 select-all">
-                            ${state.shareLink}
-                        </div>
+        function atualizarInterface() {
+            const mesIndex = dataAtual.getMonth();
+            const ano = dataAtual.getFullYear();
+            document.getElementById('labelMesAno').innerText = `${mesesNomes[mesIndex]} de ${ano}`;
 
-                        <button onclick="copyLink()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-4 px-6 rounded-2xl text-lg shadow-lg transition mb-3">
-                            📋 Copiar Link
-                        </button>
-                    </div>
-                `;
-            } else if (state.step === 'finalSummary') {
-                const pSign = getSign(state.parentData.birthdate);
-                const cSign = getSign(state.childData.birthdate);
+            const movimentosMes = obterMovimentosMes();
 
-                app.innerHTML = `
-                    <div class="p-6 sm:p-8">
-                        <div class="text-center mb-6">
-                            <span class="text-3xl">🌟</span>
-                            <h2 class="text-2xl font-bold text-slate-900 mt-2">Mural de Conexão & Astrologia</h2>
-                            <p class="text-slate-600 text-sm">Resumo da sintonia entre pais e filhos!</p>
-                        </div>
+            let receitas = 0;
+            let despesasPagas = 0;
+            let pendentes = 0;
 
-                        <div class="grid grid-cols-2 gap-4 mb-6">
-                            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-center">
-                                <span class="text-xs font-bold text-indigo-500 uppercase">Pai / Mãe</span>
-                                <h4 class="font-bold text-indigo-900 text-lg mt-1">${state.parentData.name || 'Pai/Mãe'}</h4>
-                                <p class="text-sm font-semibold text-indigo-700 mt-1">${pSign}</p>
-                            </div>
-                            <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl text-center">
-                                <span class="text-xs font-bold text-emerald-500 uppercase">Filho / Filha</span>
-                                <h4 class="font-bold text-emerald-900 text-lg mt-1">${state.childData.name || 'Filho(a)'}</h4>
-                                <p class="text-sm font-semibold text-emerald-700 mt-1">${cSign}</p>
-                            </div>
-                        </div>
+            movimentosMes.forEach(m => {
+                if (m.tipo === 'Receita') {
+                    if (m.pago) receitas += m.valor;
+                    else pendentes += m.valor;
+                } else {
+                    if (m.pago) despesasPagas += m.valor;
+                    else pendentes += m.valor;
+                }
+            });
 
-                        <div class="space-y-4 mb-6">
-                            <div class="bg-indigo-50 border-2 border-indigo-100 p-5 rounded-2xl">
-                                <h4 class="font-bold text-indigo-900 mb-2 text-sm flex items-center gap-2">💌 Mensagem de ${state.parentData.name || 'Pai/Mãe'}:</h4>
-                                <p class="text-slate-700 italic text-sm sm:text-base leading-relaxed">"${state.parentData.message || 'Nenhuma mensagem.'}"</p>
-                            </div>
+            const saldoCaixa = receitas - despesasPagas;
+            const liquido = receitas - (despesasPagas + pendentes);
 
-                            <div class="bg-emerald-50 border-2 border-emerald-100 p-5 rounded-2xl">
-                                <h4 class="font-bold text-emerald-900 mb-2 text-sm flex items-center gap-2">💌 Mensagem de ${state.childData.name || 'Filho(a)'}:</h4>
-                                <p class="text-slate-700 italic text-sm sm:text-base leading-relaxed">"${state.childData.message || 'Nenhuma mensagem.'}"</p>
-                            </div>
-                        </div>
+            document.getElementById('cardReceitas').innerText = formatarMoeda(receitas);
+            document.getElementById('cardSaldo').innerText = formatarMoeda(saldoCaixa);
+            document.getElementById('cardDespesasPagas').innerText = formatarMoeda(despesasPagas);
+            document.getElementById('cardPendentes').innerText = formatarMoeda(pendentes);
 
-                        <button onclick="resetApp()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-3 px-6 rounded-2xl text-base transition">
-                            Reiniciar / Novo Quiz 🔄
-                        </button>
-                    </div>
-                `;
+            const liquidoEl = document.getElementById('cardLiquidoValor');
+            liquidoEl.innerText = formatarMoeda(liquido);
+            liquidoEl.style.color = liquido >= 0 ? 'var(--success-color)' : 'var(--danger-color)';
+
+            localStorage.setItem('movimentos_financeiros_v3', JSON.stringify(movimentos));
+        }
+
+        function salvarMovimento(e) {
+            e.preventDefault();
+            const editIndex = document.getElementById('editIndex').value;
+            const tipo = document.getElementById('inputTipo').value;
+            const descricao = document.getElementById('inputDescricao').value;
+            const valor = parseFloat(document.getElementById('inputValor').value);
+            const forma = document.getElementById('inputForma').value;
+            const conta = document.getElementById('inputConta').value;
+            const pago = document.getElementById('inputPago').checked;
+            const recorrente = document.getElementById('inputRecorrente').checked;
+
+            const ano = dataAtual.getFullYear();
+            const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+            const dataStr = `${ano}-${mes}`;
+
+            if (editIndex !== "") {
+                // Modo Edição
+                movimentos[editIndex].tipo = tipo;
+                movimentos[editIndex].descricao = descricao;
+                movimentos[editIndex].valor = valor;
+                movimentos[editIndex].forma = forma;
+                movimentos[editIndex].conta = conta;
+                movimentos[editIndex].pago = pago;
+                document.getElementById('editIndex').value = "";
+                document.getElementById('btnSalvarForm').innerText = "Cadastrar";
+                document.getElementById('grupoRecorrente').style.display = "block";
+            } else {
+                // Novo Lançamento
+                movimentos.push({
+                    id: Date.now(),
+                    tipo,
+                    descricao,
+                    valor,
+                    forma,
+                    conta,
+                    pago,
+                    data: dataStr
+                });
+
+                if (recorrente) {
+                    let tempDate = new Date(dataAtual);
+                    for (let i = 1; i <= 12; i++) {
+                        tempDate.setMonth(tempDate.getMonth() + 1);
+                        const rAno = tempDate.getFullYear();
+                        const rMes = String(tempDate.getMonth() + 1).padStart(2, '0');
+                        movimentos.push({
+                            id: Date.now() + i,
+                            tipo,
+                            descricao,
+                            valor,
+                            forma,
+                            conta,
+                            pago: false,
+                            data: `${rAno}-${rMes}`
+                        });
+                    }
+                }
+            }
+
+            document.getElementById('formLancamento').reset();
+            selecionarTipo('Despesa');
+            selecionarBalaoPorValor('conta', 'Conta principal');
+            selecionarBalaoPorValor('forma', 'PIX');
+            document.getElementById('inputPago').checked = true;
+            togglePainelNovo(); // recolher o painel após salvar
+            atualizarInterface();
+            if(document.getElementById('modalHistorico').classList.contains('ativo')) {
+                carregarListaHistoricoModal();
             }
         }
 
-        function startParentFlow() {
-            state.role = 'parent';
-            state.step = 'identification';
-            render();
+        // Modal Histórico
+        function abrirModalHistorico() {
+            carregarListaHistoricoModal();
+            document.getElementById('modalHistorico').classList.add('ativo');
         }
 
-        function startChildFlow() {
-            state.role = 'child';
-            state.step = 'identification';
-            render();
+        function fecharModalHistorico() {
+            document.getElementById('modalHistorico').classList.remove('ativo');
         }
 
-        function saveIdentification() {
-            const name = document.getElementById('userName').value.trim();
-            const date = document.getElementById('userDate').value;
+        function carregarListaHistoricoModal() {
+            const movimentosMes = obterMovimentosMes();
+            const listaEl = document.getElementById('listaHistoricoModal');
+            listaEl.innerHTML = '';
 
-            if (!name || !date) {
-                alert('Por favor, preencha o nome e a data de nascimento!');
+            if (movimentosMes.length === 0) {
+                listaEl.innerHTML = '<li style="text-align:center; color:#888; font-size:0.85rem; padding: 20px 0;">Nenhum lançamento neste mês.</li>';
                 return;
             }
 
-            if (state.role === 'parent') {
-                state.parentData.name = name;
-                state.parentData.birthdate = date;
-            } else {
-                state.childData.name = name;
-                state.childData.birthdate = date;
-            }
-
-            state.currentQuestionIndex = 0;
-            state.answers = [];
-            state.step = 'quiz';
-            render();
-        }
-
-        function selectAnswer(optionIndex) {
-            state.answers.push({
-                questionId: questions[state.currentQuestionIndex].id,
-                selectedOption: optionIndex
-            });
-
-            if (state.currentQuestionIndex < questions.length - 1) {
-                state.currentQuestionIndex++;
-                render();
-            } else {
-                state.step = 'messageInput';
-                render();
-            }
-        }
-
-        function saveMessage() {
-            const msgInput = document.getElementById('customMessage');
-            const val = msgInput ? msgInput.value.trim() : '';
-            
-            if (state.role === 'parent') {
-                state.parentData.message = val;
-                
-                // Gera o link contendo os dados do pai
-                const baseUrl = window.location.origin + window.location.pathname;
-                state.shareLink = `${baseUrl}?pName=${encodeURIComponent(state.parentData.name)}&pDate=${state.parentData.birthdate}&pMsg=${encodeURIComponent(state.parentData.message)}`;
-                
-                state.step = 'shareScreen';
-            } else {
-                state.childData.message = val;
-                state.step = 'finalSummary';
-            }
-            render();
-        }
-
-        function copyLink() {
-            navigator.clipboard.writeText(state.shareLink).then(() => {
-                alert('Link copiado com sucesso! Agora é só colar no WhatsApp para o seu filho(a).');
-            }).catch(err => {
-                alert('Não foi possível copiar automaticamente. Selecione o link acima e copie manualmente.');
+            movimentosMes.forEach(m => {
+                const realIndex = movimentos.findIndex(item => item.id === m.id);
+                const li = document.createElement('li');
+                li.className = 'item-movimento';
+                li.innerHTML = `
+                    <div class="item-info">
+                        <p>${m.descricao}</p>
+                        <span>${m.tipo} • ${m.conta || 'Conta principal'} • ${m.forma || 'PIX'} • ${m.pago ? 'Pago/Recebido' : 'Pendente'}</span>
+                    </div>
+                    <div class="item-acoes-grupo">
+                        <span style="color: ${m.tipo === 'Receita' ? 'var(--success-color)' : 'var(--danger-color)'}; font-size:0.85rem;">
+                            ${m.tipo === 'Receita' ? '+' : '-'} ${formatarMoeda(m.valor)}
+                        </span>
+                        <button class="btn-acao btn-editar" onclick="editarMovimento(${realIndex})">✏️</button>
+                        <button class="btn-acao btn-excluir" onclick="excluirMovimento(${realIndex})">🗑️</button>
+                    </div>
+                `;
+                listaEl.appendChild(li);
             });
         }
 
-        function resetApp() {
-            window.location.href = window.location.pathname; // Limpa a URL e reinicia
+        function editarMovimento(index) {
+            const m = movimentos[index];
+            document.getElementById('editIndex').value = index;
+            document.getElementById('inputTipo').value = m.tipo;
+            selecionarTipo(m.tipo);
+            document.getElementById('inputDescricao').value = m.descricao;
+            document.getElementById('inputValor').value = m.valor;
+            selecionarBalaoPorValor('forma', m.forma || 'PIX');
+            selecionarBalaoPorValor('conta', m.conta || 'Conta principal');
+            document.getElementById('inputPago').checked = m.pago;
+            document.getElementById('btnSalvarForm').innerText = "Salvar Alterações";
+            document.getElementById('grupoRecorrente').style.display = "none"; // esconder recorrência na edição
+
+            fecharModalHistorico();
+            // Abrir painel colapsável de formulário
+            const conteudo = document.getElementById('conteudoPainelNovo');
+            if(!conteudo.classList.contains('ativo')) {
+                togglePainelNovo();
+            }
         }
+
+        function excluirMovimento(index) {
+            if (confirm('Deseja realmente excluir este lançamento?')) {
+                movimentos.splice(index, 1);
+                atualizarInterface();
+                carregarListaHistoricoModal();
+            }
+        }
+
+        // Modal Gráficos
+        function abrirModalGraficos() {
+            document.getElementById('modalGraficos').classList.add('ativo');
+            renderizarGraficos();
+        }
+
+        function fecharModalGraficos() {
+            document.getElementById('modalGraficos').classList.remove('ativo');
+        }
+
+        function renderizarGraficos() {
+            const movimentosMes = obterMovimentosMes();
+
+            let totalReceitas = 0;
+            let totalDespesas = 0;
+
+            movimentosMes.forEach(m => {
+                if (m.tipo === 'Receita') {
+                    totalReceitas += Number(m.valor) || 0;
+                } else if (m.tipo === 'Despesa') {
+                    totalDespesas += Number(m.valor) || 0;
+                }
+            });
+
+            // Gráfico 1 — Receitas x Despesas
+            const ctxRD = document.getElementById('graficoReceitaDespesa').getContext('2d');
+            if (chartRD) chartRD.destroy();
+
+            chartRD = new Chart(ctxRD, {
+                type: 'bar',
+                data: {
+                    labels: ['Receitas', 'Despesas'],
+                    datasets: [{
+                        label: 'Valor (R$)',
+                        data: [totalReceitas, totalDespesas],
+                        backgroundColor: ['#28a745', '#dc3545'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + formatarMoeda(context.raw);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + Number(value).toLocaleString('pt-BR');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico 2 — Despesas x Contas
+            const despesasPorConta = {};
+
+            movimentosMes
+                .filter(m => m.tipo === 'Despesa')
+                .forEach(m => {
+                    const conta = m.conta || 'Conta principal';
+                    despesasPorConta[conta] = (despesasPorConta[conta] || 0) + (Number(m.valor) || 0);
+                });
+
+            const contas = Object.keys(despesasPorConta);
+            const labelsContas = contas.length ? contas : ['Nenhuma despesa'];
+            const valoresContas = contas.length ? contas.map(conta => despesasPorConta[conta]) : [0];
+
+            const ctxCat = document.getElementById('graficoCategorias').getContext('2d');
+            if (chartCat) chartCat.destroy();
+
+            chartCat = new Chart(ctxCat, {
+                type: 'bar',
+                data: {
+                    labels: labelsContas,
+                    datasets: [{
+                        label: 'Despesas (R$)',
+                        data: valoresContas,
+                        backgroundColor: '#007bff',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + formatarMoeda(context.raw);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + Number(value).toLocaleString('pt-BR');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function gerarRelatorioPDF() {
+            const mesIndex = dataAtual.getMonth();
+            const ano = dataAtual.getFullYear();
+            window.print(); // Abre a janela de impressão do navegador onde o usuário pode selecionar "Salvar como PDF" perfeitamente formatado.
+        }
+
+        window.onload = function() {
+            atualizarInterface();
+        };
     </script>
 </body>
 </html>
