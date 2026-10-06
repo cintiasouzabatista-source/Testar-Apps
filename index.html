@@ -833,9 +833,9 @@ select:focus {
 
     <!-- SALDO PRINCIPAL -->
     <div class="card card-principal">
-        <div class="titulo">Saldo Disponível</div>
+        <div class="titulo">Saldo Líquido do Mês</div>
         <div id="cardLiquidoValor" class="valor">R$ 0,00</div>
-        <div class="subtitulo-saldo">Dinheiro em caixa menos contas a pagar</div>
+        <div class="subtitulo-saldo">Receitas menos despesas do mês</div>
     </div>
 
     <!-- 4 CARDS -->
@@ -1101,8 +1101,9 @@ select:focus {
                     <canvas id="graficoReceitasDespesas"></canvas>
                 </div>
                 <div class="grafico-container">
-                    <h3>Fluxo do período</h3>
-                    <canvas id="graficoFluxo"></canvas>
+                    <h3>Gastos por tipo de despesa</h3>
+                    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Os valores aparecem em ordem do maior para o menor e já incluem o percentual de cada gasto.</div>
+                    <canvas id="graficoTiposDespesas"></canvas>
                 </div>
 
                 <div class="grafico-container">
@@ -1153,7 +1154,7 @@ let movimentos = [];
 let contas = [];
 let mesSelecionado = new Date();
 let graficoRD = null;
-let graficoFluxo = null;
+let graficoTiposDespesas = null;
 let graficoContasDespesas = null;
 
 function uid() {
@@ -1286,13 +1287,17 @@ function atualizarInterface() {
         }
     });
 
-    // Saldo caixa = ajustes + receitas recebidas - despesas pagas.
+    // SALDO LÍQUIDO = tudo que foi lançado como receita menos tudo que foi lançado como despesa.
+    // Este é o resultado financeiro do mês e deve bater com a análise Receitas x Despesas.
+    const saldoLiquido = receitasPrevistas - despesasPrevistas;
+
+    // SALDO CAIXA = dinheiro efetivamente recebido menos o que já foi pago,
+    // considerando também ajustes de saldo. É diferente do saldo líquido.
     const saldoCaixa = saldoAjustes + receitasRecebidas - despesasPagas;
     const aReceber = Math.max(0, receitasPrevistas - receitasRecebidas);
     const aPagar = Math.max(0, despesasPrevistas - despesasPagas);
-    const saldoDisponivel = saldoCaixa - aPagar;
 
-    document.getElementById('cardLiquidoValor').textContent = formatarMoeda(saldoDisponivel);
+    document.getElementById('cardLiquidoValor').textContent = formatarMoeda(saldoLiquido);
     document.getElementById('cardSaldo').textContent = formatarMoeda(saldoCaixa);
     document.getElementById('cardReceitas').textContent = formatarMoeda(receitasPrevistas);
     document.getElementById('cardDespesasPagas').textContent = formatarMoeda(despesasPagas);
@@ -1308,7 +1313,7 @@ function atualizarInterface() {
         `A receber: ${formatarMoeda(aReceber)}<br>A pagar: ${formatarMoeda(aPagar)}`;
 
     document.getElementById('cardLiquidoValor').className =
-        'valor ' + (saldoDisponivel >= 0 ? 'valor-verde' : 'valor-vermelho');
+        'valor ' + (saldoLiquido >= 0 ? 'valor-verde' : 'valor-vermelho');
 
     atualizarBaloesConta();
 }
@@ -1776,8 +1781,6 @@ function carregarGraficos() {
             .reduce((s,x) => s + Number(x.valor || 0), 0)
     );
 
-    const fluxo = meses.map((m,i) => receitas[i] - despesas[i]);
-
     if (typeof Chart === 'undefined') {
         document.getElementById('analiseFinanceira').innerHTML =
             'Não foi possível carregar o componente de gráficos.';
@@ -1785,7 +1788,7 @@ function carregarGraficos() {
     }
 
     if (graficoRD) graficoRD.destroy();
-    if (graficoFluxo) graficoFluxo.destroy();
+    if (graficoTiposDespesas) graficoTiposDespesas.destroy();
     if (graficoContasDespesas) graficoContasDespesas.destroy();
 
     graficoRD = new Chart(document.getElementById('graficoReceitasDespesas'), {
@@ -1804,18 +1807,52 @@ function carregarGraficos() {
         }
     });
 
-    graficoFluxo = new Chart(document.getElementById('graficoFluxo'), {
-        type:'line',
+    // =====================================================
+    // GRÁFICO: TIPOS DE DESPESA
+    // Como o cadastro não exige categorias, a descrição do lançamento
+    // é usada como tipo de despesa. O gráfico mostra valor + percentual.
+    // =====================================================
+    const despesasPorTipoGrafico = {};
+    movimentosPeriodo
+        .filter(m => m.tipo === 'Despesa')
+        .forEach(m => {
+            const tipo = (m.descricao || 'Sem descrição').trim() || 'Sem descrição';
+            despesasPorTipoGrafico[tipo] = (despesasPorTipoGrafico[tipo] || 0) + Number(m.valor || 0);
+        });
+
+    const totalDespesasGrafico = Object.values(despesasPorTipoGrafico).reduce((s,v)=>s+v,0);
+    const tiposOrdenadosGrafico = Object.entries(despesasPorTipoGrafico)
+        .sort((a,b)=>b[1]-a[1]);
+
+    graficoTiposDespesas = new Chart(document.getElementById('graficoTiposDespesas'), {
+        type:'bar',
         data:{
-            labels:meses.map(formatarMes),
-            datasets:[
-                {label:'Resultado',data:fluxo,tension:.25}
-            ]
+            labels:tiposOrdenadosGrafico.map(([tipo,valor]) => {
+                const pct = totalDespesasGrafico > 0 ? (valor / totalDespesasGrafico) * 100 : 0;
+                return `${tipo} (${pct.toFixed(1)}%)`;
+            }),
+            datasets:[{
+                label:'Gasto',
+                data:tiposOrdenadosGrafico.map(x=>x[1])
+            }]
         },
         options:{
+            indexAxis:'y',
             responsive:true,
-            maintainAspectRatio:true,
-            plugins:{legend:{display:true}}
+            maintainAspectRatio:false,
+            plugins:{legend:{display:false}},
+            scales:{
+                x:{
+                    beginAtZero:true,
+                    ticks:{callback:function(value){ return formatarMoeda(value); }}
+                },
+                y:{
+                    ticks:{
+                        autoSkip:false,
+                        font:{size:11}
+                    }
+                }
+            }
         }
     });
 
@@ -2009,19 +2046,7 @@ function carregarGraficos() {
         <div style="margin-top:10px;padding:10px;border-radius:10px;background:var(--card);border:1px solid var(--border);">
             <div style="font-size:12px;color:var(--muted);">RESULTADO ATUAL</div>
             <div style="font-size:20px;font-weight:800;margin-top:3px;">${moeda(resultado)}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:3px;">Receitas: ${moeda(totalR)} · Despesas: ${moeda(totalD)} · Despesas = ${percentualDespesas.toFixed(1)}% da receita</div>
-        </div>
-
-        <div style="margin-top:12px;">
-            <strong>🔍 Onde você mais gasta</strong>
-            ${leitura}
-        </div>
-
-        <div style="margin-top:14px;">
-            <strong>🏦 Conta que mais concentra despesas</strong>
-            ${topContas.length
-                ? `<div style="margin-top:6px;">${topContas.slice(0,3).map((x,i)=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>${i+1}º ${escapeHtml(x[0])}</span><strong>${moeda(x[1])}</strong></div>`).join('')}</div>`
-                : `<div style="font-size:11px;color:var(--muted);margin-top:6px;">Sem despesas para analisar.</div>`}
+            <div style="font-size:11px;color:var(--muted);margin-top:3px;">Receitas: ${moeda(totalR)} · Despesas: ${moeda(totalD)} · Gastos consomem ${percentualDespesas.toFixed(1)}% da receita</div>
         </div>
 
         <div style="margin-top:14px;">
