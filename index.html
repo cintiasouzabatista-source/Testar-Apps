@@ -211,24 +211,13 @@ button {
     line-height:1.45;
 }
 
-.valor-verde {
-    color:var(--success);
-}
-
-.valor-vermelho {
-    color:var(--danger);
-}
-
-.valor-azul {
-    color:var(--primary);
-}
-
-.valor-laranja {
-    color:var(--warning);
-}
+.valor-verde { color:var(--success); }
+.valor-vermelho { color:var(--danger); }
+.valor-azul { color:var(--primary); }
+.valor-laranja { color:var(--warning); }
 
 /* =========================
-   BOTÕES DE ATALHO (HISTÓRICO E GRÁFICOS)
+   BOTÕES DE ATALHO
 ========================= */
 
 .botoes-atalhos {
@@ -578,18 +567,9 @@ select:focus {
     font-weight:bold;
 }
 
-.historico-ajuda .pendente {
-    color:var(--warning);
-}
-
-.historico-ajuda .arraste {
-    color:var(--muted);
-    font-size:9px;
-}
-
-.historico-ajuda .pago {
-    color:var(--success);
-}
+.historico-ajuda .pendente { color:var(--warning); }
+.historico-ajuda .arraste { color:var(--muted); font-size:9px; }
+.historico-ajuda .pago { color:var(--success); }
 
 .lista-movimentos {
     display:flex;
@@ -621,15 +601,8 @@ select:focus {
     pointer-events:none;
 }
 
-.swipe-esquerda {
-    color:var(--warning);
-    opacity:.8;
-}
-
-.swipe-direita {
-    color:var(--success);
-    opacity:.8;
-}
+.swipe-esquerda { color:var(--warning); opacity:.8; }
+.swipe-direita { color:var(--success); opacity:.8; }
 
 .item-movimento {
     position:relative;
@@ -839,190 +812,64 @@ select:focus {
 <div class="container">
 
     <div class="topo-titulo">
-
-        <button
-            class="btn-topo"
-            id="btnConfig"
-            onclick="toggleConfigMenu()"
-        >
-            ⚙️
-        </button>
-
+        <button class="btn-topo" id="btnConfig" onclick="toggleConfigMenu()">⚙️</button>
         <h1>Controle Financeiro</h1>
-
-        <button
-            class="btn-topo"
-            id="btnTema"
-            onclick="alternarTema()"
-        >
-            🌙
-        </button>
-
+        <button class="btn-topo" id="btnTema" onclick="alternarTema()">🌙</button>
     </div>
 
     <div id="menuConfig" class="menu-config">
-
-        <button onclick="gerarRelatorioPDF(); fecharConfigMenu()">
-            📄 Exportar Relatório
-        </button>
-
-        <button onclick="fazerBackup(); fecharConfigMenu()">
-            💾 Fazer Backup
-        </button>
-
-        <button onclick="abrirRestaurarBackup(); fecharConfigMenu()">
-            ♻️ Restaurar Backup
-        </button>
-
-        <button onclick="abrirModalReset(); fecharConfigMenu()">
-            🗑️ Resetar Tudo
-        </button>
-
+        <button onclick="abrirModalContas(); fecharConfigMenu()">💳 Gerenciar Contas</button>
+        <button onclick="gerarRelatorioPDF(); fecharConfigMenu()">📄 Exportar Relatório</button>
+        <button onclick="fazerBackup(); fecharConfigMenu()">💾 Fazer Backup</button>
+        <button onclick="abrirRestaurarBackup(); fecharConfigMenu()">♻️ Restaurar Backup</button>
+        <button onclick="abrirModalReset(); fecharConfigMenu()">🗑️ Resetar Tudo</button>
     </div>
 
     <div class="topo-header">
-
         <button onclick="mudarMes(-1)">‹</button>
-
         <div id="mesAtual"></div>
-
         <button onclick="mudarMes(1)">›</button>
-
     </div>
 
     <!-- SALDO PRINCIPAL -->
-
     <div class="card card-principal">
-
-        <div class="titulo">
-            Saldo Disponível
-        </div>
-
-        <div
-            id="cardLiquidoValor"
-            class="valor"
-        >
-            R$ 0,00
-        </div>
-
-        <div class="subtitulo-saldo">
-            Dinheiro em caixa menos contas a pagar
-        </div>
-
+        <div class="titulo">Saldo Disponível</div>
+        <div id="cardLiquidoValor" class="valor">R$ 0,00</div>
+        <div class="subtitulo-saldo">Dinheiro em caixa menos contas a pagar</div>
     </div>
 
     <!-- 4 CARDS -->
-
     <div class="grid-cards">
-
         <div class="card card-mini">
-
-            <div class="titulo">
-                Receitas Previstas
-            </div>
-
-            <div
-                id="cardReceitas"
-                class="valor valor-verde"
-            >
-                R$ 0,00
-            </div>
-
-            <div
-                id="cardReceitasDetalhe"
-                class="detalhe"
-            >
-                Já recebi: R$ 0,00<br>
-                Falta receber: R$ 0,00
-            </div>
-
+            <div class="titulo">Receitas Previstas</div>
+            <div id="cardReceitas" class="valor valor-verde">R$ 0,00</div>
+            <div id="cardReceitasDetalhe" class="detalhe">Já recebi: R$ 0,00<br>Falta receber: R$ 0,00</div>
         </div>
 
-
         <div class="card card-mini">
-
-            <div class="titulo">
-                Saldo Caixa
-            </div>
-
-            <div
-                id="cardSaldo"
-                class="valor valor-azul"
-            >
-                R$ 0,00
-            </div>
-
-            <div
-                id="cardSaldoDetalhe"
-                class="detalhe"
-            >
-                Dinheiro que tenho agora
-            </div>
-
+            <div class="titulo">Saldo Caixa</div>
+            <div id="cardSaldo" class="valor valor-azul">R$ 0,00</div>
+            <div id="cardSaldoDetalhe" class="detalhe">Dinheiro que tenho agora</div>
         </div>
 
-
         <div class="card card-mini">
-
-            <div class="titulo">
-                Despesas Pagas
-            </div>
-
-            <div
-                id="cardDespesasPagas"
-                class="valor valor-vermelho"
-            >
-                R$ 0,00
-            </div>
-
-            <div
-                id="cardDespesasDetalhe"
-                class="detalhe"
-            >
-                Previstas: R$ 0,00
-            </div>
-
+            <div class="titulo">Despesas Pagas</div>
+            <div id="cardDespesasPagas" class="valor valor-vermelho">R$ 0,00</div>
+            <div id="cardDespesasDetalhe" class="detalhe">Previstas: R$ 0,00</div>
         </div>
 
-
         <div class="card card-mini">
-
-            <div class="titulo">
-                Pendentes
-            </div>
-
-            <div
-                id="cardPendentes"
-                class="valor valor-laranja"
-            >
-                R$ 0,00
-            </div>
-
-            <div
-                id="cardPendentesDetalhe"
-                class="detalhe"
-            >
-                A receber: R$ 0,00<br>
-                A pagar: R$ 0,00
-            </div>
-
+            <div class="titulo">Pendentes</div>
+            <div id="cardPendentes" class="valor valor-laranja">R$ 0,00</div>
+            <div id="cardPendentesDetalhe" class="detalhe">A receber: R$ 0,00<br>A pagar: R$ 0,00</div>
         </div>
-
     </div>
 
-
     <!-- ATALHOS: HISTÓRICO E GRÁFICOS -->
-
     <div class="botoes-atalhos">
-
-        <button
-            class="botao-acao-principal"
-            onclick="abrirModalHistorico()"
-        >
+        <button class="botao-acao-principal" onclick="abrirModalHistorico()">
             <div class="botao-acao-esquerda">
-                <div class="botao-acao-icone">
-                    📋
-                </div>
+                <div class="botao-acao-icone">📋</div>
                 <div>
                     <strong>Histórico</strong>
                     <small>Editar e status</small>
@@ -1031,14 +878,9 @@ select:focus {
             <div class="botao-acao-seta">›</div>
         </button>
 
-        <button
-            class="botao-acao-principal"
-            onclick="abrirModalGraficos()"
-        >
+        <button class="botao-acao-principal" onclick="abrirModalGraficos()">
             <div class="botao-acao-esquerda">
-                <div class="botao-acao-icone">
-                    📊
-                </div>
+                <div class="botao-acao-icone">📊</div>
                 <div>
                     <strong>Gráficos</strong>
                     <small>Análise mensal</small>
@@ -1046,599 +888,200 @@ select:focus {
             </div>
             <div class="botao-acao-seta">›</div>
         </button>
-
     </div>
 
 </div>
 
-
 <!-- FAB -->
-
 <div class="fab-container">
-
-    <button
-        class="fab-button"
-        onclick="abrirModalLancamento()"
-    >
-        +
-    </button>
-
+    <button class="fab-button" onclick="abrirModalLancamento()">+</button>
 </div>
 
-
 <!-- RESTAURAÇÃO -->
+<input type="file" id="inputRestaurarBackup" accept=".json,application/json" style="display:none" onchange="restaurarBackup(event)">
 
-<input
-    type="file"
-    id="inputRestaurarBackup"
-    accept=".json,application/json"
-    style="display:none"
-    onchange="restaurarBackup(event)"
->
-
+<!-- =========================================================
+     MODAL CONTAS (GERENCIAR / ADICIONAR / EXCLUIR)
+========================================================= -->
+<div id="modalContas" class="modal-overlay" onclick="fecharModalFora(event,'modalContas')">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Gerenciar Contas</h2>
+            <button class="btn-fechar" onclick="fecharModalContas()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Adicionar Nova Conta</label>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="inputNovaContaNome" placeholder="Ex: C6, XP, Carteira...">
+                    <button class="btn-pequeno" onclick="adicionarContaModal()" style="background:var(--primary); color:white; border-color:var(--primary);">Adicionar</button>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top:15px;">
+                <label>Contas Existentes (Incluindo Principal)</label>
+                <div id="listaContasGerenciar" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                    <!-- Gerado via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- =========================================================
      MODAL LANÇAMENTO
 ========================================================= -->
-
-<div
-    id="modalLancamento"
-    class="modal-overlay"
-    onclick="fecharModalFora(event,'modalLancamento')"
->
-
+<div id="modalLancamento" class="modal-overlay" onclick="fecharModalFora(event,'modalLancamento')">
     <div class="modal">
-
         <div class="modal-header">
-
-            <h2 id="tituloModalLancamento">
-                Novo Lançamento
-            </h2>
-
-            <button
-                class="btn-fechar"
-                onclick="fecharModalLancamento()"
-            >
-                ×
-            </button>
-
+            <h2 id="tituloModalLancamento">Novo Lançamento</h2>
+            <button class="btn-fechar" onclick="fecharModalLancamento()">×</button>
         </div>
-
         <div class="modal-body">
-
-            <form
-                id="formLancamento"
-                onsubmit="salvarMovimento(event)"
-            >
-
-                <input
-                    type="hidden"
-                    id="editIndex"
-                    value=""
-                >
-
-                <input
-                    type="hidden"
-                    id="inputTipo"
-                    value="Despesa"
-                >
-
-                <input
-                    type="hidden"
-                    id="inputConta"
-                    value="Nubank"
-                >
-
-                <input
-                    type="hidden"
-                    id="inputForma"
-                    value="PIX"
-                >
-
-                <input
-                    type="hidden"
-                    id="inputStatus"
-                    value="pago"
-                >
-
+            <form id="formLancamento" onsubmit="salvarMovimento(event)">
+                <input type="hidden" id="editIndex" value="">
+                <input type="hidden" id="inputTipo" value="Despesa">
+                <input type="hidden" id="inputConta" value="">
+                <input type="hidden" id="inputForma" value="PIX">
+                <input type="hidden" id="inputStatus" value="pago">
 
                 <!-- TIPO -->
-
                 <div class="form-group">
-
-                    <label>
-                        O que você quer lançar?
-                    </label>
-
+                    <label>O que você quer lançar?</label>
                     <div class="tipo-opcoes">
-
-                        <button
-                            type="button"
-                            id="tipoDespesa"
-                            onclick="selecionarTipo('Despesa')"
-                        >
-                            🔴 Vou pagar
-                        </button>
-
-                        <button
-                            type="button"
-                            id="tipoReceita"
-                            onclick="selecionarTipo('Receita')"
-                        >
-                            🟢 Vou receber
-                        </button>
-
-                        <button
-                            type="button"
-                            id="tipoSaldo"
-                            onclick="selecionarTipo('Saldo')"
-                        >
-                            🔵 Ajustar saldo
-                        </button>
-
+                        <button type="button" id="tipoDespesa" onclick="selecionarTipo('Despesa')">🔴 Vou pagar</button>
+                        <button type="button" id="tipoReceita" onclick="selecionarTipo('Receita')">🟢 Vou receber</button>
+                        <button type="button" id="tipoSaldo" onclick="selecionarTipo('Saldo')">🔵 Ajustar saldo</button>
                     </div>
-
                 </div>
-
 
                 <!-- DESCRIÇÃO / VALOR -->
-
-                <div class="linha-descricao-valor">
-
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                     <div class="form-group">
-
-                        <label>
-                            O que é?
-                        </label>
-
-                        <input
-                            type="text"
-                            id="inputDescricao"
-                            placeholder="Ex.: Cartão, salário, aluguel..."
-                            required
-                        >
-
+                        <label>O que é?</label>
+                        <input type="text" id="inputDescricao" placeholder="Ex: Cartão, salário..." required>
                     </div>
-
                     <div class="form-group">
-
-                        <label>
-                            Quanto?
-                        </label>
-
-                        <input
-                            type="number"
-                            id="inputValor"
-                            step="0.01"
-                            min="0"
-                            placeholder="0,00"
-                            required
-                        >
-
+                        <label>Quanto?</label>
+                        <input type="number" id="inputValor" step="0.01" min="0" placeholder="0,00" required>
                     </div>
-
                 </div>
-
 
                 <!-- STATUS -->
-
-                <div
-                    id="grupoStatus"
-                    class="form-group"
-                >
-
-                    <label id="labelStatus">
-                        Situação
-                    </label>
-
+                <div id="grupoStatus" class="form-group">
+                    <label id="labelStatus">Situação</label>
                     <div class="status-opcoes">
-
-                        <button
-                            type="button"
-                            id="statusQuitado"
-                            class="ativo"
-                            onclick="selecionarStatus('quitado')"
-                        >
-                            ✓
-                            <span id="textoStatusQuitado">
-                                Pago
-                            </span>
+                        <button type="button" id="statusQuitado" class="ativo" onclick="selecionarStatus('quitado')">
+                            ✓ <span id="textoStatusQuitado">Pago</span>
                         </button>
-
-                        <button
-                            type="button"
-                            id="statusPendente"
-                            class="pendente"
-                            onclick="selecionarStatus('pendente')"
-                        >
-                            🕐
-                            <span id="textoStatusPendente">
-                                Pendente
-                            </span>
+                        <button type="button" id="statusPendente" class="pendente" onclick="selecionarStatus('pendente')">
+                            🕐 <span id="textoStatusPendente">Pendente</span>
                         </button>
-
                     </div>
-
                 </div>
-
 
                 <!-- MAIS OPÇÕES -->
-
-                <div
-                    id="maisOpcoes"
-                    class="mais-opcoes"
-                >
-
-                    <button
-                        type="button"
-                        class="btn-mais-opcoes"
-                        onclick="toggleExtrasLancamento()"
-                    >
-                        ⚙️ Mais opções
-                        <span id="setaExtras">⌄</span>
+                <div id="maisOpcoes" class="mais-opcoes">
+                    <button type="button" class="btn-mais-opcoes" onclick="toggleExtrasLancamento()">
+                        ⚙️ Mais opções <span id="setaExtras">⌄</span>
                     </button>
 
-
-                    <div
-                        id="conteudoExtras"
-                        class="conteudo-extras"
-                    >
-
+                    <div id="conteudoExtras" class="conteudo-extras">
                         <!-- CONTA -->
-
                         <div class="form-group">
-
-                            <label>
-                                Onde está o dinheiro?
-                            </label>
-
-                            <div
-                                class="chips"
-                                id="baloesConta"
-                            >
-                                <!-- Gerado dinamicamente -->
-                            </div>
-
+                            <label>Onde está o dinheiro?</label>
+                            <div class="chips" id="baloesConta"></div>
                         </div>
-
 
                         <!-- FORMA -->
-
                         <div class="form-group">
-
-                            <label>
-                                Como foi pago?
-                            </label>
-
-                            <div
-                                class="chips"
-                                id="baloesForma"
-                            >
-
-                                <button
-                                    type="button"
-                                    class="chip ativo"
-                                    onclick="selecionarForma('PIX',this)"
-                                >
-                                    PIX
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="chip"
-                                    onclick="selecionarForma('Débito',this)"
-                                >
-                                    Débito
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="chip"
-                                    onclick="selecionarForma('Crédito',this)"
-                                >
-                                    Crédito
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="chip"
-                                    onclick="selecionarForma('Dinheiro',this)"
-                                >
-                                    Dinheiro
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="chip"
-                                    onclick="selecionarForma('Outra',this)"
-                                >
-                                    Outra
-                                </button>
-
+                            <label>Como foi pago?</label>
+                            <div class="chips" id="baloesForma">
+                                <button type="button" class="chip ativo" onclick="selecionarForma('PIX',this)">PIX</button>
+                                <button type="button" class="chip" onclick="selecionarForma('Débito',this)">Débito</button>
+                                <button type="button" class="chip" onclick="selecionarForma('Crédito',this)">Crédito</button>
+                                <button type="button" class="chip" onclick="selecionarForma('Dinheiro',this)">Dinheiro</button>
+                                <button type="button" class="chip" onclick="selecionarForma('Outra',this)">Outra</button>
                             </div>
-
                         </div>
-
 
                         <!-- PARCELAMENTO -->
-
                         <div class="opcao-linha">
-
-                            <span>
-                                Parcelar compra
-                            </span>
-
-                            <input
-                                type="checkbox"
-                                id="inputParcelado"
-                                onchange="toggleParcelamento()"
-                            >
-
+                            <span>Parcelar compra</span>
+                            <input type="checkbox" id="inputParcelado" onchange="toggleParcelamento()">
                         </div>
-
-
-                        <div
-                            id="camposParcelamento"
-                            style="display:none;"
-                        >
-
-                            <div
-                                class="form-group"
-                                style="margin-top:8px;"
-                            >
-
-                                <label>
-                                    Em quantas vezes?
-                                </label>
-
-                                <input
-                                    type="number"
-                                    id="inputParcelas"
-                                    min="2"
-                                    max="120"
-                                    value="2"
-                                >
-
+                        <div id="camposParcelamento" style="display:none;">
+                            <div class="form-group" style="margin-top:8px;">
+                                <label>Em quantas vezes?</label>
+                                <input type="number" id="inputParcelas" min="2" max="120" value="2">
                             </div>
-
                         </div>
-
 
                         <!-- RECORRÊNCIA -->
-
                         <div class="opcao-linha">
-
-                            <span>
-                                Repetir todo mês
-                            </span>
-
-                            <input
-                                type="checkbox"
-                                id="inputRecorrente"
-                                onchange="toggleRecorrencia()"
-                            >
-
+                            <span>Repetir todo mês</span>
+                            <input type="checkbox" id="inputRecorrente" onchange="toggleRecorrencia()">
                         </div>
-
-
-                        <div
-                            id="camposRecorrencia"
-                            style="display:none;"
-                        >
-
-                            <div
-                                class="form-group"
-                                style="margin-top:8px;"
-                            >
-
-                                <label>
-                                    Por quantos meses?
-                                </label>
-
-                                <input
-                                    type="number"
-                                    id="inputMesesRecorrencia"
-                                    min="2"
-                                    max="60"
-                                    value="12"
-                                >
-
+                        <div id="camposRecorrencia" style="display:none;">
+                            <div class="form-group" style="margin-top:8px;">
+                                <label>Por quantos meses?</label>
+                                <input type="number" id="inputMesesRecorrencia" min="2" max="60" value="12">
                             </div>
-
                         </div>
-
                     </div>
-
                 </div>
 
-
-                <button
-                    id="btnSalvarForm"
-                    class="btn-salvar"
-                    type="submit"
-                >
-                    Cadastrar Lançamento
-                </button>
-
+                <button id="btnSalvarForm" class="btn-salvar" type="submit">Cadastrar Lançamento</button>
             </form>
-
         </div>
-
     </div>
-
 </div>
-
 
 <!-- =========================================================
      MODAL HISTÓRICO
 ========================================================= -->
-
-<div
-    id="modalHistorico"
-    class="modal-overlay modal-grande"
-    onclick="fecharModalFora(event,'modalHistorico')"
->
-
+<div id="modalHistorico" class="modal-overlay modal-grande" onclick="fecharModalFora(event,'modalHistorico')">
     <div class="modal">
-
         <div class="modal-header">
-
-            <h2>
-                Histórico
-            </h2>
-
-            <button
-                class="btn-fechar"
-                onclick="fecharModalHistorico()"
-            >
-                ×
-            </button>
-
+            <h2>Histórico</h2>
+            <button class="btn-fechar" onclick="fecharModalHistorico()">×</button>
         </div>
-
         <div class="modal-body">
-
             <div class="historico-ajuda">
-
-                <span class="pendente">
-                    ← PENDENTE
-                </span>
-
-                <span class="arraste">
-                    ↔ ARRASTE
-                </span>
-
-                <span class="pago">
-                    PAGO →
-                </span>
-
+                <span class="pendente">← PENDENTE</span>
+                <span class="arraste">↔ ARRASTE</span>
+                <span class="pago">PAGO →</span>
             </div>
-
-
-            <button
-                class="btn-pequeno"
-                onclick="toggleFiltroPeriodo()"
-                style="margin-bottom:9px;"
-            >
-                📅 Filtrar período
-            </button>
-
-
-            <div
-                id="filtroPeriodo"
-                class="filtro-periodo"
-            >
-
-                <div
-                    style="
-                        display:grid;
-                        grid-template-columns:1fr 1fr;
-                        gap:8px;
-                    "
-                >
-
+            <button class="btn-pequeno" onclick="toggleFiltroPeriodo()" style="margin-bottom:9px;">📅 Filtrar período</button>
+            <div id="filtroPeriodo" class="filtro-periodo">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                     <div>
-
-                        <label
-                            style="
-                                font-size:10px;
-                                color:var(--muted);
-                            "
-                        >
-                            Mês inicial
-                        </label>
-
-                        <input
-                            type="month"
-                            id="filtroMesInicial"
-                        >
-
+                        <label style="font-size:10px; color:var(--muted);">Mês inicial</label>
+                        <input type="month" id="filtroMesInicial">
                     </div>
-
                     <div>
-
-                        <label
-                            style="
-                                font-size:10px;
-                                color:var(--muted);
-                            "
-                        >
-                            Mês final
-                        </label>
-
-                        <input
-                            type="month"
-                            id="filtroMesFinal"
-                        >
-
+                        <label style="font-size:10px; color:var(--muted);">Mês final</label>
+                        <input type="month" id="filtroMesFinal">
                     </div>
-
                 </div>
-
-                <button
-                    class="btn-pequeno"
-                    style="margin-top:8px;"
-                    onclick="carregarListaHistoricoModal()"
-                >
-                    Aplicar
-                </button>
-
+                <button class="btn-pequeno" style="margin-top:8px;" onclick="carregarListaHistoricoModal()">Aplicar</button>
             </div>
-
-
-            <div
-                id="listaHistoricoModal"
-                class="lista-movimentos"
-            ></div>
-
+            <div id="listaHistoricoModal" class="lista-movimentos"></div>
         </div>
-
     </div>
-
 </div>
-
 
 <!-- =========================================================
      MODAL GRÁFICOS
 ========================================================= -->
-
-<div
-    id="modalGraficos"
-    class="modal-overlay modal-grande"
-    onclick="fecharModalFora(event,'modalGraficos')"
->
-
+<div id="modalGraficos" class="modal-overlay modal-grande" onclick="fecharModalFora(event,'modalGraficos')">
     <div class="modal">
-
         <div class="modal-header">
-
-            <h2>
-                Gráficos e Análise
-            </h2>
-
-            <button
-                class="btn-fechar"
-                onclick="fecharModalGraficos()"
-            >
-                ×
-            </button>
-
+            <h2>Gráficos e Análise</h2>
+            <button class="btn-fechar" onclick="fecharModalGraficos()">×</button>
         </div>
-
         <div class="modal-body">
-
-            <button
-                class="btn-pequeno"
-                onclick="toggleFiltroPeriodoGraficos()"
-                style="margin-bottom:9px;"
-            >
-                📅 Filtrar período
-            </button>
-
-            <div
-                id="filtroPeriodoGraficos"
-                class="filtro-periodo"
-            >
+            <button class="btn-pequeno" onclick="toggleFiltroPeriodoGraficos()" style="margin-bottom:9px;">📅 Filtrar período</button>
+            <div id="filtroPeriodoGraficos" class="filtro-periodo">
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                     <div>
                         <label style="font-size:10px; color:var(--muted);">Mês inicial</label>
@@ -1649,246 +1092,193 @@ select:focus {
                         <input type="month" id="filtroMesFinalGraficos" onchange="renderizarGraficos()">
                     </div>
                 </div>
-                <button
-                    class="btn-pequeno"
-                    style="margin-top:8px;"
-                    onclick="renderizarGraficos()"
-                >
-                    Aplicar
-                </button>
+                <button class="btn-pequeno" style="margin-top:8px;" onclick="renderizarGraficos()">Aplicar</button>
             </div>
-
             <div class="grafico-container" style="margin-top: 10px;">
-
-                <h3>
-                    Receitas recebidas x Despesas pagas
-                </h3>
-
-                <canvas
-                    id="graficoReceitasDespesas"
-                ></canvas>
-
+                <h3>Receitas recebidas x Despesas pagas</h3>
+                <canvas id="graficoReceitasDespesas"></canvas>
             </div>
-
             <div class="grafico-container">
-
-                <h3>
-                    Despesas por forma de pagamento
-                </h3>
-
-                <canvas
-                    id="graficoFormas"
-                ></canvas>
-
+                <h3>Despesas por forma de pagamento</h3>
+                <canvas id="graficoFormas"></canvas>
             </div>
-
-            <div
-                class="analise"
-                id="analiseFinanceira"
-            ></div>
-
+            <div class="analise" id="analiseFinanceira"></div>
         </div>
-
     </div>
-
 </div>
-
 
 <!-- =========================================================
      MODAL RESET
 ========================================================= -->
-
-<div
-    id="modalReset"
-    class="modal-overlay modal-reset"
-    onclick="fecharModalFora(event,'modalReset')"
->
-
+<div id="modalReset" class="modal-overlay modal-reset" onclick="fecharModalFora(event,'modalReset')">
     <div class="modal">
-
         <div class="modal-header">
-
-            <h2>
-                Resetar dados
-            </h2>
-
-            <button
-                class="btn-fechar"
-                onclick="fecharModalReset()"
-            >
-                ×
-            </button>
-
+            <h2>Resetar dados</h2>
+            <button class="btn-fechar" onclick="fecharModalReset()">×</button>
         </div>
-
         <div class="modal-body">
-
             <div class="alerta">
-
-                ⚠️ Esta ação apagará os lançamentos salvos
-                no aplicativo.
-
-                Faça um backup antes, se quiser preservar
-                seus dados.
-
+                ⚠️ Esta ação apagará os lançamentos salvos no aplicativo. Faça um backup antes, se quiser preservar seus dados.
             </div>
-
-            <button
-                class="btn-perigo"
-                onclick="confirmarReset()"
-            >
-                Apagar todos os lançamentos
-            </button>
-
-            <button
-                class="btn-secundario"
-                onclick="fecharModalReset()"
-            >
-                Cancelar
-            </button>
-
+            <button class="btn-perigo" onclick="confirmarReset()">Apagar todos os lançamentos</button>
+            <button class="btn-secundario" onclick="fecharModalReset()">Cancelar</button>
         </div>
-
     </div>
-
 </div>
 
-
-<div
-    id="toast"
-    class="toast"
-></div>
-
+<div id="toast" class="toast"></div>
 
 <script>
-
 /* =========================================================
    DADOS
 ========================================================= */
-
 const mesesNomes = [
-    'Janeiro',
-    'Fevereiro',
-    'Março',
-    'Abril',
-    'Maio',
-    'Junho',
-    'Julho',
-    'Agosto',
-    'Setembro',
-    'Outubro',
-    'Novembro',
-    'Dezembro'
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
 
 let dataAtual = new Date();
 
-let movimentos = JSON.parse(
-    localStorage.getItem('movimentos_financeiros_v4')
-) || [];
-
-let contasSalvas = JSON.parse(
-    localStorage.getItem('contas_financeiras_v4')
-) || ['Nubank', 'Caixa', 'Carteira', 'Itaú', 'Inter'];
+let movimentos = JSON.parse(localStorage.getItem('movimentos_financeiros_v4')) || [];
+let contasSalvas = JSON.parse(localStorage.getItem('contas_financeiras_v4')) || ['Nubank', 'Caixa', 'Carteira', 'Itaú', 'Inter'];
 
 let graficoReceitasDespesas = null;
 let graficoFormas = null;
 
 let toqueInicioX = 0;
 let toqueInicioY = 0;
-
 let swipeItemAtual = null;
 let swipeMovendo = false;
 let swipeDeltaAtual = 0;
 let mousePressionado = false;
 
-
 /* =========================================================
-   NORMALIZAÇÃO
+   STORAGE & NORMALIZAÇÃO
 ========================================================= */
+function salvarDados() {
+    localStorage.setItem('movimentos_financeiros_v4', JSON.stringify(movimentos));
+    localStorage.setItem('contas_financeiras_v4', JSON.stringify(contasSalvas));
+}
 
 function normalizarMovimentos() {
-
     movimentos = movimentos.map(m => {
-
-        if (!m.tipo) {
-            m.tipo = 'Despesa';
-        }
-
-        if (!m.valor) {
-            m.valor = 0;
-        }
-
-        if (!m.descricao) {
-            m.descricao = 'Sem descrição';
-        }
-
-        if (m.conta === 'Conta principal') {
-            m.conta = 'Nubank';
-        }
-
+        if (!m.tipo) m.tipo = 'Despesa';
+        if (!m.valor) m.valor = 0;
+        if (!m.descricao) m.descricao = 'Sem descrição';
         if (!m.status) {
-
             if (m.tipo === 'Receita') {
-
-                m.status =
-                    m.pago === false
-                        ? 'pendente'
-                        : 'recebido';
-
+                m.status = m.pago === false ? 'pendente' : 'recebido';
             } else if (m.tipo === 'Despesa') {
-
-                m.status =
-                    m.pago === false
-                        ? 'pendente'
-                        : 'pago';
-
+                m.status = m.pago === false ? 'pendente' : 'pago';
             } else {
-
                 m.status = 'aplicado';
-
             }
         }
-
-        m.pago =
-            m.status !== 'pendente';
-
+        m.pago = m.status !== 'pendente';
         return m;
-
     });
-
     salvarDados();
 }
 
-
 /* =========================================================
-   STORAGE
+   GERENCIAMENTO DE CONTAS (ADICIONAR E EXCLUIR PRINCIPAL/OUTRAS)
 ========================================================= */
-
-function salvarDados() {
-
-    localStorage.setItem(
-        'movimentos_financeiros_v4',
-        JSON.stringify(movimentos)
-    );
-    localStorage.setItem(
-        'contas_financeiras_v4',
-        JSON.stringify(contasSalvas)
-    );
+function abrirModalContas() {
+    renderizarListaContasGerenciar();
+    document.getElementById('modalContas').classList.add('aberto');
 }
 
+function fecharModalContas() {
+    document.getElementById('modalContas').classList.remove('aberto');
+    document.getElementById('inputNovaContaNome').value = '';
+    renderizarBaloesConta();
+    atualizarInterface();
+}
 
-/* =========================================================
-   RENDERIZAR CHIPS DE CONTAS
-========================================================= */
+function renderizarListaContasGerenciar() {
+    const container = document.getElementById('listaContasGerenciar');
+    if (!container) return;
+
+    if (contasSalvas.length === 0) {
+        container.innerHTML = '<div style="color:var(--muted); font-size:12px;">Nenhuma conta cadastrada. Adicione pelo menos uma.</div>';
+        return;
+    }
+
+    let html = '';
+    contasSalvas.forEach((conta, idx) => {
+        html += `
+            <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:10px;">
+                <span style="font-size:13px; font-weight:bold;">💳 ${conta} ${idx === 0 ? '<small style="color:var(--primary); font-weight:normal;">(Principal)</small>' : ''}</span>
+                <button class="btn-pequeno" style="color:var(--danger); border-color:var(--danger);" onclick="excluirConta('${conta}')">Excluir</button>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function adicionarContaModal() {
+    const input = document.getElementById('inputNovaContaNome');
+    const nome = input.value.trim();
+    if (!nome) {
+        mostrarToast('Digite o nome da conta.');
+        return;
+    }
+    if (contasSalvas.includes(nome)) {
+        mostrarToast('Esta conta já existe.');
+        return;
+    }
+    contasSalvas.push(nome);
+    salvarDados();
+    input.value = '';
+    renderizarListaContasGerenciar();
+    renderizarBaloesConta();
+    mostrarToast('Conta adicionada com sucesso!');
+}
+
+function excluirConta(nomeConta) {
+    if (contasSalvas.length <= 1) {
+        mostrarToast('Você precisa manter pelo menos uma conta.');
+        return;
+    }
+    if (!confirm(`Deseja realmente excluir a conta "${nomeConta}"? Lançamentos associados a ela serão movidos para outra conta.`)) {
+        return;
+    }
+
+    // Remover conta
+    contasSalvas = contasSalvas.filter(c => c !== nomeConta);
+    const contaSubstituta = contasSalvas[0];
+
+    // Atualizar movimentos que usavam essa conta
+    movimentos.forEach(m => {
+        if (m.conta === nomeConta) {
+            m.conta = contaSubstituta;
+        }
+    });
+
+    salvarDados();
+    renderizarListaContasGerenciar();
+    renderizarBaloesConta();
+    atualizarInterface();
+    mostrarToast(`Conta "${nomeConta}" excluída.`);
+}
 
 function renderizarBaloesConta(contaSelecionada = null) {
     const container = document.getElementById('baloesConta');
     if (!container) return;
 
-    if (!contaSelecionada) {
-        contaSelecionada = document.getElementById('inputConta').value || contasSalvas[0];
+    if (contasSalvas.length === 0) {
+        container.innerHTML = '<span style="font-size:11px; color:var(--danger);">Cadastre uma conta no menu ⚙️</span>';
+        return;
     }
+
+    if (!contaSelecionada || !contasSalvas.includes(contaSelecionada)) {
+        contaSelecionada = document.getElementById('inputConta').value;
+        if (!contaSelecionada || !contasSalvas.includes(contaSelecionada)) {
+            contaSelecionada = contasSalvas[0];
+        }
+    }
+
+    document.getElementById('inputConta').value = contaSelecionada;
 
     let html = '';
     contasSalvas.forEach(conta => {
@@ -1896,344 +1286,131 @@ function renderizarBaloesConta(contaSelecionada = null) {
         html += `<button type="button" class="chip ${ativo}" onclick="selecionarConta('${conta}',this)">💳 ${conta}</button>`;
     });
 
-    html += `<button type="button" class="chip" onclick="adicionarNovaConta()">+ Adicionar conta</button>`;
+    html += `<button type="button" class="chip" onclick="abrirModalContas()">+ Gerenciar Contas</button>`;
     container.innerHTML = html;
 }
-
-function adicionarNovaConta() {
-    const nova = prompt('Nome da nova conta (ex: Carteira, XP, C6):');
-    if (!nova || !nova.trim()) return;
-    const nomeLimpo = nova.trim();
-    if (!contasSalvas.includes(nomeLimpo)) {
-        contasSalvas.push(nomeLimpo);
-        salvarDados();
-    }
-    selecionarConta(nomeLimpo);
-    renderizarBaloesConta(nomeLimpo);
-}
-
 
 /* =========================================================
    TEMA
 ========================================================= */
-
 function carregarTema() {
-
-    const tema =
-        localStorage.getItem('tema_financeiro');
-
+    const tema = localStorage.getItem('tema_financeiro');
     if (tema === 'dark') {
-
         document.body.classList.add('dark');
-
-        document.getElementById('btnTema')
-            .textContent = '☀️';
-
+        document.getElementById('btnTema').textContent = '☀️';
     } else {
-
         document.body.classList.remove('dark');
-
-        document.getElementById('btnTema')
-            .textContent = '🌙';
-
+        document.getElementById('btnTema').textContent = '🌙';
     }
 }
-
 
 function alternarTema() {
-
     document.body.classList.toggle('dark');
-
-    const dark =
-        document.body.classList.contains('dark');
-
-    localStorage.setItem(
-        'tema_financeiro',
-        dark ? 'dark' : 'light'
-    );
-
-    document.getElementById('btnTema')
-        .textContent =
-        dark ? '☀️' : '🌙';
-
-    if (
-        document
-            .getElementById('modalGraficos')
-            .classList.contains('aberto')
-    ) {
-
+    const dark = document.body.classList.contains('dark');
+    localStorage.setItem('tema_financeiro', dark ? 'dark' : 'light');
+    document.getElementById('btnTema').textContent = dark ? '☀️' : '🌙';
+    if (document.getElementById('modalGraficos').classList.contains('aberto')) {
         renderizarGraficos();
-
     }
 }
-
 
 /* =========================================================
    UTILITÁRIOS
 ========================================================= */
-
 function formatarMoeda(valor) {
-
-    return Number(valor || 0).toLocaleString(
-        'pt-BR',
-        {
-            style:'currency',
-            currency:'BRL'
-        }
-    );
+    return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
-
 
 function obterMesAtualString() {
-
-    return (
-        dataAtual.getFullYear() +
-        '-' +
-        String(
-            dataAtual.getMonth() + 1
-        ).padStart(2,'0')
-    );
+    return dataAtual.getFullYear() + '-' + String(dataAtual.getMonth() + 1).padStart(2, '0');
 }
 
-
 function obterMovimentosMes() {
-
-    const mes =
-        obterMesAtualString();
-
+    const mes = obterMesAtualString();
     return movimentos.filter(m => {
-
-        if (!m.data) {
-            return true;
-        }
-
+        if (!m.data) return true;
         return m.data.startsWith(mes);
-
     });
 }
 
-
 function obterStatus(m) {
-
-    if (m.status) {
-        return m.status;
-    }
-
-    if (m.tipo === 'Receita') {
-
-        return m.pago === false
-            ? 'pendente'
-            : 'recebido';
-
-    }
-
-    if (m.tipo === 'Despesa') {
-
-        return m.pago === false
-            ? 'pendente'
-            : 'pago';
-
-    }
-
+    if (m.status) return m.status;
+    if (m.tipo === 'Receita') return m.pago === false ? 'pendente' : 'recebido';
+    if (m.tipo === 'Despesa') return m.pago === false ? 'pendente' : 'pago';
     return 'aplicado';
 }
-
 
 /* =========================================================
    TOAST
 ========================================================= */
-
 let toastTimeout;
-
 function mostrarToast(mensagem) {
-
-    const toast =
-        document.getElementById('toast');
-
-    toast.textContent =
-        mensagem;
-
+    const toast = document.getElementById('toast');
+    toast.textContent = mensagem;
     toast.classList.add('mostrar');
-
     clearTimeout(toastTimeout);
-
-    toastTimeout =
-        setTimeout(() => {
-
-            toast.classList.remove('mostrar');
-
-        },2200);
+    toastTimeout = setTimeout(() => {
+        toast.classList.remove('mostrar');
+    }, 2200);
 }
-
 
 /* =========================================================
-   MENU
+   MENU CONFIG
 ========================================================= */
-
 function toggleConfigMenu() {
-
-    document
-        .getElementById('menuConfig')
-        .classList.toggle('aberto');
+    document.getElementById('menuConfig').classList.toggle('aberto');
 }
-
 
 function fecharConfigMenu() {
-
-    document
-        .getElementById('menuConfig')
-        .classList.remove('aberto');
+    document.getElementById('menuConfig').classList.remove('aberto');
 }
 
-
 /* =========================================================
-   TIPO
+   TIPO / STATUS / FORMA
 ========================================================= */
-
 function selecionarTipo(tipo) {
+    document.getElementById('inputTipo').value = tipo;
+    document.getElementById('tipoDespesa').classList.toggle('ativo', tipo === 'Despesa');
+    document.getElementById('tipoReceita').classList.toggle('ativo', tipo === 'Receita');
+    document.getElementById('tipoSaldo').classList.toggle('ativo', tipo === 'Saldo');
 
-    document.getElementById('inputTipo').value =
-        tipo;
-
-    document
-        .getElementById('tipoDespesa')
-        .classList.toggle(
-            'ativo',
-            tipo === 'Despesa'
-        );
-
-    document
-        .getElementById('tipoReceita')
-        .classList.toggle(
-            'ativo',
-            tipo === 'Receita'
-        );
-
-    document
-        .getElementById('tipoSaldo')
-        .classList.toggle(
-            'ativo',
-            tipo === 'Saldo'
-        );
-
-
-    const grupoStatus =
-        document.getElementById('grupoStatus');
-
-    const maisOpcoes =
-        document.getElementById('maisOpcoes');
-
+    const grupoStatus = document.getElementById('grupoStatus');
+    const maisOpcoes = document.getElementById('maisOpcoes');
 
     if (tipo === 'Saldo') {
-
-        grupoStatus.style.display =
-            'none';
-
-        maisOpcoes.style.display =
-            'none';
-
+        grupoStatus.style.display = 'none';
+        maisOpcoes.style.display = 'none';
         selecionarStatus('aplicado');
-
     } else {
-
-        grupoStatus.style.display =
-            'block';
-
-        maisOpcoes.style.display =
-            'block';
-
-        if (
-            !document
-                .getElementById('editIndex')
-                .value
-        ) {
-
+        grupoStatus.style.display = 'block';
+        maisOpcoes.style.display = 'block';
+        if (!document.getElementById('editIndex').value) {
             selecionarStatus('quitado');
-
         }
-
         atualizarTextosStatus();
-
     }
 }
-
 
 function atualizarTextosStatus() {
-
-    const tipo =
-        document.getElementById('inputTipo')
-            .value;
-
+    const tipo = document.getElementById('inputTipo').value;
     if (tipo === 'Receita') {
-
-        document
-            .getElementById('textoStatusQuitado')
-            .textContent =
-            'Já recebi';
-
-        document
-            .getElementById('textoStatusPendente')
-            .textContent =
-            'Vou receber';
-
+        document.getElementById('textoStatusQuitado').textContent = 'Já recebi';
+        document.getElementById('textoStatusPendente').textContent = 'Vou receber';
     } else {
-
-        document
-            .getElementById('textoStatusQuitado')
-            .textContent =
-            'Já paguei';
-
-        document
-            .getElementById('textoStatusPendente')
-            .textContent =
-            'Vou pagar';
-
+        document.getElementById('textoStatusQuitado').textContent = 'Já paguei';
+        document.getElementById('textoStatusPendente').textContent = 'Vou pagar';
     }
 }
 
-
-/* =========================================================
-   STATUS
-========================================================= */
-
 function selecionarStatus(status) {
-
-    document.getElementById('inputStatus')
-        .value = status;
-
-    document
-        .getElementById('statusQuitado')
-        .classList.toggle(
-            'ativo',
-            status !== 'pendente'
-        );
-
-    document
-        .getElementById('statusPendente')
-        .classList.toggle(
-            'ativo',
-            status === 'pendente'
-        );
+    document.getElementById('inputStatus').value = status;
+    document.getElementById('statusQuitado').classList.toggle('ativo', status !== 'pendente');
+    document.getElementById('statusPendente').classList.toggle('ativo', status === 'pendente');
 }
 
-
-/* =========================================================
-   CONTA / FORMA
-========================================================= */
-
 function selecionarConta(conta, elemento) {
-
-    document.getElementById('inputConta')
-        .value = conta;
-
-    document
-        .querySelectorAll(
-            '#baloesConta .chip'
-        )
-        .forEach(btn =>
-            btn.classList.remove('ativo')
-        );
-
+    document.getElementById('inputConta').value = conta;
+    document.querySelectorAll('#baloesConta .chip').forEach(btn => btn.classList.remove('ativo'));
     if (elemento) {
         elemento.classList.add('ativo');
     } else {
@@ -2241,583 +1418,599 @@ function selecionarConta(conta, elemento) {
     }
 }
 
-
 function selecionarForma(forma, elemento) {
-
-    document.getElementById('inputForma')
-        .value = forma;
-
-    document
-        .querySelectorAll(
-            '#baloesForma .chip'
-        )
-        .forEach(btn =>
-            btn.classList.remove('ativo')
-        );
-
-    if (elemento) {
-        elemento.classList.add('ativo');
-    }
+    document.getElementById('inputForma').value = forma;
+    document.querySelectorAll('#baloesForma .chip').forEach(btn => btn.classList.remove('ativo'));
+    if (elemento) elemento.classList.add('ativo');
 }
-
 
 /* =========================================================
    MAIS OPÇÕES
 ========================================================= */
-
 function toggleExtrasLancamento() {
-
-    const extras =
-        document.getElementById('conteudoExtras');
-
-    const seta =
-        document.getElementById('setaExtras');
-
+    const extras = document.getElementById('conteudoExtras');
+    const seta = document.getElementById('setaExtras');
     extras.classList.toggle('aberto');
-
-    seta.textContent =
-        extras.classList.contains('aberto')
-            ? '⌃'
-            : '⌄';
+    seta.textContent = extras.classList.contains('aberto') ? '⌃' : '⌄';
 }
-
 
 function toggleParcelamento() {
-
-    const marcado =
-        document.getElementById(
-            'inputParcelado'
-        ).checked;
-
-    document.getElementById(
-        'camposParcelamento'
-    ).style.display =
-        marcado
-            ? 'block'
-            : 'none';
-
+    const marcado = document.getElementById('inputParcelado').checked;
+    document.getElementById('camposParcelamento').style.display = marcado ? 'block' : 'none';
     if (marcado) {
-
-        document.getElementById(
-            'inputRecorrente'
-        ).checked = false;
-
-        document.getElementById(
-            'camposRecorrencia'
-        ).style.display = 'none';
+        document.getElementById('inputRecorrente').checked = false;
+        document.getElementById('camposRecorrencia').style.display = 'none';
     }
 }
-
 
 function toggleRecorrencia() {
-
-    const marcado =
-        document.getElementById(
-            'inputRecorrente'
-        ).checked;
-
-    document.getElementById(
-        'camposRecorrencia'
-    ).style.display =
-        marcado
-            ? 'block'
-            : 'none';
-
+    const marcado = document.getElementById('inputRecorrente').checked;
+    document.getElementById('camposRecorrencia').style.display = marcado ? 'block' : 'none';
     if (marcado) {
-
-        document.getElementById(
-            'inputParcelado'
-        ).checked = false;
-
-        document.getElementById(
-            'camposParcelamento'
-        ).style.display = 'none';
+        document.getElementById('inputParcelado').checked = false;
+        document.getElementById('camposParcelamento').style.display = 'none';
     }
 }
-
 
 /* =========================================================
    MODAL LANÇAMENTO
 ========================================================= */
-
 function abrirModalLancamento() {
-
     fecharConfigMenu();
-
     limparFormulario();
-
-    document
-        .getElementById(
-            'tituloModalLancamento'
-        )
-        .textContent =
-        'Novo Lançamento';
-
-    document
-        .getElementById(
-            'btnSalvarForm'
-        )
-        .textContent =
-        'Salvar Lançamento';
-
+    document.getElementById('tituloModalLancamento').textContent = 'Novo Lançamento';
+    document.getElementById('btnSalvarForm').textContent = 'Salvar Lançamento';
     selecionarTipo('Despesa');
-
     selecionarStatus('quitado');
-
     renderizarBaloesConta(contasSalvas[0]);
-
-    document
-        .getElementById(
-            'modalLancamento'
-        )
-        .classList.add('aberto');
-
-    setTimeout(() => {
-
-        document
-            .getElementById(
-                'inputDescricao'
-            )
-            .focus();
-
-    },100);
+    document.getElementById('modalLancamento').classList.add('aberto');
+    setTimeout(() => { document.getElementById('inputDescricao').focus(); }, 100);
 }
-
 
 function fecharModalLancamento() {
-
-    document
-        .getElementById(
-            'modalLancamento'
-        )
-        .classList.remove('aberto');
-
+    document.getElementById('modalLancamento').classList.remove('aberto');
     limparFormulario();
 }
 
-
 function limparFormulario() {
-
-    document
-        .getElementById(
-            'formLancamento'
-        )
-        .reset();
-
-    document
-        .getElementById(
-            'editIndex'
-        )
-        .value = '';
-
-    document
-        .getElementById(
-            'inputTipo'
-        )
-        .value = 'Despesa';
-
-    document
-        .getElementById(
-            'inputConta'
-        )
-        .value =
-        contasSalvas[0];
-
-    document
-        .getElementById(
-            'inputForma'
-        )
-        .value = 'PIX';
-
-    document
-        .getElementById(
-            'inputStatus'
-        )
-        .value = 'pago';
-
-
-    document
-        .getElementById(
-            'inputParcelado'
-        )
-        .checked = false;
-
-    document
-        .getElementById(
-            'inputRecorrente'
-        )
-        .checked = false;
-
-
-    document
-        .getElementById(
-            'camposParcelamento'
-        )
-        .style.display = 'none';
-
-    document
-        .getElementById(
-            'camposRecorrencia'
-        )
-        .style.display = 'none';
-
-
-    document
-        .getElementById(
-            'conteudoExtras'
-        )
-        .classList.remove('aberto');
-
-    document
-        .getElementById(
-            'setaExtras'
-        )
-        .textContent = '⌄';
-
-
+    document.getElementById('formLancamento').reset();
+    document.getElementById('editIndex').value = '';
+    document.getElementById('inputTipo').value = 'Despesa';
+    document.getElementById('inputConta').value = contasSalvas[0] || '';
+    document.getElementById('inputForma').value = 'PIX';
+    document.getElementById('inputStatus').value = 'pago';
+    document.getElementById('inputParcelado').checked = false;
+    document.getElementById('inputRecorrente').checked = false;
+    document.getElementById('camposParcelamento').style.display = 'none';
+    document.getElementById('camposRecorrencia').style.display = 'none';
+    document.getElementById('conteudoExtras').classList.remove('aberto');
+    document.getElementById('setaExtras').textContent = '⌄';
     renderizarBaloesConta(contasSalvas[0]);
-
-
-    document
-        .querySelectorAll(
-            '#baloesForma .chip'
-        )
-        .forEach((btn,index) => {
-
-            btn.classList.toggle(
-                'ativo',
-                index === 0
-            );
-
-        });
-
-
+    document.querySelectorAll('#baloesForma .chip').forEach((btn, index) => {
+        btn.classList.toggle('ativo', index === 0);
+    });
     selecionarTipo('Despesa');
-
     selecionarStatus('quitado');
-
     atualizarTextosStatus();
 }
-
 
 /* =========================================================
    SALVAR MOVIMENTO
 ========================================================= */
-
 function salvarMovimento(event) {
-
     event.preventDefault();
 
-    const tipo =
-        document
-            .getElementById('inputTipo')
-            .value;
+    const tipo = document.getElementById('inputTipo').value;
+    const descricao = document.getElementById('inputDescricao').value.trim();
+    const valor = parseFloat(document.getElementById('inputValor').value);
+    const conta = document.getElementById('inputConta').value || contasSalvas[0];
+    const forma = document.getElementById('inputForma').value;
+    const status = tipo === 'Saldo' ? 'aplicado' : document.getElementById('inputStatus').value;
 
-    const descricao =
-        document
-            .getElementById('inputDescricao')
-            .value
-            .trim();
-
-    const valor =
-        parseFloat(
-            document
-                .getElementById('inputValor')
-                .value
-        );
-
-    const conta =
-        document
-            .getElementById('inputConta')
-            .value;
-
-    const forma =
-        document
-            .getElementById('inputForma')
-            .value;
-
-    const status =
-        tipo === 'Saldo'
-            ? 'aplicado'
-            : document
-                .getElementById('inputStatus')
-                .value;
-
-
-    if (
-        !descricao ||
-        !valor ||
-        valor <= 0
-    ) {
-
-        mostrarToast(
-            'Informe o que é e quanto custa.'
-        );
-
+    if (!descricao || !valor || valor <= 0) {
+        mostrarToast('Informe o que é e quanto custa.');
         return;
     }
 
-
-    const editIndex =
-        document
-            .getElementById('editIndex')
-            .value;
-
-
-    /* =========================
-       EDIÇÃO
-    ========================= */
+    const editIndex = document.getElementById('editIndex').value;
 
     if (editIndex !== '') {
-
-        const index =
-            Number(editIndex);
-
+        const index = Number(editIndex);
         if (movimentos[index]) {
-
-            movimentos[index].tipo =
-                tipo;
-
-            movimentos[index].descricao =
-                descricao;
-
-            movimentos[index].valor =
-                valor;
-
-            movimentos[index].conta =
-                conta;
-
-            movimentos[index].forma =
-                forma;
-
-            movimentos[index].status =
-                status;
-
-            movimentos[index].pago =
-                status !== 'pendente';
+            movimentos[index].tipo = tipo;
+            movimentos[index].descricao = descricao;
+            movimentos[index].valor = valor;
+            movimentos[index].conta = conta;
+            movimentos[index].forma = forma;
+            movimentos[index].status = status;
+            movimentos[index].pago = status !== 'pendente';
         }
-
         salvarDados();
-
         atualizarInterface();
-
         carregarListaHistoricoModal();
-
         fecharModalLancamento();
-
-        mostrarToast(
-            'Lançamento atualizado.'
-        );
-
+        mostrarToast('Lançamento atualizado.');
         return;
     }
 
+    const hoje = new Date();
+    const dataBase = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0') + '-' + String(hoje.getDate()).padStart(2, '0');
 
-    /* =========================
-       DATA
-    ========================= */
-
-    const hoje =
-        new Date();
-
-    const dataBase =
-        hoje.getFullYear() +
-        '-' +
-        String(
-            hoje.getMonth()+1
-        ).padStart(2,'0') +
-        '-' +
-        String(
-            hoje.getDate()
-        ).padStart(2,'0');
-
-
-    const parcelado =
-        document
-            .getElementById(
-                'inputParcelado'
-            )
-            .checked;
-
-    const recorrente =
-        document
-            .getElementById(
-                'inputRecorrente'
-            )
-            .checked;
-
-
-    /* =========================
-       PARCELADO
-    ========================= */
+    const parcelado = document.getElementById('inputParcelado').checked;
+    const recorrente = document.getElementById('inputRecorrente').checked;
 
     if (parcelado) {
+        let parcelas = parseInt(document.getElementById('inputParcelas').value) || 2;
+        parcelas = Math.max(2, Math.min(120, parcelas));
 
-        let parcelas =
-            parseInt(
-                document
-                    .getElementById(
-                        'inputParcelas'
-                    )
-                    .value
-            ) || 2;
+        const valorCentavos = Math.round(valor * 100);
+        const parcelaBase = Math.floor(valorCentavos / parcelas);
+        const resto = valorCentavos % parcelas;
 
-        parcelas =
-            Math.max(
-                2,
-                Math.min(
-                    120,
-                    parcelas
-                )
-            );
+        for (let i = 1; i <= parcelas; i++) {
+            const dataParcela = new Date(hoje);
+            dataParcela.setMonth(dataParcela.getMonth() + (i - 1));
 
-
-        const valorCentavos =
-            Math.round(valor * 100);
-
-        const parcelaBase =
-            Math.floor(
-                valorCentavos / parcelas
-            );
-
-        const resto =
-            valorCentavos % parcelas;
-
-
-        for (
-            let i=1;
-            i<=parcelas;
-            i++
-        ) {
-
-            const dataParcela =
-                new Date(hoje);
-
-            dataParcela.setMonth(
-                dataParcela.getMonth() +
-                (i-1)
-            );
-
-
-            const data =
-                dataParcela.getFullYear() +
-                '-' +
-                String(
-                    dataParcela.getMonth()+1
-                ).padStart(2,'0') +
-                '-' +
-                String(
-                    dataParcela.getDate()
-                ).padStart(2,'0');
-
-
-            const statusParcela =
-                i === 1
-                    ? status
-                    : 'pendente';
-
-
-            const valorDaParcelaCentavos =
-                parcelaBase +
-                (
-                    i <= resto
-                        ? 1
-                        : 0
-                );
-
+            const data = dataParcela.getFullYear() + '-' + String(dataParcela.getMonth() + 1).padStart(2, '0') + '-' + String(dataParcela.getDate()).padStart(2, '0');
+            const statusParcela = i === 1 ? status : 'pendente';
+            const valorDaParcelaCentavos = parcelaBase + (i <= resto ? 1 : 0);
 
             movimentos.push({
-
-                id:
-                    Date.now() + i,
-
+                id: Date.now() + i,
                 data,
-
                 tipo,
-
-                descricao:
-                    `${descricao} (${i}/${parcelas})`,
-
-                valor:
-                    valorDaParcelaCentavos / 100,
-
+                descricao: `${descricao} (${i}/${parcelas})`,
+                valor: valorDaParcelaCentavos / 100,
                 conta,
-
                 forma,
-
-                status:
-                    statusParcela,
-
-                pago:
-                    statusParcela !==
-                    'pendente',
-
-                parcelado:true,
-
-                parcela:i,
-
-                totalParcelas:
-                    parcelas
-
+                status: statusParcela,
+                pago: statusParcela !== 'pendente',
+                parcelado: true,
+                parcela: i,
+                totalParcelas: parcelas
             });
         }
 
-
         salvarDados();
-
         atualizarInterface();
-
         fecharModalLancamento();
-
-        mostrarToast(
-            `${parcelas} parcelas cadastradas.`
-        );
-
+        mostrarToast(`${parcelas} parcelas cadastradas.`);
         return;
     }
 
-
-    /* =========================
-       RECORRENTE
-    ========================= */
-
     if (recorrente) {
+        let meses = parseInt(document.getElementById('inputMesesRecorrencia').value) || 12;
+        meses = Math.max(2, Math.min(60, meses));
 
-        let meses =
-            parseInt(
-                document
-                    .getElementById(
-                        'inputMesesRecorrencia'
-                    )
-                    .value
-            ) || 12;
+        for (let i = 0; i < meses; i++) {
+            const dataMov = new Date(hoje);
+            dataMov.setMonth(dataMov.getMonth() + i);
 
-        meses =
-            Math.max(
-                2,
-                Math.min(
-                    60,
-                    meses
-                )
-            );
+            const data = dataMov.getFullYear() + '-' + String(dataMov.getMonth() + 1).padStart(2, '0') + '-' + String(dataMov.getDate()).padStart(2, '0');
+            const statusMov = i === 0 ? status : 'pendente';
 
+            movimentos.push({
+                id: Date.now() + i,
+                data,
+                tipo,
+                descricao: `${descricao} (${i + 1}/${meses})`,
+                valor,
+                conta,
+                forma,
+                status: statusMov,
+                pago: statusMov !== 'pendente',
+                recorrente: true
+            });
+        }
 
-        for (
-            let i=0;
-            i<meses;
-            i++
-        ) {
+        salvarDados();
+        atualizarInterface();
+        fecharModalLancamento();
+        mostrarToast(`${meses} lançamentos recorrentes cadastrados.`);
+        return;
+    }
 
-            const dataMov =
-                new Date(hoje);
+    movimentos.push({
+        id: Date.now(),
+        data: dataBase,
+        tipo,
+        descricao,
+        valor,
+        conta,
+        forma,
+        status,
+        pago: status !== 'pendente'
+    });
 
-            dataMov.setMonth(
-                dataMov.getMonth() + i
-            );
+    salvarDados();
+    atualizarInterface();
+    fecharModalLancamento();
+    mostrarToast('Lançamento cadastrado com sucesso!');
+}
 
+/* =========================================================
+   ATUALIZAR INTERFACE PRINCIPAL
+========================================================= */
+function atualizarInterface() {
+    const mesAtualEl = document.getElementById('mesAtual');
+    if (mesAtualEl) {
+        mesAtualEl.textContent = mesesNomes[dataAtual.getMonth()] + ' ' + dataAtual.getFullYear();
+    }
 
-            const data =
-                dataMov.getFullYear() +
-                '-' +
-                String(
-                    dataMov.getMonth()+1
+    const lista = obterMovimentosMes();
+
+    let saldoCaixa = 0;
+    let receitasPrevistas = 0;
+    let jaRecebeu = 0;
+    let despesasPagas = 0;
+    let despesasPrevistas = 0;
+    let aReceber = 0;
+    let aPagar = 0;
+
+    // Calcular saldo inicial acumulado de meses anteriores ou ajustes
+    movimentos.forEach(m => {
+        const status = obterStatus(m);
+        if (m.tipo === 'Saldo') {
+            saldoCaixa += m.valor;
+        } else if (m.tipo === 'Receita') {
+            if (status === 'recebido') saldoCaixa += m.valor;
+        } else if (m.tipo === 'Despesa') {
+            if (status === 'pago') saldoCaixa -= m.valor;
+        }
+    });
+
+    // Para o mês atual
+    lista.forEach(m => {
+        const status = obterStatus(m);
+        if (m.tipo === 'Receita') {
+            receitasPrevistas += m.valor;
+            if (status === 'recebido') {
+                jaRecebeu += m.valor;
+            } else {
+                aReceber += m.valor;
+            }
+        } else if (m.tipo === 'Despesa') {
+            despesasPrevistas += m.valor;
+            if (status === 'pago') {
+                despesasPagas += m.valor;
+            } else {
+                aPagar += m.valor;
+            }
+        }
+    });
+
+    const liquido = saldoCaixa - aPagar;
+
+    document.getElementById('cardLiquidoValor').textContent = formatarMoeda(liquido);
+    document.getElementById('cardReceitas').textContent = formatarMoeda(receitasPrevistas);
+    document.getElementById('cardReceitasDetalhe').innerHTML = `Já recebi: ${formatarMoeda(jaRecebeu)}<br>Falta receber: ${formatarMoeda(aReceber)}`;
+    document.getElementById('cardSaldo').textContent = formatarMoeda(saldoCaixa);
+    document.getElementById('cardSaldoDetalhe').textContent = 'Dinheiro em caixa atual';
+    document.getElementById('cardDespesasPagas').textContent = formatarMoeda(despesasPagas);
+    document.getElementById('cardDespesasDetalhe').textContent = `Previstas: ${formatarMoeda(despesasPrevistas)}`;
+    document.getElementById('cardPendentes').textContent = formatarMoeda(aReceber + aPagar);
+    document.getElementById('cardPendentesDetalhe').innerHTML = `A receber: ${formatarMoeda(aReceber)}<br>A pagar: ${formatarMoeda(aPagar)}`;
+}
+
+function mudarMes(direcao) {
+    dataAtual.setMonth(dataAtual.getMonth() + direcao);
+    atualizarInterface();
+}
+
+/* =========================================================
+   HISTÓRICO & SWIPE
+========================================================= */
+function abrirModalHistorico() {
+    fecharConfigMenu();
+    carregarListaHistoricoModal();
+    document.getElementById('modalHistorico').classList.add('aberto');
+}
+
+function fecharModalHistorico() {
+    document.getElementById('modalHistorico').classList.remove('aberto');
+    atualizarInterface();
+}
+
+function toggleFiltroPeriodo() {
+    document.getElementById('filtroPeriodo').classList.toggle('aberto');
+}
+
+function carregarListaHistoricoModal() {
+    const container = document.getElementById('listaHistoricoModal');
+    if (!container) return;
+
+    const inicio = document.getElementById('filtroMesInicial').value;
+    const fim = document.getElementById('filtroMesFinal').value;
+
+    let filtrados = [...movimentos].sort((a,b) => new Date(b.data || 0) - new Date(a.data || 0));
+
+    if (inicio) {
+        filtrados = filtrados.filter(m => (!m.data || m.data >= inicio + '-01'));
+    }
+    if (fim) {
+        filtrados = filtrados.filter(m => (!m.data || m.data <= fim + '-31'));
+    }
+
+    if (filtrados.length === 0) {
+        container.innerHTML = '<div class="sem-movimentos">Nenhum lançamento encontrado.</div>';
+        return;
+    }
+
+    let html = '';
+    filtrados.forEach((m, realIndex) => {
+        const indexOriginal = movimentos.indexOf(m);
+        const status = obterStatus(m);
+        const corValor = m.tipo === 'Receita' ? 'valor-verde' : m.tipo === 'Despesa' ? 'valor-vermelho' : 'valor-azul';
+        const badgeClass = status === 'pago' || status === 'recebido' || status === 'aplicado' ? 'status-ok' : 'status-pendente';
+        const badgeText = status.toUpperCase();
+
+        html += `
+            <div class="swipe-wrapper" data-index="${indexOriginal}">
+                <div class="swipe-fundo">
+                    <span class="swipe-esquerda">← Pendente</span>
+                    <span class="swipe-direita">Pago →</span>
+                </div>
+                <div class="item-movimento" onpointerdown="iniciarSwipe(event, this)" onpointermove="moverSwipe(event, this)" onpointerup="fimSwipe(event, this)">
+                    <div class="item-topo">
+                        <div class="item-descricao">${m.descricao}</div>
+                        <div class="item-valor ${corValor}">${m.tipo === 'Despesa' ? '-' : '+'} ${formatarMoeda(m.valor)}</div>
+                    </div>
+                    <div class="item-info">
+                        📅 ${m.data || 'Sem data'} | 💳 ${m.conta || 'Geral'} | 🏷️ ${m.forma || 'PIX'}<br>
+                        <span class="status-badge ${badgeClass}">${badgeText}</span>
+                    </div>
+                    <div class="item-acoes">
+                        <button onclick="editarMovimento(${indexOriginal})">Editar</button>
+                        <button class="btn-excluir" onclick="excluirMovimento(${indexOriginal})">Excluir</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function iniciarSwipe(e, el) {
+    swipeItemAtual = el;
+    swipeMovendo = true;
+    toqueInicioX = e.clientX;
+    swipeDeltaAtual = 0;
+    el.classList.add('arrastando');
+    el.setPointerCapture(e.pointerId);
+}
+
+function moverSwipe(e, el) {
+    if (!swipeMovendo || swipeItemAtual !== el) return;
+    swipeDeltaAtual = e.clientX - toqueInicioX;
+    if (swipeDeltaAtual > 120) swipeDeltaAtual = 120;
+    if (swipeDeltaAtual < -120) swipeDeltaAtual = -120;
+    el.style.transform = `translateX(${swipeDeltaAtual}px)`;
+}
+
+function fimSwipe(e, el) {
+    if (!swipeMovendo) return;
+    swipeMovendo = false;
+    el.classList.remove('arrastando');
+    el.style.transform = 'translateX(0px)';
+
+    const wrapper = el.closest('.swipe-wrapper');
+    const index = Number(wrapper.getAttribute('data-index'));
+
+    if (swipeDeltaAtual > 70) {
+        alternarStatusMovimento(index, 'pago');
+    } else if (swipeDeltaAtual < -70) {
+        alternarStatusMovimento(index, 'pendente');
+    }
+    swipeItemAtual = null;
+}
+
+function alternarStatusMovimento(index, novoStatus) {
+    if (!movimentos[index]) return;
+    if (movimentos[index].tipo === 'Receita') {
+        movimentos[index].status = novoStatus === 'pago' ? 'recebido' : 'pendente';
+    } else if (movimentos[index].tipo === 'Despesa') {
+        movimentos[index].status = novoStatus === 'pago' ? 'pago' : 'pendente';
+    } else {
+        movimentos[index].status = 'aplicado';
+    }
+    movimentos[index].pago = movimentos[index].status !== 'pendente';
+    salvarDados();
+    carregarListaHistoricoModal();
+    atualizarInterface();
+    mostrarToast('Status atualizado.');
+}
+
+function editarMovimento(index) {
+    fecharModalHistorico();
+    const m = movimentos[index];
+    if (!m) return;
+
+    document.getElementById('editIndex').value = index;
+    document.getElementById('tituloModalLancamento').textContent = 'Editar Lançamento';
+    document.getElementById('btnSalvarForm').textContent = 'Atualizar Lançamento';
+
+    selecionarTipo(m.tipo || 'Despesa');
+    document.getElementById('inputDescricao').value = m.descricao || '';
+    document.getElementById('inputValor').value = m.valor || 0;
+    renderizarBaloesConta(m.conta || contasSalvas[0]);
+    selecionarForma(m.forma || 'PIX');
+    selecionarStatus(obterStatus(m));
+
+    document.getElementById('modalLancamento').classList.add('aberto');
+}
+
+function excluirMovimento(index) {
+    if (!confirm('Deseja excluir este lançamento?')) return;
+    movimentos.splice(index, 1);
+    salvarDados();
+    carregarListaHistoricoModal();
+    atualizarInterface();
+    mostrarToast('Lançamento excluído.');
+}
+
+/* =========================================================
+   GRÁFICOS
+========================================================= */
+function abrirModalGraficos() {
+    fecharConfigMenu();
+    document.getElementById('modalGraficos').classList.add('aberto');
+    setTimeout(() => { renderizarGraficos(); }, 50);
+}
+
+function fecharModalGraficos() {
+    document.getElementById('modalGraficos').classList.remove('aberto');
+}
+
+function toggleFiltroPeriodoGraficos() {
+    document.getElementById('filtroPeriodoGraficos').classList.toggle('aberto');
+}
+
+function renderizarGraficos() {
+    const isDark = document.body.classList.contains('dark');
+    const textColor = isDark ? '#f9fafb' : '#111827';
+    const gridColor = isDark ? '#374151' : '#e5e7eb';
+
+    const ctx1 = document.getElementById('graficoReceitasDespesas').getContext('2d');
+    const ctx2 = document.getElementById('graficoFormas').getContext('2d');
+
+    if (graficoReceitasDespesas) graficoReceitasDespesas.destroy();
+    if (graficoFormas) graficoFormas.destroy();
+
+    const lista = obterMovimentosMes();
+    let totalRecebido = 0;
+    let totalPago = 0;
+    const formasMapa = {};
+
+    lista.forEach(m => {
+        const st = obterStatus(m);
+        if (m.tipo === 'Receita' && st === 'recebido') totalRecebido += m.valor;
+        if (m.tipo === 'Despesa' && st === 'pago') {
+            totalPago += m.valor;
+            const f = m.forma || 'PIX';
+            formasMapa[f] = (formasMapa[f] || 0) + m.valor;
+        }
+    });
+
+    graficoReceitasDespesas = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: ['Recebidas', 'Pagas'],
+            datasets: [{
+                data: [totalRecebido, totalPago],
+                backgroundColor: ['#16a34a', '#dc2626'],
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                y: { ticks: { color: textColor }, grid: { color: gridColor } }
+            }
+        }
+    });
+
+    const formasLabels = Object.keys(formasMapa);
+    const formasValores = Object.values(formasMapa);
+
+    graficoFormas = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: formasLabels.length ? formasLabels : ['Nenhuma'],
+            datasets: [{
+                data: formasValores.length ? formasValores : [1],
+                backgroundColor: ['#2563eb', '#16a34a', '#d97706', '#dc2626', '#9333ea']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: textColor } }
+            }
+        }
+    });
+
+    const analiseEl = document.getElementById('analiseFinanceira');
+    let saldoMes = totalRecebido - totalPago;
+    analiseEl.innerHTML = `Neste mês, você recebeu <strong>${formatarMoeda(totalRecebido)}</strong> e pagou <strong>${formatarMoeda(totalPago)}</strong>. O resultado do mês é de <strong>${formatarMoeda(saldoMes)}</strong>.`;
+}
+
+/* =========================================================
+   BACKUP / RESTORE / RESET / PDF
+========================================================= */
+function fazerBackup() {
+    const dados = { movimentos, contasSalvas };
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_financeiro_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    mostrarToast('Backup exportado com sucesso!');
+}
+
+function abrirRestaurarBackup() {
+    document.getElementById('inputRestaurarBackup').click();
+}
+
+function restaurarBackup(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const json = JSON.parse(e.target.result);
+            if (json.movimentos) movimentos = json.movimentos;
+            if (json.contasSalvas) contasSalvas = json.contasSalvas;
+            normalizarMovimentos();
+            atualizarInterface();
+            mostrarToast('Backup restaurado com sucesso!');
+        } catch(err) {
+            alert('Arquivo de backup inválido.');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+function abrirModalReset() {
+    document.getElementById('modalReset').classList.add('aberto');
+}
+
+function fecharModalReset() {
+    document.getElementById('modalReset').classList.remove('aberto');
+}
+
+function confirmarReset() {
+    movimentos = [];
+    salvarDados();
+    atualizarInterface();
+    fecharModalReset();
+    mostrarToast('Dados resetados.');
+}
+
+function gerarRelatorioPDF() {
+    window.print();
+}
+
+function fecharModalFora(event, modalId) {
+    if (event.target.id === modalId) {
+        if (modalId === 'modalLancamento') fecharModalLancamento();
+        else if (modalId === 'modalHistorico') fecharModalHistorico();
+        else if (modalId === 'modalGraficos') fecharModalGraficos();
+        else if (modalId === 'modalReset') fecharModalReset();
+        else if (modalId === 'modalContas') fecharModalContas();
+    }
+}
+
+// Inicialização
+carregarTema();
+normalizarMovimentos();
+atualizarInterface();
+renderizarBaloesConta();
+</script>
+
+</body>
+</html>
