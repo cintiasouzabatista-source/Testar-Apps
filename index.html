@@ -1675,7 +1675,38 @@ select:focus {
 
         <div class="modal-body">
 
-            <div class="grafico-container">
+            <button
+                class="btn-pequeno"
+                onclick="toggleFiltroPeriodoGraficos()"
+                style="margin-bottom:9px;"
+            >
+                📅 Filtrar período
+            </button>
+
+            <div
+                id="filtroPeriodoGraficos"
+                class="filtro-periodo"
+            >
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <div>
+                        <label style="font-size:10px; color:var(--muted);">Mês inicial</label>
+                        <input type="month" id="filtroMesInicialGraficos" onchange="renderizarGraficos()">
+                    </div>
+                    <div>
+                        <label style="font-size:10px; color:var(--muted);">Mês final</label>
+                        <input type="month" id="filtroMesFinalGraficos" onchange="renderizarGraficos()">
+                    </div>
+                </div>
+                <button
+                    class="btn-pequeno"
+                    style="margin-top:8px;"
+                    onclick="renderizarGraficos()"
+                >
+                    Aplicar
+                </button>
+            </div>
+
+            <div class="grafico-container" style="margin-top: 10px;">
 
                 <h3>
                     Receitas recebidas x Despesas pagas
@@ -4306,10 +4337,37 @@ function fecharModalGraficos() {
 }
 
 
+function toggleFiltroPeriodoGraficos() {
+    document.getElementById('filtroPeriodoGraficos').classList.toggle('aberto');
+}
+
+function obterMovimentosFiltradosGraficos() {
+    let lista = movimentos.map((m, index) => ({ ...m, __index: index }));
+
+    const inicio = document.getElementById('filtroMesInicialGraficos').value;
+    const fim = document.getElementById('filtroMesFinalGraficos').value;
+
+    if (!inicio && !fim) {
+        const mes = obterMesAtualString();
+        lista = lista.filter(m => {
+            if (!m.data) return true;
+            return m.data.startsWith(mes);
+        });
+    } else {
+        if (inicio) {
+            lista = lista.filter(m => (m.data || '').substring(0, 7) >= inicio);
+        }
+        if (fim) {
+            lista = lista.filter(m => (m.data || '').substring(0, 7) <= fim);
+        }
+    }
+
+    return lista;
+}
+
 function renderizarGraficos() {
 
-    const lista =
-        obterMovimentosMes();
+    const lista = obterMovimentosFiltradosGraficos();
 
 
     let receitasRecebidas = 0;
@@ -4469,7 +4527,7 @@ function renderizarGraficos() {
 function gerarAnaliseFinanceira() {
 
     const lista =
-        obterMovimentosMes();
+        obterMovimentosFiltradosGraficos();
 
 
     let receitasPrevistas = 0;
