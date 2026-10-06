@@ -1081,4 +1081,1126 @@ select:focus {
         </div>
         <div class="modal-body">
             <button class="btn-pequeno" onclick="toggleFiltroPeriodoGraficos()" style="margin-bottom:9px;">📅 Filtrar período</button>
-            <div id="filtroPeriodoGraficos" class="filtro-periodo
+            
+                <div id="filtroPeriodoGraficos" class="filtro-periodo">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                        <div>
+                            <label style="font-size:10px; color:var(--muted);">Mês inicial</label>
+                            <input type="month" id="filtroMesInicialGraficos">
+                        </div>
+                        <div>
+                            <label style="font-size:10px; color:var(--muted);">Mês final</label>
+                            <input type="month" id="filtroMesFinalGraficos">
+                        </div>
+                    </div>
+                    <button class="btn-pequeno" style="margin-top:8px;" onclick="carregarGraficos()">Aplicar</button>
+                </div>
+
+                <div class="grafico-container">
+                    <h3>Receitas x Despesas</h3>
+                    <canvas id="graficoReceitasDespesas"></canvas>
+                </div>
+                <div class="grafico-container">
+                    <h3>Fluxo do período</h3>
+                    <canvas id="graficoFluxo"></canvas>
+                </div>
+
+                <div class="grafico-container">
+                    <h3>Contas x Despesas</h3>
+                    <canvas id="graficoContasDespesas"></canvas>
+                </div>
+
+                <div class="analise" id="analiseFinanceira">
+                    Carregando análise dos seus gastos...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL RESET -->
+<div id="modalReset" class="modal-overlay modal-reset" onclick="fecharModalFora(event,'modalReset')">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Resetar tudo</h2>
+            <button class="btn-fechar" onclick="fecharModalReset()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="alerta">
+                Esta ação apaga os lançamentos e contas deste aplicativo neste navegador.
+                Faça um backup antes se quiser guardar seus dados.
+            </div>
+            <button class="btn-perigo" onclick="confirmarReset()">Apagar tudo</button>
+            <button class="btn-secundario" onclick="fecharModalReset()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* =========================================================
+   CONTROLE FINANCEIRO — MOTOR PRINCIPAL
+   Mantém a chave de dados da versão V4:
+   movimentos_financeiros_v4
+   ========================================================= */
+
+const CHAVE_MOVIMENTOS = 'movimentos_financeiros_v4';
+const CHAVE_CONTAS = 'contas_financeiras_v4';
+const CHAVE_TEMA = 'controle_financeiro_tema';
+
+let movimentos = [];
+let contas = [];
+let mesSelecionado = new Date();
+let graficoRD = null;
+let graficoFluxo = null;
+let graficoContasDespesas = null;
+
+function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2,9);
+}
+
+function mesISO(data = mesSelecionado) {
+    const y = data.getFullYear();
+    const m = String(data.getMonth()+1).padStart(2,'0');
+    return `${y}-${m}`;
+}
+
+function formatarMoeda(valor) {
+    return Number(valor || 0).toLocaleString('pt-BR', {
+        style:'currency',
+        currency:'BRL'
+    });
+}
+
+function formatarMes(iso) {
+    if (!iso) return '';
+    const [y,m] = iso.split('-');
+    const d = new Date(Number(y), Number(m)-1, 1);
+    return d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+}
+
+function escapeHtml(valor) {
+    return String(valor ?? '').replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+    }[c]));
+}
+
+function salvarDados() {
+    localStorage.setItem(CHAVE_MOVIMENTOS, JSON.stringify(movimentos));
+    localStorage.setItem(CHAVE_CONTAS, JSON.stringify(contas));
+}
+
+function carregarDados() {
+    try {
+        const bruto = localStorage.getItem(CHAVE_MOVIMENTOS);
+        movimentos = bruto ? JSON.parse(bruto) : [];
+        if (!Array.isArray(movimentos)) movimentos = [];
+    } catch(e) {
+        console.error('Erro ao carregar movimentos:', e);
+        movimentos = [];
+    }
+
+    try {
+        const bruto = localStorage.getItem(CHAVE_CONTAS);
+        contas = bruto ? JSON.parse(bruto) : [];
+        if (!Array.isArray(contas)) contas = [];
+    } catch(e) {
+        contas = [];
+    }
+
+    // Migração segura de contas usadas nas versões anteriores.
+    if (!contas.length) {
+        contas = ['Principal','Nubank','Itaú','Caixa','Santander'];
+        salvarDados();
+    }
+
+    // Normaliza movimentos antigos sem apagar dados.
+    let alterou = false;
+    movimentos = movimentos.map((m,i) => {
+        const n = {...m};
+        if (!n.id) { n.id = uid(); alterou = true; }
+        if (!n.tipo) { n.tipo = 'Despesa'; alterou = true; }
+        if (n.valor == null) { n.valor = 0; alterou = true; }
+        if (!n.forma) { n.forma = 'PIX'; alterou = true; }
+        if (!n.conta) { n.conta = contas[0] || 'Principal'; alterou = true; }
+        if (!n.data) { n.data = mesISO(); alterou = true; }
+        if (n.pago === undefined) { n.pago = true; alterou = true; }
+        if (n.parcelaAtual == null && n.totalParcelas == null) {
+            n.parcelaAtual = 1;
+            n.totalParcelas = 1;
+        }
+        return n;
+    });
+    if (alterou) salvarDados();
+}
+
+function mostrarToast(msg) {
+    const el = document.getElementById('toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('mostrar');
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => el.classList.remove('mostrar'), 2200);
+}
+
+function atualizarMes() {
+    const el = document.getElementById('mesAtual');
+    if (el) el.textContent = mesISO() ? formatarMes(mesISO()) : '';
+}
+
+function mudarMes(delta) {
+    mesSelecionado.setMonth(mesSelecionado.getMonth() + delta);
+    atualizarMes();
+    atualizarInterface();
+}
+
+function obterMovimentosMes(mes = mesISO()) {
+    return movimentos.filter(m => m.data === mes);
+}
+
+function ehPago(m) {
+    return m.pago === true || m.pago === 'quitado' || m.pago === 'pago';
+}
+
+function atualizarInterface() {
+    atualizarMes();
+
+    const lista = obterMovimentosMes();
+    let receitasPrevistas = 0;
+    let receitasRecebidas = 0;
+    let despesasPrevistas = 0;
+    let despesasPagas = 0;
+    let saldoAjustes = 0;
+
+    lista.forEach(m => {
+        const v = Number(m.valor) || 0;
+        if (m.tipo === 'Receita') {
+            receitasPrevistas += v;
+            if (ehPago(m)) receitasRecebidas += v;
+        } else if (m.tipo === 'Despesa') {
+            despesasPrevistas += v;
+            if (ehPago(m)) despesasPagas += v;
+        } else if (m.tipo === 'Saldo') {
+            saldoAjustes += v;
+        }
+    });
+
+    // Saldo caixa = ajustes + receitas recebidas - despesas pagas.
+    const saldoCaixa = saldoAjustes + receitasRecebidas - despesasPagas;
+    const aReceber = Math.max(0, receitasPrevistas - receitasRecebidas);
+    const aPagar = Math.max(0, despesasPrevistas - despesasPagas);
+    const saldoDisponivel = saldoCaixa - aPagar;
+
+    document.getElementById('cardLiquidoValor').textContent = formatarMoeda(saldoDisponivel);
+    document.getElementById('cardSaldo').textContent = formatarMoeda(saldoCaixa);
+    document.getElementById('cardReceitas').textContent = formatarMoeda(receitasPrevistas);
+    document.getElementById('cardDespesasPagas').textContent = formatarMoeda(despesasPagas);
+    document.getElementById('cardPendentes').textContent = formatarMoeda(aReceber + aPagar);
+
+    document.getElementById('cardReceitasDetalhe').innerHTML =
+        `Já recebi: ${formatarMoeda(receitasRecebidas)}<br>Falta receber: ${formatarMoeda(aReceber)}`;
+
+    document.getElementById('cardDespesasDetalhe').textContent =
+        `Previstas: ${formatarMoeda(despesasPrevistas)}`;
+
+    document.getElementById('cardPendentesDetalhe').innerHTML =
+        `A receber: ${formatarMoeda(aReceber)}<br>A pagar: ${formatarMoeda(aPagar)}`;
+
+    document.getElementById('cardLiquidoValor').className =
+        'valor ' + (saldoDisponivel >= 0 ? 'valor-verde' : 'valor-vermelho');
+
+    atualizarBaloesConta();
+}
+
+function abrirModalLancamento(index = null) {
+    limparFormulario();
+    const modal = document.getElementById('modalLancamento');
+    modal.classList.add('aberto');
+
+    if (index !== null) {
+        const m = movimentos.findIndex(x => x.id === index || String(x.id) === String(index));
+        if (m >= 0) preencherEdicao(m);
+    }
+}
+
+function fecharModalLancamento() {
+    document.getElementById('modalLancamento').classList.remove('aberto');
+}
+
+function limparFormulario() {
+    document.getElementById('formLancamento').reset();
+    document.getElementById('editIndex').value = '';
+    document.getElementById('inputTipo').value = 'Despesa';
+    document.getElementById('inputForma').value = 'PIX';
+    document.getElementById('inputStatus').value = 'quitado';
+    document.getElementById('inputConta').value = contas[0] || 'Principal';
+    document.getElementById('tituloModalLancamento').textContent = 'Novo Lançamento';
+    document.getElementById('btnSalvarForm').textContent = 'Cadastrar Lançamento';
+
+    document.getElementById('inputParcelado').checked = false;
+    document.getElementById('inputRecorrente').checked = false;
+    document.getElementById('inputParcelas').value = 2;
+    document.getElementById('inputMesesRecorrencia').value = 12;
+    document.getElementById('camposParcelamento').style.display = 'none';
+    document.getElementById('camposRecorrencia').style.display = 'none';
+    document.getElementById('conteudoExtras').classList.remove('aberto');
+    document.getElementById('setaExtras').textContent = '⌄';
+
+    selecionarTipo('Despesa');
+    selecionarStatus('quitado');
+    selecionarForma('PIX');
+    atualizarBaloesConta();
+}
+
+function preencherEdicao(i) {
+    const m = movimentos[i];
+    document.getElementById('editIndex').value = m.id;
+    document.getElementById('inputDescricao').value = m.descricao || '';
+    document.getElementById('inputValor').value = Number(m.valor || 0);
+    document.getElementById('inputTipo').value = m.tipo || 'Despesa';
+    document.getElementById('inputConta').value = m.conta || contas[0] || 'Principal';
+    document.getElementById('inputForma').value = m.forma || 'PIX';
+    document.getElementById('inputStatus').value = ehPago(m) ? 'quitado' : 'pendente';
+    document.getElementById('tituloModalLancamento').textContent = 'Editar Lançamento';
+    document.getElementById('btnSalvarForm').textContent = 'Salvar Alterações';
+
+    selecionarTipo(m.tipo || 'Despesa');
+    selecionarStatus(ehPago(m) ? 'quitado' : 'pendente');
+    selecionarForma(m.forma || 'PIX');
+
+    const total = Number(m.totalParcelas || 1);
+    const parcelado = total > 1;
+    document.getElementById('inputParcelado').checked = parcelado;
+    document.getElementById('inputParcelas').value = total;
+    document.getElementById('camposParcelamento').style.display = parcelado ? 'block' : 'none';
+
+    const rec = !!m.recorrente;
+    document.getElementById('inputRecorrente').checked = rec;
+    document.getElementById('inputMesesRecorrencia').value = Number(m.mesesRecorrencia || 12);
+    document.getElementById('camposRecorrencia').style.display = rec ? 'block' : 'none';
+
+    document.getElementById('conteudoExtras').classList.add('aberto');
+    document.getElementById('setaExtras').textContent = '⌃';
+    atualizarBaloesConta();
+}
+
+function selecionarTipo(tipo) {
+    document.getElementById('inputTipo').value = tipo;
+    ['Despesa','Receita','Saldo'].forEach(t => {
+        const id = 'tipo' + t;
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('ativo', tipo === t);
+    });
+
+    const status = document.getElementById('grupoStatus');
+    const extras = document.getElementById('maisOpcoes');
+    if (tipo === 'Saldo') {
+        status.style.display = 'none';
+        extras.style.display = 'block';
+        document.getElementById('inputStatus').value = 'quitado';
+    } else {
+        status.style.display = 'block';
+        extras.style.display = 'block';
+        document.getElementById('textoStatusQuitado').textContent =
+            tipo === 'Receita' ? 'Recebido' : 'Pago';
+        document.getElementById('textoStatusPendente').textContent =
+            tipo === 'Receita' ? 'Pendente' : 'Pendente';
+    }
+}
+
+function selecionarStatus(status) {
+    document.getElementById('inputStatus').value = status;
+    document.getElementById('statusQuitado').classList.toggle('ativo', status === 'quitado');
+    document.getElementById('statusPendente').classList.toggle('ativo', status === 'pendente');
+}
+
+function selecionarForma(forma, el = null) {
+    document.getElementById('inputForma').value = forma;
+    document.querySelectorAll('#baloesForma .chip').forEach(b => b.classList.remove('ativo'));
+    if (el) el.classList.add('ativo');
+    else {
+        document.querySelectorAll('#baloesForma .chip').forEach(b => {
+            if (b.textContent.trim() === forma) b.classList.add('ativo');
+        });
+    }
+}
+
+function selecionarConta(conta) {
+    document.getElementById('inputConta').value = conta;
+    document.querySelectorAll('#baloesConta .chip').forEach(b => {
+        b.classList.toggle('ativo', b.dataset.conta === conta);
+    });
+}
+
+function atualizarBaloesConta() {
+    const box = document.getElementById('baloesConta');
+    if (!box) return;
+    const atual = document.getElementById('inputConta').value || contas[0] || 'Principal';
+    box.innerHTML = contas.map(c =>
+        `<button type="button" class="chip ${c === atual ? 'ativo':''}" data-conta="${escapeHtml(c)}" onclick="selecionarConta(this.dataset.conta)">${escapeHtml(c)}</button>`
+    ).join('');
+}
+
+function toggleExtrasLancamento() {
+    const box = document.getElementById('conteudoExtras');
+    box.classList.toggle('aberto');
+    document.getElementById('setaExtras').textContent = box.classList.contains('aberto') ? '⌃' : '⌄';
+}
+
+function toggleParcelamento() {
+    const ativo = document.getElementById('inputParcelado').checked;
+    document.getElementById('camposParcelamento').style.display = ativo ? 'block' : 'none';
+}
+
+function toggleRecorrencia() {
+    const ativo = document.getElementById('inputRecorrente').checked;
+    document.getElementById('camposRecorrencia').style.display = ativo ? 'block' : 'none';
+}
+
+function salvarMovimento(event) {
+    event.preventDefault();
+
+    const descricao = document.getElementById('inputDescricao').value.trim();
+    const valor = Number(document.getElementById('inputValor').value);
+    const tipo = document.getElementById('inputTipo').value;
+    const conta = document.getElementById('inputConta').value || contas[0] || 'Principal';
+    const forma = document.getElementById('inputForma').value || 'PIX';
+    const pago = document.getElementById('inputStatus').value === 'quitado';
+    const editId = document.getElementById('editIndex').value;
+
+    if (!descricao || !(valor >= 0)) {
+        mostrarToast('Preencha descrição e valor.');
+        return;
+    }
+
+    if (editId) {
+        const idx = movimentos.findIndex(m => String(m.id) === String(editId));
+        if (idx >= 0) {
+            const antigo = movimentos[idx];
+            movimentos[idx] = {
+                ...antigo,
+                descricao, valor, tipo, conta, forma, pago,
+                data: antigo.data || mesISO(),
+                parcelaAtual: antigo.parcelaAtual || 1,
+                totalParcelas: document.getElementById('inputParcelado').checked
+                    ? Number(document.getElementById('inputParcelas').value || 1)
+                    : 1,
+                recorrente: document.getElementById('inputRecorrente').checked,
+                mesesRecorrencia: document.getElementById('inputRecorrente').checked
+                    ? Number(document.getElementById('inputMesesRecorrencia').value || 12)
+                    : 0
+            };
+        }
+    } else {
+        criarMovimentoComExtras({descricao,valor,tipo,conta,forma,pago});
+    }
+
+    salvarDados();
+    atualizarInterface();
+    fecharModalLancamento();
+    mostrarToast(editId ? 'Lançamento atualizado.' : 'Lançamento cadastrado.');
+}
+
+function criarMovimentoComExtras(base) {
+    const parcelado = document.getElementById('inputParcelado').checked;
+    const totalParcelas = parcelado
+        ? Math.max(2, Number(document.getElementById('inputParcelas').value || 2))
+        : 1;
+
+    const recorrente = document.getElementById('inputRecorrente').checked;
+    const meses = recorrente
+        ? Math.max(2, Number(document.getElementById('inputMesesRecorrencia').value || 12))
+        : 1;
+
+    // Mantém o valor total informado e divide o valor de cada parcela.
+    const valorParcela = parcelado ? base.valor / totalParcelas : base.valor;
+    const quantidade = Math.max(totalParcelas, recorrente ? meses : 1);
+
+    // Parcelas e recorrências são criadas em meses sucessivos.
+    // Quando ambas estiverem marcadas, o lançamento usa a maior sequência.
+    for (let i=0; i<quantidade; i++) {
+        if (i >= totalParcelas && !recorrente) break;
+        if (i >= meses && recorrente && !parcelado) break;
+
+        const d = new Date(mesSelecionado.getFullYear(), mesSelecionado.getMonth()+i, 1);
+        const item = {
+            id: uid(),
+            tipo: base.tipo,
+            descricao: base.descricao,
+            valor: parcelado ? valorParcela : base.valor,
+            forma: base.forma,
+            conta: base.conta,
+            pago: i === 0 ? base.pago : false,
+            data: mesISO(d),
+            parcelaAtual: parcelado ? i+1 : 1,
+            totalParcelas: parcelado ? totalParcelas : 1,
+            recorrente: recorrente,
+            mesesRecorrencia: recorrente ? meses : 0
+        };
+        movimentos.push(item);
+
+        if (!parcelado && !recorrente) break;
+        if (parcelado && !recorrente && i + 1 >= totalParcelas) break;
+        if (!parcelado && recorrente && i + 1 >= meses) break;
+        if (parcelado && recorrente && i + 1 >= Math.max(totalParcelas, meses)) break;
+    }
+}
+
+function abrirModalHistorico() {
+    document.getElementById('modalHistorico').classList.add('aberto');
+    const atual = mesISO();
+    document.getElementById('filtroMesInicial').value = atual;
+    document.getElementById('filtroMesFinal').value = atual;
+    document.getElementById('filtroPeriodo').classList.remove('aberto');
+    carregarListaHistoricoModal();
+}
+
+function fecharModalHistorico() {
+    document.getElementById('modalHistorico').classList.remove('aberto');
+}
+
+function toggleFiltroPeriodo() {
+    document.getElementById('filtroPeriodo').classList.toggle('aberto');
+}
+
+function carregarListaHistoricoModal() {
+    let ini = document.getElementById('filtroMesInicial').value;
+    let fim = document.getElementById('filtroMesFinal').value;
+
+    if (!ini || !fim) {
+        ini = fim = mesISO();
+    }
+    if (ini > fim) [ini,fim] = [fim,ini];
+
+    const lista = movimentos
+        .filter(m => m.data >= ini && m.data <= fim)
+        .sort((a,b) => (b.data || '').localeCompare(a.data || ''));
+
+    const box = document.getElementById('listaHistoricoModal');
+    if (!lista.length) {
+        box.innerHTML = '<div class="sem-movimentos">Nenhum lançamento encontrado neste período.</div>';
+        return;
+    }
+
+    box.innerHTML = lista.map(m => {
+        const sinal = m.tipo === 'Despesa' ? '-' : '+';
+        const classe = m.tipo === 'Despesa' ? 'valor-vermelho' :
+                       m.tipo === 'Receita' ? 'valor-verde' : 'valor-azul';
+        const status = m.tipo === 'Saldo' ? 'Ajuste' : (ehPago(m) ? 'Pago' : 'Pendente');
+        const badge = m.tipo === 'Saldo' ? 'status-ok' : (ehPago(m) ? 'status-ok' : 'status-pendente');
+        const parcela = Number(m.totalParcelas || 1) > 1
+            ? ` • ${m.parcelaAtual || 1}/${m.totalParcelas}`
+            : '';
+        return `
+        <div class="swipe-wrapper">
+            <div class="swipe-fundo">
+                <span class="swipe-esquerda">← PENDENTE</span>
+                <span class="swipe-direita">PAGO →</span>
+            </div>
+            <div class="item-movimento" data-id="${escapeHtml(m.id)}"
+                 ontouchstart="inicioSwipe(event,this)"
+                 ontouchmove="moverSwipe(event,this)"
+                 ontouchend="fimSwipe(event,this)"
+                 onclick="abrirEdicaoPorClique(event,this)">
+                <div class="item-topo">
+                    <div class="item-descricao">${escapeHtml(m.descricao)}</div>
+                    <div class="item-valor ${classe}">${sinal}${formatarMoeda(m.valor)}</div>
+                </div>
+                <div class="item-info">
+                    ${escapeHtml(formatarMes(m.data))} • ${escapeHtml(m.conta || '')} • ${escapeHtml(m.forma || '')}${parcela}
+                    <br>
+                    <span class="status-badge ${badge}">${status}</span>
+                    ${m.recorrente ? ' <span class="status-badge status-ok">Recorrente</span>' : ''}
+                </div>
+                <div class="item-acoes">
+                    <button type="button" onclick="event.stopPropagation(); editarMovimento('${escapeHtml(m.id)}')">✏️ Editar</button>
+                    <button type="button" class="btn-excluir" onclick="event.stopPropagation(); excluirMovimento('${escapeHtml(m.id)}')">🗑️ Excluir</button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function abrirEdicaoPorClique(event, el) {
+    if (event.target.closest('button')) return;
+    const id = el.dataset.id;
+    editarMovimento(id);
+}
+
+function editarMovimento(id) {
+    const m = movimentos.find(x => String(x.id) === String(id));
+    if (!m) return;
+    fecharModalHistorico();
+    abrirModalLancamento(id);
+}
+
+function excluirMovimento(id) {
+    const m = movimentos.find(x => String(x.id) === String(id));
+    if (!m) return;
+    if (!confirm(`Excluir "${m.descricao}"?`)) return;
+    movimentos = movimentos.filter(x => String(x.id) !== String(id));
+    salvarDados();
+    atualizarInterface();
+    carregarListaHistoricoModal();
+    mostrarToast('Lançamento excluído.');
+}
+
+let swipeEstado = null;
+function inicioSwipe(e, el) {
+    const t = e.touches[0];
+    swipeEstado = {el, x:t.clientX, y:t.clientY};
+    el.classList.add('arrastando');
+}
+function moverSwipe(e, el) {
+    if (!swipeEstado || swipeEstado.el !== el) return;
+    const t = e.touches[0];
+    const dx = t.clientX - swipeEstado.x;
+    if (Math.abs(dx) < 10) return;
+    el.style.transform = `translateX(${Math.max(-120,Math.min(120,dx))}px)`;
+}
+function fimSwipe(e, el) {
+    if (!swipeEstado || swipeEstado.el !== el) return;
+    const dx = (e.changedTouches[0]?.clientX || swipeEstado.x) - swipeEstado.x;
+    el.classList.remove('arrastando');
+    el.style.transform = '';
+    const id = el.dataset.id;
+    const m = movimentos.find(x => String(x.id) === String(id));
+    if (m && Math.abs(dx) > 70 && m.tipo !== 'Saldo') {
+        m.pago = dx > 0 ? true : false;
+        m.pago = dx > 0;
+        salvarDados();
+        atualizarInterface();
+        carregarListaHistoricoModal();
+        mostrarToast(dx > 0 ? 'Marcado como pago.' : 'Marcado como pendente.');
+    }
+    swipeEstado = null;
+}
+
+function abrirModalContas() {
+    document.getElementById('modalContas').classList.add('aberto');
+    renderizarContas();
+}
+
+function fecharModalContas() {
+    document.getElementById('modalContas').classList.remove('aberto');
+}
+
+function renderizarContas() {
+    const box = document.getElementById('listaContasGerenciar');
+    box.innerHTML = contas.map((c,i) => `
+        <div style="display:flex;align-items:center;gap:8px;border:1px solid var(--border);padding:9px;border-radius:10px;">
+            <span style="flex:1">${escapeHtml(c)}${i===0 ? ' <small style="color:var(--muted)">(principal)</small>' : ''}</span>
+            ${i>0 ? `<button class="btn-pequeno" style="color:var(--danger)" onclick="excluirConta(${i})">Excluir</button>` : ''}
+        </div>
+    `).join('');
+}
+
+function adicionarContaModal() {
+    const input = document.getElementById('inputNovaContaNome');
+    const nome = input.value.trim();
+    if (!nome) return;
+    if (contas.some(c => c.toLowerCase() === nome.toLowerCase())) {
+        mostrarToast('Essa conta já existe.');
+        return;
+    }
+    contas.push(nome);
+    input.value = '';
+    salvarDados();
+    renderizarContas();
+    atualizarBaloesConta();
+    mostrarToast('Conta adicionada.');
+}
+
+function excluirConta(i) {
+    if (i === 0) return;
+    const nome = contas[i];
+    if (movimentos.some(m => m.conta === nome)) {
+        if (!confirm(`A conta "${nome}" possui lançamentos. Excluir mesmo assim? Os lançamentos serão mantidos.`)) return;
+    }
+    contas.splice(i,1);
+    salvarDados();
+    renderizarContas();
+    atualizarBaloesConta();
+}
+
+function abrirModalGraficos() {
+    document.getElementById('modalGraficos').classList.add('aberto');
+    const atual = mesISO();
+    document.getElementById('filtroMesInicialGraficos').value = atual;
+    document.getElementById('filtroMesFinalGraficos').value = atual;
+    document.getElementById('filtroPeriodoGraficos').classList.remove('aberto');
+    carregarGraficos();
+}
+
+function fecharModalGraficos() {
+    document.getElementById('modalGraficos').classList.remove('aberto');
+}
+
+function toggleFiltroPeriodoGraficos() {
+    document.getElementById('filtroPeriodoGraficos').classList.toggle('aberto');
+}
+
+function obterPeriodoGraficos() {
+    let ini = document.getElementById('filtroMesInicialGraficos').value || mesISO();
+    let fim = document.getElementById('filtroMesFinalGraficos').value || mesISO();
+    if (ini > fim) [ini,fim] = [fim,ini];
+    return {ini,fim};
+}
+
+function mesesEntre(ini,fim) {
+    const out = [];
+    let [y,m] = ini.split('-').map(Number);
+    const [fy,fm] = fim.split('-').map(Number);
+    while (y < fy || (y === fy && m <= fm)) {
+        out.push(`${y}-${String(m).padStart(2,'0')}`);
+        m++;
+        if (m === 13) {m=1;y++;}
+    }
+    return out;
+}
+
+function carregarGraficos() {
+    const {ini,fim} = obterPeriodoGraficos();
+    const meses = mesesEntre(ini,fim);
+
+    const movimentosPeriodo = movimentos.filter(m => m.data >= ini && m.data <= fim);
+
+    const receitas = meses.map(m =>
+        movimentos.filter(x => x.data === m && x.tipo === 'Receita')
+            .reduce((s,x) => s + Number(x.valor || 0), 0)
+    );
+
+    const despesas = meses.map(m =>
+        movimentos.filter(x => x.data === m && x.tipo === 'Despesa')
+            .reduce((s,x) => s + Number(x.valor || 0), 0)
+    );
+
+    const fluxo = meses.map((m,i) => receitas[i] - despesas[i]);
+
+    if (typeof Chart === 'undefined') {
+        document.getElementById('analiseFinanceira').innerHTML =
+            'Não foi possível carregar o componente de gráficos.';
+        return;
+    }
+
+    if (graficoRD) graficoRD.destroy();
+    if (graficoFluxo) graficoFluxo.destroy();
+    if (graficoContasDespesas) graficoContasDespesas.destroy();
+
+    graficoRD = new Chart(document.getElementById('graficoReceitasDespesas'), {
+        type:'bar',
+        data:{
+            labels:meses.map(formatarMes),
+            datasets:[
+                {label:'Receitas',data:receitas},
+                {label:'Despesas',data:despesas}
+            ]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:true,
+            plugins:{legend:{display:true}}
+        }
+    });
+
+    graficoFluxo = new Chart(document.getElementById('graficoFluxo'), {
+        type:'line',
+        data:{
+            labels:meses.map(formatarMes),
+            datasets:[
+                {label:'Resultado',data:fluxo,tension:.25}
+            ]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:true,
+            plugins:{legend:{display:true}}
+        }
+    });
+
+    // =====================================================
+    // NOVO GRÁFICO: CONTAS x DESPESAS
+    // Mostra quanto foi gasto em cada conta no período.
+    // =====================================================
+    const despesasPorConta = {};
+
+    movimentosPeriodo
+        .filter(m => m.tipo === 'Despesa')
+        .forEach(m => {
+            const conta = m.conta || 'Sem conta';
+            despesasPorConta[conta] =
+                (despesasPorConta[conta] || 0) + Number(m.valor || 0);
+        });
+
+    const contasOrdenadas = Object.entries(despesasPorConta)
+        .sort((a,b) => b[1] - a[1]);
+
+    const labelsContas = contasOrdenadas.map(x => x[0]);
+    const valoresContas = contasOrdenadas.map(x => x[1]);
+
+    graficoContasDespesas = new Chart(
+        document.getElementById('graficoContasDespesas'),
+        {
+            type:'bar',
+            data:{
+                labels:labelsContas.length ? labelsContas : ['Sem despesas'],
+                datasets:[
+                    {
+                        label:'Despesas',
+                        data:valoresContas.length ? valoresContas : [0]
+                    }
+                ]
+            },
+            options:{
+                indexAxis:'y',
+                responsive:true,
+                maintainAspectRatio:true,
+                plugins:{
+                    legend:{display:false},
+                    tooltip:{
+                        callbacks:{
+                            label:function(ctx) {
+                                return ' ' + formatarMoeda(ctx.raw);
+                            }
+                        }
+                    }
+                },
+                scales:{
+                    x:{
+                        ticks:{
+                            callback:function(value) {
+                                return formatarMoeda(value);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    );
+
+    // =====================================================
+    // ANÁLISE DE GASTOS: onde mais gasto e como sobrar mais
+    // =====================================================
+    const totalR = receitas.reduce((a,b)=>a+b,0);
+    const totalD = despesas.reduce((a,b)=>a+b,0);
+    const resultado = totalR - totalD;
+
+    // Agrupa despesas pela descrição. Como o app não exige categorias,
+    // a descrição é a melhor forma de identificar os gastos que mais pesam.
+    const despesasPorDescricao = {};
+    const quantidadePorDescricao = {};
+    const recorrentes = [];
+    const parceladas = [];
+
+    movimentosPeriodo
+        .filter(m => m.tipo === 'Despesa')
+        .forEach(m => {
+            const descricao = (m.descricao || 'Sem descrição').trim() || 'Sem descrição';
+            const valor = Number(m.valor || 0);
+            despesasPorDescricao[descricao] = (despesasPorDescricao[descricao] || 0) + valor;
+            quantidadePorDescricao[descricao] = (quantidadePorDescricao[descricao] || 0) + 1;
+            if (m.recorrente) recorrentes.push(m);
+            if (Number(m.totalParcelas || 1) > 1) parceladas.push(m);
+        });
+
+    const topGastos = Object.entries(despesasPorDescricao)
+        .map(([descricao,valor]) => ({
+            descricao,
+            valor,
+            quantidade: quantidadePorDescricao[descricao] || 1,
+            percentual: totalD > 0 ? (valor / totalD) * 100 : 0
+        }))
+        .sort((a,b) => b.valor - a.valor);
+
+    const despesasPorContaAnalise = {};
+    movimentosPeriodo
+        .filter(m => m.tipo === 'Despesa')
+        .forEach(m => {
+            const conta = m.conta || 'Sem conta';
+            despesasPorContaAnalise[conta] =
+                (despesasPorContaAnalise[conta] || 0) + Number(m.valor || 0);
+        });
+
+    const topContas = Object.entries(despesasPorContaAnalise)
+        .sort((a,b) => b[1] - a[1]);
+
+    const totalRecorrente = recorrentes.reduce((s,m) => s + Number(m.valor || 0), 0);
+    const totalParcelado = parceladas.reduce((s,m) => s + Number(m.valor || 0), 0);
+
+    const recebidas = movimentosPeriodo
+        .filter(m => m.tipo === 'Receita' && ehPago(m))
+        .reduce((s,m) => s + Number(m.valor || 0), 0);
+
+    const pagas = movimentosPeriodo
+        .filter(m => m.tipo === 'Despesa' && ehPago(m))
+        .reduce((s,m) => s + Number(m.valor || 0), 0);
+
+    const saldoCaixa = recebidas - pagas + movimentosPeriodo
+        .filter(m => m.tipo === 'Saldo')
+        .reduce((s,m) => s + Number(m.valor || 0), 0);
+
+    const aPagar = movimentosPeriodo
+        .filter(m => m.tipo === 'Despesa' && !ehPago(m))
+        .reduce((s,m) => s + Number(m.valor || 0), 0);
+
+    const percentualDespesas = totalR > 0 ? (totalD / totalR) * 100 : 0;
+    const economia5 = totalD * 0.05;
+    const economia10 = totalD * 0.10;
+    const economia15 = totalD * 0.15;
+
+    const moeda = v => formatarMoeda(v);
+    const linhaGasto = (item, pos) => `
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+            <div style="min-width:0;">
+                <strong>${pos}º ${escapeHtml(item.descricao)}</strong>
+                <div style="font-size:11px;color:var(--muted);">${item.quantidade} lançamento(s) · ${item.percentual.toFixed(1)}% das despesas</div>
+            </div>
+            <strong style="white-space:nowrap;">${moeda(item.valor)}</strong>
+        </div>`;
+
+    let leitura = '';
+    if (!totalD) {
+        leitura = `<div style="padding:10px 0;">Ainda não há despesas no período para analisar.</div>`;
+    } else if (topGastos.length) {
+        const maior = topGastos[0];
+        leitura = `
+            <div style="padding:10px 0 6px;">
+                <strong>🔎 Seu maior ponto de atenção:</strong><br>
+                <strong>${escapeHtml(maior.descricao)}</strong> representa <strong>${maior.percentual.toFixed(1)}%</strong> de tudo que você gastou no período (${moeda(maior.valor)}).
+            </div>
+            <div style="margin-top:5px;">${topGastos.slice(0,5).map((x,i)=>linhaGasto(x,i+1)).join('')}</div>`;
+    }
+
+    const acoes = [];
+    if (topGastos[0]) {
+        const maior = topGastos[0];
+        acoes.push(`🎯 <strong>Comece pelo maior gasto:</strong> veja se “${escapeHtml(maior.descricao)}” pode ser reduzido, substituído ou limitado. Uma pequena redução aqui tende a ter mais impacto que cortar vários gastos pequenos.`);
+    }
+    if (topGastos.length >= 2) {
+        const top2 = topGastos.slice(0,2).reduce((s,x)=>s+x.valor,0);
+        const pct = totalD ? (top2/totalD)*100 : 0;
+        acoes.push(`✂️ <strong>Ataque os 2 maiores gastos:</strong> juntos representam ${pct.toFixed(1)}% das despesas (${moeda(top2)}). É onde vale concentrar o esforço primeiro.`);
+    }
+    if (totalRecorrente > 0) {
+        acoes.push(`🔁 <strong>Revise os recorrentes:</strong> há ${moeda(totalRecorrente)} em despesas marcadas como recorrentes no período. Cancele, reduza ou renegocie o que não for essencial.`);
+    }
+    if (totalParcelado > 0) {
+        acoes.push(`💳 <strong>Cuidado com parcelas:</strong> ${moeda(totalParcelado)} do período está em lançamentos parcelados. Evite novas parcelas até liberar parte dessa renda comprometida.`);
+    }
+    if (aPagar > 0) {
+        acoes.push(`⚠️ <strong>Não conte com o dinheiro que ainda está comprometido:</strong> existem ${moeda(aPagar)} em despesas pendentes. Priorize pagar sem criar novas dívidas.`);
+    }
+    if (percentualDespesas >= 90 && totalR > 0) {
+        acoes.push(`🚨 <strong>Seu gasto está muito próximo/acima da renda:</strong> as despesas consomem ${percentualDespesas.toFixed(1)}% das receitas. Neste cenário, o foco deve ser reduzir despesas antes de assumir novos compromissos.`);
+    } else if (percentualDespesas >= 70 && totalR > 0) {
+        acoes.push(`🟠 <strong>Há pouco espaço para imprevistos:</strong> ${percentualDespesas.toFixed(1)}% da receita já está comprometida com despesas. Tente abrir uma margem maior antes de aumentar o padrão de consumo.`);
+    } else if (totalR > 0) {
+        acoes.push(`🟢 <strong>Você tem margem:</strong> as despesas representam ${percentualDespesas.toFixed(1)}% das receitas. Preserve parte dessa diferença para formar reserva em vez de aumentar os gastos.`);
+    }
+
+    const periodoTexto = ini === fim
+        ? formatarMes(ini)
+        : `${formatarMes(ini)} até ${formatarMes(fim)}`;
+
+    document.getElementById('analiseFinanceira').innerHTML = `
+        <strong>💡 Onde estou gastando e como ficar mais positivo — ${escapeHtml(periodoTexto)}</strong>
+
+        <div style="margin-top:10px;padding:10px;border-radius:10px;background:var(--card);border:1px solid var(--border);">
+            <div style="font-size:12px;color:var(--muted);">RESULTADO ATUAL</div>
+            <div style="font-size:20px;font-weight:800;margin-top:3px;">${moeda(resultado)}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:3px;">Receitas: ${moeda(totalR)} · Despesas: ${moeda(totalD)} · Despesas = ${percentualDespesas.toFixed(1)}% da receita</div>
+        </div>
+
+        <div style="margin-top:12px;">
+            <strong>🔍 Onde você mais gasta</strong>
+            ${leitura}
+        </div>
+
+        <div style="margin-top:14px;">
+            <strong>🏦 Conta que mais concentra despesas</strong>
+            ${topContas.length
+                ? `<div style="margin-top:6px;">${topContas.slice(0,3).map((x,i)=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>${i+1}º ${escapeHtml(x[0])}</span><strong>${moeda(x[1])}</strong></div>`).join('')}</div>`
+                : `<div style="font-size:11px;color:var(--muted);margin-top:6px;">Sem despesas para analisar.</div>`}
+        </div>
+
+        <div style="margin-top:14px;">
+            <strong>✂️ O que você pode fazer para sobrar mais</strong>
+            <div style="margin-top:6px;display:grid;gap:7px;">${acoes.slice(0,5).map(x=>`<div style="padding:8px 9px;border-radius:8px;background:var(--bg);border:1px solid var(--border);font-size:12px;line-height:1.4;">${x}</div>`).join('')}</div>
+        </div>
+
+        <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border);">
+            <strong>📈 Se você cortar despesas, quanto pode melhorar?</strong>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:7px;">
+                <div style="padding:7px;text-align:center;border:1px solid var(--border);border-radius:8px;"><div style="font-size:10px;color:var(--muted);">-5%</div><strong>${moeda(economia5)}</strong></div>
+                <div style="padding:7px;text-align:center;border:1px solid var(--border);border-radius:8px;"><div style="font-size:10px;color:var(--muted);">-10%</div><strong>${moeda(economia10)}</strong></div>
+                <div style="padding:7px;text-align:center;border:1px solid var(--border);border-radius:8px;"><div style="font-size:10px;color:var(--muted);">-15%</div><strong>${moeda(economia15)}</strong></div>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;">Esses valores são cenários de economia, não uma previsão. O objetivo é mostrar quanto uma redução nos gastos poderia acrescentar ao seu resultado.</div>
+        </div>
+    `;
+
+}
+
+function toggleConfigMenu() {
+    document.getElementById('menuConfig').classList.toggle('aberto');
+}
+
+function fecharConfigMenu() {
+    document.getElementById('menuConfig').classList.remove('aberto');
+}
+
+function alternarTema() {
+    const escuro = document.body.classList.toggle('dark');
+    localStorage.setItem(CHAVE_TEMA, escuro ? 'escuro' : 'claro');
+    document.getElementById('btnTema').textContent = escuro ? '☀️' : '🌙';
+}
+
+function carregarTema() {
+    const tema = localStorage.getItem(CHAVE_TEMA);
+    const escuro = tema === 'escuro';
+    document.body.classList.toggle('dark', escuro);
+    const b = document.getElementById('btnTema');
+    if (b) b.textContent = escuro ? '☀️' : '🌙';
+}
+
+function fazerBackup() {
+    const dados = {
+        versao: 'v4-reconstruida',
+        movimentos,
+        contas,
+        tema: localStorage.getItem(CHAVE_TEMA) || 'claro',
+        exportadoEm: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(dados,null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `backup-controle-financeiro-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    mostrarToast('Backup criado.');
+}
+
+function abrirRestaurarBackup() {
+    document.getElementById('inputRestaurarBackup').click();
+}
+
+function restaurarBackup(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const dados = JSON.parse(reader.result);
+            if (!Array.isArray(dados.movimentos)) throw new Error('Backup inválido');
+
+            // Mescla por ID para não apagar lançamentos que já existem.
+            const mapa = new Map(movimentos.map(m => [String(m.id),m]));
+            dados.movimentos.forEach(m => {
+                if (!m.id) m.id = uid();
+                mapa.set(String(m.id), m);
+            });
+            movimentos = Array.from(mapa.values());
+
+            if (Array.isArray(dados.contas)) {
+                dados.contas.forEach(c => {
+                    if (c && !contas.includes(c)) contas.push(c);
+                });
+            }
+            salvarDados();
+            atualizarInterface();
+            mostrarToast('Backup restaurado e mesclado.');
+        } catch(e) {
+            console.error(e);
+            alert('Não foi possível restaurar este backup.');
+        } finally {
+            event.target.value = '';
+        }
+    };
+    reader.readAsText(file);
+}
+
+function gerarRelatorioPDF() {
+    // Exportação sem dependência extra: abre uma página de impressão,
+    // permitindo "Salvar como PDF" no navegador.
+    const lista = movimentos.slice().sort((a,b) => (a.data||'').localeCompare(b.data||''));
+    const linhas = lista.map(m => `
+        <tr>
+            <td>${escapeHtml(m.data)}</td>
+            <td>${escapeHtml(m.tipo)}</td>
+            <td>${escapeHtml(m.descricao)}</td>
+            <td>${escapeHtml(m.conta||'')}</td>
+            <td>${escapeHtml(m.forma||'')}</td>
+            <td>${formatarMoeda(m.valor)}</td>
+            <td>${m.tipo==='Saldo'?'Ajuste':(ehPago(m)?'Pago':'Pendente')}</td>
+        </tr>`).join('');
+
+    const win = window.open('', '_blank');
+    if (!win) {
+        mostrarToast('Permita pop-ups para exportar o relatório.');
+        return;
+    }
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Relatório Financeiro</title>
+    <style>
+    body{font-family:Arial,sans-serif;padding:25px;color:#111}
+    h1{font-size:22px}p{color:#555}
+    table{width:100%;border-collapse:collapse;font-size:11px}
+    th,td{border:1px solid #ddd;padding:7px;text-align:left}
+    th{background:#f3f4f6}
+    </style></head><body>
+    <h1>Relatório Financeiro</h1>
+    <p>Gerado em ${new Date().toLocaleString('pt-BR')}</p>
+    <table><thead><tr><th>Mês</th><th>Tipo</th><th>Descrição</th><th>Conta</th><th>Forma</th><th>Valor</th><th>Status</th></tr></thead>
+    <tbody>${linhas}</tbody></table>
+    <script>window.onload=()=>window.print();<\/script></body></html>`);
+    win.document.close();
+}
+
+function abrirModalReset() {
+    document.getElementById('modalReset').classList.add('aberto');
+}
+function fecharModalReset() {
+    document.getElementById('modalReset').classList.remove('aberto');
+}
+function confirmarReset() {
+    if (!confirm('Tem certeza que deseja apagar todos os dados?')) return;
+    localStorage.removeItem(CHAVE_MOVIMENTOS);
+    localStorage.removeItem(CHAVE_CONTAS);
+    movimentos = [];
+    contas = ['Principal','Nubank','Itaú','Caixa','Santander'];
+    salvarDados();
+    atualizarInterface();
+    fecharModalReset();
+    mostrarToast('Dados apagados.');
+}
+
+function fecharModalFora(event, id) {
+    if (event.target.id === id) {
+        document.getElementById(id).classList.remove('aberto');
+    }
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.aberto').forEach(m => m.classList.remove('aberto'));
+        fecharConfigMenu();
+    }
+});
+
+document.addEventListener('click', e => {
+    const menu = document.getElementById('menuConfig');
+    const btn = document.getElementById('btnConfig');
+    if (menu.classList.contains('aberto') && !menu.contains(e.target) && e.target !== btn) {
+        menu.classList.remove('aberto');
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    carregarDados();
+    carregarTema();
+    atualizarInterface();
+});
+</script>
+
+</body>
+</html>
