@@ -725,6 +725,19 @@ select:focus {
     margin-bottom:22px;
 }
 
+/* Gráficos horizontais: usam toda a largura e ganham altura conforme a quantidade de itens */
+.grafico-horizontal {
+    width:100%;
+    min-height:0;
+}
+
+.grafico-horizontal canvas {
+    width:100% !important;
+    height:var(--altura-grafico, 320px) !important;
+    min-height:260px;
+    display:block;
+}
+
 .grafico-container h3 {
     font-size:14px;
     margin:0 0 10px;
@@ -1100,13 +1113,13 @@ select:focus {
                     <h3>Receitas x Despesas</h3>
                     <canvas id="graficoReceitasDespesas"></canvas>
                 </div>
-                <div class="grafico-container">
+                <div class="grafico-container grafico-horizontal" id="containerGraficoTiposDespesas">
                     <h3>Gastos por tipo de despesa</h3>
-                    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Os valores aparecem em ordem do maior para o menor e já incluem o percentual de cada gasto.</div>
+                    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Maior gasto no topo • percentual do total entre parênteses.</div>
                     <canvas id="graficoTiposDespesas"></canvas>
                 </div>
 
-                <div class="grafico-container">
+                <div class="grafico-container grafico-horizontal" id="containerGraficoContasDespesas">
                     <h3>Contas x Despesas</h3>
                     <canvas id="graficoContasDespesas"></canvas>
                 </div>
@@ -1824,32 +1837,50 @@ function carregarGraficos() {
     const tiposOrdenadosGrafico = Object.entries(despesasPorTipoGrafico)
         .sort((a,b)=>b[1]-a[1]);
 
+    // Se ainda não houver despesas no período, mantém o gráfico visível e horizontal.
+    const tiposParaExibir = tiposOrdenadosGrafico.length ? tiposOrdenadosGrafico : [['Sem despesas no período', 0]];
+
+    // Cada tipo recebe uma linha própria. O canvas ocupa toda a largura do app.
+    const alturaTipos = Math.max(260, Math.min(900, 110 + tiposParaExibir.length * 48));
+    const containerTipos = document.getElementById('containerGraficoTiposDespesas');
+    if (containerTipos) containerTipos.style.setProperty('--altura-grafico', alturaTipos + 'px');
+
     graficoTiposDespesas = new Chart(document.getElementById('graficoTiposDespesas'), {
         type:'bar',
         data:{
-            labels:tiposOrdenadosGrafico.map(([tipo,valor]) => {
+            labels:tiposParaExibir.map(([tipo,valor]) => {
                 const pct = totalDespesasGrafico > 0 ? (valor / totalDespesasGrafico) * 100 : 0;
-                return `${tipo} (${pct.toFixed(1)}%)`;
+                return totalDespesasGrafico > 0 ? `${tipo} (${pct.toFixed(1)}%)` : tipo;
             }),
             datasets:[{
                 label:'Gasto',
-                data:tiposOrdenadosGrafico.map(x=>x[1])
+                data:tiposParaExibir.map(x=>x[1])
             }]
         },
         options:{
             indexAxis:'y',
             responsive:true,
             maintainAspectRatio:false,
-            plugins:{legend:{display:false}},
+            layout:{padding:{right:12}},
+            plugins:{
+                legend:{display:false},
+                tooltip:{callbacks:{label:function(ctx){
+                    const v = Number(ctx.raw || 0);
+                    const pct = totalDespesasGrafico > 0 ? (v / totalDespesasGrafico) * 100 : 0;
+                    return ' ' + formatarMoeda(v) + (totalDespesasGrafico > 0 ? ` • ${pct.toFixed(1)}%` : '');
+                }}}
+            },
             scales:{
                 x:{
                     beginAtZero:true,
                     ticks:{callback:function(value){ return formatarMoeda(value); }}
                 },
                 y:{
+                    type:'category',
                     ticks:{
                         autoSkip:false,
-                        font:{size:11}
+                        font:{size:11},
+                        padding:6
                     }
                 }
             }
@@ -1876,6 +1907,10 @@ function carregarGraficos() {
     const labelsContas = contasOrdenadas.map(x => x[0]);
     const valoresContas = contasOrdenadas.map(x => x[1]);
 
+    const alturaContas = Math.max(280, Math.min(800, 95 + contasOrdenadas.length * 48));
+    const containerContas = document.getElementById('containerGraficoContasDespesas');
+    if (containerContas) containerContas.style.setProperty('--altura-grafico', alturaContas + 'px');
+
     graficoContasDespesas = new Chart(
         document.getElementById('graficoContasDespesas'),
         {
@@ -1892,7 +1927,8 @@ function carregarGraficos() {
             options:{
                 indexAxis:'y',
                 responsive:true,
-                maintainAspectRatio:true,
+                maintainAspectRatio:false,
+                layout:{padding:{right:12}},
                 plugins:{
                     legend:{display:false},
                     tooltip:{
